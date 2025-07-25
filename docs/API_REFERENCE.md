@@ -1,10 +1,10 @@
-# Wellbeing Mapper - API Reference
+# Gauteng Wellbeing Mapper - API Reference
 
 ## Overview
 
-This document provides detailed information about the Wellbeing Mapper codebase APIs, including class methods, database schemas, encryption services, and integration points. This reference is intended for developers working on the codebase for the Planet4Health project case study on mental wellbeing in environmental & climate context.
+This document provides detailed information about the Gauteng Wellbeing Mapper codebase APIs, including class methods, database schemas, encryption services, and integration points. This reference is intended for developers working on the codebase for the Planet4Health project case study on mental wellbeing in environmental & climate context.
 
-The app now supports multi-site research participation with end-to-end encryption for secure data transmission to research servers in Barcelona, Spain and Gauteng, South Africa.
+The app supports research participation with end-to-end encryption for secure data transmission to research servers in Gauteng, South Africa.
 
 ## Research Participation APIs
 
@@ -16,7 +16,7 @@ Manages user participation preferences and research site configuration.
 class ParticipationSettings {
   final bool isResearchParticipant;
   final String? participantCode;        // Site-specific participant identifier
-  final String? researchSite;          // 'barcelona' or 'gauteng'
+  final String? researchSite;          // 'gauteng'
   final DateTime createdAt;
 
   // Factory constructors
@@ -288,7 +288,7 @@ class ParticipationSelectionScreen extends StatefulWidget {
 }
 
 class _ParticipationSelectionScreenState extends State<ParticipationSelectionScreen> {
-  String _selectedMode;             // 'private', 'barcelona', 'gauteng'
+  String _selectedMode;             // 'private', 'gauteng'
   TextEditingController _participantCodeController;
   
   // Site-specific UI rendering
@@ -389,7 +389,7 @@ User-Agent: WellbeingMapper/1.0
 {
   "uploadId": "uuid-v4",
   "participantUuid": "uuid-v4",
-  "researchSite": "barcelona" | "gauteng",
+  "researchSite": "gauteng",
   "encryptedData": "base64-encoded-payload",
   "encryptionMetadata": {
     "algorithm": "RSA-OAEP-AES-256-GCM",
@@ -421,7 +421,7 @@ After server-side decryption, the payload contains:
 ```json
 {
   "participantUuid": "uuid-v4",
-  "researchSite": "barcelona" | "gauteng",
+  "researchSite": "gauteng",
   "uploadTimestamp": "ISO-8601-timestamp",
   "surveys": [
     {

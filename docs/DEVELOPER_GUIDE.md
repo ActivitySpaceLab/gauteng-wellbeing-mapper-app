@@ -1,10 +1,10 @@
-# Wellbeing Mapper - Developer Guide
+# Gauteng Wellbeing Mapper - Developer Guide
 
 ## Overview
 
-Wellbeing Mapper is a privacy-focused Flutter mobile application that enables users to map their mental wellbeing in environmental & climate context. As part of the Planet4Health project case study, the app facilitates research into how environmental and climate factors impact psychological health by allowing users to correlate location data with mental wellbeing indicators.
+Gauteng Wellbeing Mapper is a privacy-focused Flutter mobile application that enables users to map their mental wellbeing in environmental & climate context. As part of the Planet4Health project case study, the app facilitates research into how environmental and climate factors impact psychological health by allowing users to correlate location data with mental wellbeing indicators.
 
-The app now supports **multi-site research participation** with end-to-end encryption for secure data transmission to research servers in Barcelona, Spain and Gauteng, South Africa.
+This version is specifically configured for the **Gauteng research study** with end-to-end encryption for secure data transmission to research servers in Gauteng, South Africa.
 
 ### Planet4Health Integration
 
@@ -15,14 +15,15 @@ This application supports the Planet4Health research initiative "[Mental wellbei
 1. [Architecture Overview](#architecture-overview)
 2. [Research Participation System](#research-participation-system)
 3. [Encryption & Security](#encryption--security)
-4. [Core Components](#core-components)
-5. [Data Flow](#data-flow)
-6. [File Structure](#file-structure)
-7. [Getting Started](#getting-started)
-8. [Development Workflow](#development-workflow)
-9. [Server Setup](#server-setup)
-10. [Testing](#testing)
-11. [Screenshots & Visual Documentation](#screenshots--visual-documentation)
+4. [Flutter Background Geolocation - Critical Implementation Notes](#flutter-background-geolocation---critical-implementation-notes)
+5. [Core Components](#core-components)
+6. [Data Flow](#data-flow)
+7. [File Structure](#file-structure)
+8. [Getting Started](#getting-started)
+9. [Development Workflow](#development-workflow)
+10. [Server Setup](#server-setup)
+11. [Testing](#testing)
+12. [Screenshots & Visual Documentation](#screenshots--visual-documentation)
 12. [Deployment](#deployment)
 
 ## Architecture Overview
@@ -57,21 +58,18 @@ Wellbeing Mapper follows a modular Flutter architecture with clear separation of
 
 ## Research Participation System
 
-### Three Usage Modes
+### Two Usage Modes
 
 1. **Private Mode**: 
    - Personal mental health tracking only
    - No data sharing or transmission
    - All data stays on device
 
-2. **Barcelona Research**:
-   - Participate in Spanish research study
-   - Location consent and tracking
-   - Site-specific surveys and demographics
-   - Encrypted bi-weekly data uploads
-
-3. **Gauteng Research**:
+2. **Gauteng Research**:
    - Participate in South African research study  
+   - Enhanced demographic questions (ethnicity, building type)
+   - Health status tracking
+   - Encrypted bi-weekly data uploads  
    - Enhanced demographic questions (ethnicity, building type)
    - Health status tracking
    - Encrypted bi-weekly data uploads
@@ -83,14 +81,11 @@ graph TD
     A[App Launch] --> B[Participation Selection]
     B --> C{User Choice}
     C -->|Private| D[Private Mode Setup]
-    C -->|Barcelona| E[Barcelona Consent Form]
-    C -->|Gauteng| F[Gauteng Consent Form]
-    E --> G[Barcelona Survey Setup]
-    F --> H[Gauteng Survey Setup]
-    G --> I[Enable Location Tracking]
-    H --> I
-    I --> J[Begin Data Collection]
-    J --> K[Bi-weekly Upload Schedule]
+    C -->|Research| E[Gauteng Consent Form]
+    E --> F[Gauteng Survey Setup]
+    F --> G[Enable Location Tracking]
+    G --> H[Begin Data Collection]
+    H --> I[Bi-weekly Upload Schedule]
 ```
 
 ## Encryption & Security
@@ -126,12 +121,6 @@ Public keys are embedded in the app at build time:
 ```dart
 // In lib/services/data_upload_service.dart
 static const Map<String, ServerConfig> _serverConfigs = {
-  'barcelona': ServerConfig(
-    baseUrl: 'https://barcelona-server.com',
-    publicKey: '''-----BEGIN PUBLIC KEY-----
-    [RSA-4096 PUBLIC KEY FOR BARCELONA]
-    -----END PUBLIC KEY-----''',
-  ),
   'gauteng': ServerConfig(
     baseUrl: 'https://gauteng-server.com', 
     publicKey: '''-----BEGIN PUBLIC KEY-----
@@ -140,6 +129,47 @@ static const Map<String, ServerConfig> _serverConfigs = {
   ),
 };
 ```
+
+## Flutter Background Geolocation - Critical Implementation Notes
+
+### ⚠️ IMPORTANT WARNINGS
+
+**DO NOT** execute any API method which will require accessing location-services until the `.ready(config)` method has been called. This is a critical requirement for proper initialization of the background geolocation plugin.
+
+### Required Import Pattern
+Always import the plugin with the `bg` namespace to avoid class name conflicts:
+
+```dart
+import 'package:flutter_background_geolocation/flutter_background_geolocation.dart' as bg;
+```
+
+**Why this matters**: The plugin uses common class names such as `Location`, `Config`, `State` that will conflict with other packages and Flutter's built-in classes. You must access every flutter_background_geolocation class with the `bg` prefix (i.e., `bg.Location`, `bg.Config`, `bg.State`).
+
+### Proper Initialization Sequence
+
+```dart
+// ✅ CORRECT - Wait for ready() before any other API calls
+await bg.BackgroundGeolocation.ready(bg.Config(
+  // your configuration
+)).then((bg.State state) {
+  // Now safe to call other API methods
+  if (!state.enabled) {
+    bg.BackgroundGeolocation.start();
+  }
+});
+
+// ❌ WRONG - Don't call API methods before ready()
+bg.BackgroundGeolocation.start(); // This will fail!
+```
+
+### Common Pitfalls to Avoid
+
+1. **Calling API methods before ready()**: Always wait for `.ready()` to complete
+2. **Missing namespace**: Import without `as bg` causes class name conflicts
+3. **State access without prefix**: Use `bg.State`, not `State`
+4. **Location object confusion**: Use `bg.Location`, not Flutter's `Location`
+
+For more details, see the [official plugin documentation](https://pub.dev/packages/flutter_background_geolocation#-using-the-plugin).
 
 ## Core Components
 
@@ -380,10 +410,6 @@ Ensure location permissions are properly configured in platform files:
 
 **Generate RSA Key Pairs:**
 ```bash
-# For Barcelona research site
-openssl genrsa -out barcelona_private_key.pem 4096
-openssl rsa -in barcelona_private_key.pem -pubout -out barcelona_public_key.pem
-
 # For Gauteng research site  
 openssl genrsa -out gauteng_private_key.pem 4096
 openssl rsa -in gauteng_private_key.pem -pubout -out gauteng_public_key.pem
@@ -394,13 +420,6 @@ Edit `lib/services/data_upload_service.dart` and replace the placeholder public 
 
 ```dart
 static const Map<String, ServerConfig> _serverConfigs = {
-  'barcelona': ServerConfig(
-    baseUrl: 'https://your-barcelona-server.com',
-    uploadEndpoint: '/api/v1/participant-data',
-    publicKey: '''-----BEGIN PUBLIC KEY-----
-[PASTE YOUR BARCELONA PUBLIC KEY HERE]
------END PUBLIC KEY-----''',
-  ),
   'gauteng': ServerConfig(
     baseUrl: 'https://your-gauteng-server.com',
     uploadEndpoint: '/api/v1/participant-data', 
@@ -587,8 +606,8 @@ Generate screenshots using the automated system:
 
 The screenshot system documents all major app workflows:
 
-1. **🔘 Participation Selection**: Private, Barcelona, and Gauteng research modes
-2. **📝 Survey Interface**: Site-specific surveys and form interactions
+1. **🔘 Participation Selection**: Private and Gauteng research modes
+2. **📝 Survey Interface**: Research surveys and form interactions
 3. **🗺️ Map Views**: Location tracking and visualization
 4. **⚙️ Settings**: Data upload, privacy controls, and configuration
 5. **📊 Data Management**: Upload status and encryption indicators

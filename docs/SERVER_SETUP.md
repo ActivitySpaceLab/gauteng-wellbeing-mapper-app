@@ -1,14 +1,12 @@
-# Server Setup Guide for Wellbeing Mapper Research Data Collection
+# Server Setup Guide for Gauteng Wellbeing Mapper Research Data Collection
 
-This guide provides comprehensive instructions for setting up secure data collection servers for the Wellbeing Mapper app's research participation features.
+This guide provides comprehensive instructions for setting up secure data collection servers for the Gauteng Wellbeing Mapper app's research participation features.
 
 ## Overview
 
-The Wellbeing Mapper app supports encrypted data collection for research studies in two locations:
-- **Barcelona, Spain** study
-- **Gauteng, South Africa** study
+The Gauteng Wellbeing Mapper app supports encrypted data collection for the research study in Gauteng, South Africa.
 
-Each study site requires:
+The study site requires:
 1. A dedicated HTTPS server with REST API endpoints
 2. RSA-4096 public/private key pair for encryption
 3. Secure database for storing encrypted participant data
@@ -69,15 +67,6 @@ Edit `/lib/services/data_upload_service.dart` and update the server configuratio
 
 ```dart
 static const Map<String, ServerConfig> _serverConfigs = {
-  'barcelona': ServerConfig(
-    baseUrl: 'https://your-barcelona-server.com',
-    uploadEndpoint: '/api/v1/participant-data',
-    publicKey: '''-----BEGIN PUBLIC KEY-----
-MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEA...
-[YOUR BARCELONA RSA PUBLIC KEY HERE]
-...
------END PUBLIC KEY-----''',
-  ),
   'gauteng': ServerConfig(
     baseUrl: 'https://your-gauteng-server.com',
     uploadEndpoint: '/api/v1/participant-data',
@@ -112,7 +101,7 @@ CREATE DATABASE wellbeing_research;
 CREATE TABLE participants (
     id SERIAL PRIMARY KEY,
     participant_uuid UUID UNIQUE NOT NULL,
-    research_site VARCHAR(20) NOT NULL CHECK (research_site IN ('barcelona', 'gauteng')),
+    research_site VARCHAR(20) NOT NULL CHECK (research_site IN ('gauteng')),
     enrolled_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     last_upload_at TIMESTAMP WITH TIME ZONE,
     active BOOLEAN DEFAULT TRUE,
@@ -184,7 +173,7 @@ User-Agent: WellbeingMapper/1.0
 {
   "uploadId": "uuid-v4-string",
   "participantUuid": "uuid-v4-string",
-  "researchSite": "barcelona" | "gauteng",
+  "researchSite": "gauteng",
   "encryptedData": "base64-encoded-encrypted-payload",
   "encryptionMetadata": {
     "algorithm": "RSA-OAEP-AES-256-GCM",
@@ -265,7 +254,7 @@ const privateKey = require('fs').readFileSync('./research_private_key.pem', 'utf
 const uploadSchema = Joi.object({
   uploadId: Joi.string().uuid().required(),
   participantUuid: Joi.string().uuid().required(),
-  researchSite: Joi.string().valid('barcelona', 'gauteng').required(),
+  researchSite: Joi.string().valid('gauteng').required(),
   encryptedData: Joi.string().base64().required(),
   encryptionMetadata: Joi.object({
     algorithm: Joi.string().required(),

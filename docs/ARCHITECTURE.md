@@ -1,10 +1,10 @@
-# Wellbeing Mapper - Code Architecture
+# Gauteng Wellbeing Mapper - Code Architecture
 
 ## System Architecture Overview
 
-Wellbeing Mapper follows a layered architecture pattern designed for maintainability, testability, and scalability. The application is built using Flutter and implements a clean separation of concerns to support mental wellbeing mapping in environmental & climate context as part of the Planet4Health research project.
+Gauteng Wellbeing Mapper follows a layered architecture pattern designed for maintainability, testability, and scalability. The application is built using Flutter and implements a clean separation of concerns to support mental wellbeing mapping in environmental & climate context as part of the Planet4Health research project.
 
-The architecture now includes multi-site research participation with end-to-end encryption for secure data transmission to research servers in Barcelona, Spain and Gauteng, South Africa.
+The architecture includes research participation with end-to-end encryption for secure data transmission to research servers in Gauteng, South Africa.
 
 ## Architectural Layers
 
@@ -101,17 +101,13 @@ Demographics       Performance     Exchange      Network   Decryption
 - **RSA-4096 Public Key Cryptography**: Asymmetric encryption for key exchange
 - **AES-256-GCM**: Symmetric encryption for data payload (authenticated encryption)
 - **Unique Session Keys**: Fresh AES key generated for each upload
-- **Site Isolation**: Separate key pairs for Barcelona and Gauteng research sites
+- **Site Isolation**: Secure encryption for research data
 - **Forward Secrecy**: Compromised uploads don't affect other uploads
 
-### Multi-Site Research Architecture
+### Research Architecture
 ```
 App Configuration:
-├── Barcelona Research Site
-│   ├── Public Key (embedded in app)
-│   ├── Server: barcelona-research.domain.com
-│   └── Site-specific surveys and consent
-├── Gauteng Research Site  
+├── Gauteng Research Site
 │   ├── Public Key (embedded in app)
 │   ├── Server: gauteng-research.domain.com
 │   └── Site-specific surveys and consent

@@ -23,40 +23,15 @@ Demographics        for Each Upload        Public Key
 ## Key Management Architecture
 
 ### Research Site Keys
-Each research site (Barcelona and Gauteng) has its own independent RSA key pair:
+The Gauteng research site has its own RSA key pair:
 
 ```
-Barcelona Study:
-├── barcelona_private_key.pem (Server-side, SECRET)
-└── barcelona_public_key.pem (Embedded in app)
-
 Gauteng Study:
 ├── gauteng_private_key.pem (Server-side, SECRET)
 └── gauteng_public_key.pem (Embedded in app)
 ```
 
 ## Step 1: Generate RSA Key Pairs
-
-### For Barcelona Research Site
-
-```bash
-# Create directory for Barcelona keys
-mkdir -p /secure/keys/barcelona
-cd /secure/keys/barcelona
-
-# Generate 4096-bit RSA private key
-openssl genrsa -out barcelona_private_key.pem 4096
-
-# Extract public key
-openssl rsa -in barcelona_private_key.pem -pubout -out barcelona_public_key.pem
-
-# Verify key generation
-openssl rsa -in barcelona_private_key.pem -noout -text | head -20
-
-# Set secure permissions
-chmod 600 barcelona_private_key.pem
-chmod 644 barcelona_public_key.pem
-```
 
 ### For Gauteng Research Site
 
@@ -252,7 +227,7 @@ The decrypted JSON payload contains:
 ```json
 {
   "participantUuid": "uuid-v4-string",
-  "researchSite": "barcelona" | "gauteng",
+  "researchSite": "gauteng",
   "uploadTimestamp": "2025-07-23T10:30:00Z",
   "surveys": [
     {

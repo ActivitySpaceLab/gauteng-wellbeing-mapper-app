@@ -1,17 +1,16 @@
-# Wellbeing Mapper - Research Participation & Encryption Features
+# Gauteng Wellbeing Mapper - Research Participation & Encryption Features
 
 ## Overview
 
-This document summarizes the major new features added to the Wellbeing Mapper app to support multi-site research participation with end-to-end encryption. These features enable secure data collection for research studies in Barcelona, Spain and Gauteng, South Africa.
+This document summarizes the major features of the Gauteng Wellbeing Mapper app to support research participation with end-to-end encryption. These features enable secure data collection for the research study in Gauteng, South Africa.
 
-## Key New Features
+## Key Features
 
-### 1. Three-Way Participation System ✨
+### 1. Two-Way Participation System ✨
 
-Users can now choose between three modes when starting the app:
+Users can now choose between two modes when starting the app:
 
 - **🏠 Private Mode**: Personal use only, no data sharing
-- **🇪🇸 Barcelona Research**: Participate in Spanish research study  
 - **🇿🇦 Gauteng Research**: Participate in South African research study
 
 **Implementation:**
@@ -38,13 +37,7 @@ Users can now choose between three modes when starting the app:
 - `EncryptionResult`: Encryption operation results
 - `fast_rsa` package integration for RSA operations
 
-### 3. Site-Specific Research Features 🌍
-
-**Barcelona Research:**
-- European privacy regulations compliance
-- Location-based consent forms
-- Spanish research protocols
-- Site-specific survey questions
+### 3. Gauteng Research Features 🌍
 
 **Gauteng Research:**
 - South African demographics (ethnicity, building type)
@@ -106,13 +99,6 @@ Survey Data + Location Tracks
 ### Multi-Site Configuration
 ```dart
 static const Map<String, ServerConfig> _serverConfigs = {
-  'barcelona': ServerConfig(
-    baseUrl: 'https://barcelona-research.domain.com',
-    uploadEndpoint: '/api/v1/participant-data',
-    publicKey: '''-----BEGIN PUBLIC KEY-----
-    [RSA-4096 PUBLIC KEY FOR BARCELONA TEAM]
-    -----END PUBLIC KEY-----''',
-  ),
   'gauteng': ServerConfig(
     baseUrl: 'https://gauteng-research.domain.com',
     uploadEndpoint: '/api/v1/participant-data',
@@ -130,10 +116,6 @@ static const Map<String, ServerConfig> _serverConfigs = {
 For each research site, generate a 4096-bit RSA key pair:
 
 ```bash
-# Barcelona keys
-openssl genrsa -out barcelona_private_key.pem 4096
-openssl rsa -in barcelona_private_key.pem -pubout -out barcelona_public_key.pem
-
 # Gauteng keys  
 openssl genrsa -out gauteng_private_key.pem 4096
 openssl rsa -in gauteng_private_key.pem -pubout -out gauteng_public_key.pem
@@ -170,7 +152,7 @@ Content-Type: application/json
 {
   "uploadId": "uuid-v4",
   "participantUuid": "uuid-v4", 
-  "researchSite": "barcelona" | "gauteng",
+  "researchSite": "gauteng",
   "encryptedData": "base64-encoded-payload",
   "encryptionMetadata": { ... },
   "dataPeriod": { "start": "...", "end": "..." }
@@ -208,7 +190,7 @@ After successful decryption, research teams receive:
 ```json
 {
   "participantUuid": "anonymous-uuid",
-  "researchSite": "barcelona" | "gauteng",
+  "researchSite": "gauteng",
   "uploadTimestamp": "2025-07-23T10:30:00Z",
   "surveys": [
     {
@@ -243,7 +225,7 @@ After successful decryption, research teams receive:
 - **Encryption at Rest**: Private keys stored securely on research servers
 - **Encryption in Transit**: HTTPS with TLS 1.3 for all communications
 - **Forward Secrecy**: Compromised uploads don't affect other uploads
-- **Site Isolation**: Barcelona and Gauteng data completely separate
+- **Site Isolation**: Research data completely isolated and secure
 
 ### Compliance Features
 - **Informed Consent**: Comprehensive consent forms with granular permissions
@@ -306,8 +288,8 @@ fvm flutter build apk --release
 
 ### App Release
 - [ ] Update public keys in `DataUploadService`
-- [ ] Test both Barcelona and Gauteng participation flows
-- [ ] Validate all survey types and site-specific questions
+- [ ] Test Gauteng participation flow
+- [ ] Validate all survey types and Gauteng-specific questions
 - [ ] Verify location tracking and upload functionality
 - [ ] Build and sign release versions
 
