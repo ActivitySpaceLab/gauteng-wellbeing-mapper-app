@@ -60,19 +60,18 @@ Wellbeing Mapper follows a modular Flutter architecture with clear separation of
 
 ### Two Usage Modes
 
-1. **Private Mode**: 
-   - Personal mental health tracking only
-   - No data sharing or transmission
-   - All data stays on device
+1. **Private Mode Users**: 
+   - Users in private mode can track their own mobility patterns and mental wellbeing for their own personal use
+   - The app does not sync their data automatically with any server
+   - All data stays on their device unless they manually export it using the "Export Data" function in the main menu
 
-2. **Gauteng Research**:
-   - Participate in South African research study  
-   - Enhanced demographic questions (ethnicity, building type)
-   - Health status tracking
-   - Encrypted bi-weekly data uploads  
-   - Enhanced demographic questions (ethnicity, building type)
-   - Health status tracking
-   - Encrypted bi-weekly data uploads
+2. **Gauteng Research Users**:
+   - Research subjects who have been recruited by the research team can participate in the Planet4Health study on mental wellbeing in Guateng, South Africa  
+   - These users can only turn on reserch mode if they first enter the research code they have been given, review the study's information sheet, and check all of the boxes on the consent form
+   - Participation in the study is entirely voluntary and the research users have the option to stop participating and delete their data at any time
+   - Research users are given an initial survey and then biweekly surveys
+   - All data is stored on the phone and synced to the research server using end-to-end encryption  
+ 
 
 ### Participation Flow
 
