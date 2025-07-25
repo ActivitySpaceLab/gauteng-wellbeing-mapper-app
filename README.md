@@ -22,9 +22,6 @@ This case study aims to:
 [![codecov](https://codecov.io/gh/ActivitySpaceLab/guateng-wellbeing-mapper-app/graph/badge.svg?token=G72Y5TF6KP)](https://codecov.io/gh/ActivitySpaceLab/guateng-wellbeing-mapper-app)
 [![Documentation](https://img.shields.io/badge/docs-available-brightgreen.svg)](https://github.com/ActivitySpaceLab/guateng-wellbeing-mapper-app/tree/main/docs)
 
-## Screenshots
-<img src="Assets/images/3.0.2%2B18_screenshots.png"  width="95%"></img>
-
 ## Prerequisites
 
 **Important**: This project requires **Flutter 3.27.1** with **Dart 3.6.0** specifically. The app will not compile with other versions due to dependency constraints.
