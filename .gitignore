@@ -1,6 +1,6 @@
 # Keys
 android/key.properties
-Space_Mapper/android/key.properties
+guateng-wellbeing-mapper-app/android/key.properties
 
 # Miscellaneous
 *.class
@@ -115,7 +115,7 @@ app.*.symbols
 !**/ios/**/default.perspectivev3
 !/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
 !/dev/ci/**/Gemfile.lock
-Space_Mapper/android/app/space_mapper.keystore
-Space_Mapper/space_mapper.keystore
-Space_Mapper/.fvm/flutter_sdk
-Space_Mapper/.fvm/fvm_config.json
+guateng-wellbeing-mapper-app/android/app/guateng-wellbeing-mapper-app.keystore
+guateng-wellbeing-mapper-app/guateng-wellbeing-mapper-app.keystore
+guateng-wellbeing-mapper-app/.fvm/flutter_sdk
+guateng-wellbeing-mapper-app/.fvm/fvm_config.json

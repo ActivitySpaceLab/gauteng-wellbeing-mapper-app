@@ -21,28 +21,28 @@ jobs:
 
     - name: Get flutter dependencies
       run: flutter pub get
-      working-directory: Space_Mapper
+      working-directory: guateng-wellbeing-mapper-app
 
     - name: Statically analyze the Dart code for any errors.
       run: flutter analyze
-      working-directory: Space_Mapper
+      working-directory: guateng-wellbeing-mapper-app
     
     - name: Run tests for our flutter project.
       run: flutter test
-      working-directory: Space_Mapper
+      working-directory: guateng-wellbeing-mapper-app
 
     - name: Build apk
       run: flutter build apk --debug
-      working-directory: Space_Mapper
+      working-directory: guateng-wellbeing-mapper-app
 
     - name: Build appbundle
       run: flutter build appbundle --debug
-      working-directory: Space_Mapper
+      working-directory: guateng-wellbeing-mapper-app
     
     - name: Create a Release in GitHub
       uses: ncipollo/release-action@v1
       with:
-        artifacts: "././Space_Mapper/build/app/outputs/flutter-apk/app-debug.apk,././Space_Mapper/build/app/outputs/bundle/debug/app-debug.aab"
+        artifacts: "././guateng-wellbeing-mapper-app/build/app/outputs/flutter-apk/app-debug.apk,././guateng-wellbeing-mapper-app/build/app/outputs/bundle/debug/app-debug.aab"
         token: ${{ secrets.GH_TOKEN }}
         tag: ${{ steps.version.outputs.content }}
         commit: ${{ github.sha }}
