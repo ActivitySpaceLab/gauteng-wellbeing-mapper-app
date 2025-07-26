@@ -98,7 +98,7 @@ class _NotificationSettingsViewState extends State<NotificationSettingsView> {
                 Icon(Icons.info_outline, color: Colors.blue),
                 SizedBox(width: 8),
                 Text(
-                  'About Survey Notifications',
+                  'About Notifications',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,

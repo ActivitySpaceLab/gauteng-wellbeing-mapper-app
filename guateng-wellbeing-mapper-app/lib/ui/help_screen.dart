@@ -164,7 +164,7 @@ class HelpScreen extends StatelessWidget {
                 Icon(Icons.list, color: SouthAfricanTheme.accentYellow, size: 24),
                 SizedBox(width: 8),
                 Text(
-                  'Menu Options Explained',
+                  'Menu Options',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -271,7 +271,7 @@ class HelpScreen extends StatelessWidget {
                 Icon(Icons.settings_applications, color: SouthAfricanTheme.primaryBlue, size: 24),
                 SizedBox(width: 8),
                 Text(
-                  'App Modes Explained',
+                  'App Modes',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -398,7 +398,7 @@ class HelpScreen extends StatelessWidget {
                 Icon(Icons.quiz, color: SouthAfricanTheme.accentYellow, size: 24),
                 SizedBox(width: 8),
                 Text(
-                  'About Wellbeing Surveys',
+                  'About the Surveys',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
