@@ -3,6 +3,7 @@ import 'package:wellbeing_mapper/main.dart';
 import 'package:wellbeing_mapper/models/app_localizations.dart';
 import 'package:wellbeing_mapper/models/custom_locations.dart';
 import 'package:wellbeing_mapper/services/consent_service.dart';
+import 'package:wellbeing_mapper/services/wellbeing_survey_service.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:share/share.dart';
@@ -40,13 +41,15 @@ class _WellbeingMapperSideDrawerState extends State<WellbeingMapperSideDrawer> {
     }
   }
 
-  void _navigateToParticipationSelection() async {
-    await Navigator.of(context).pushNamed('/participation_selection');
-    // Refresh participation settings when returning from participation selection
+  void _navigateToChangeMode() async {
+    await Navigator.of(context).pushNamed('/change_mode');
+    // Refresh participation settings when returning from change mode
     _loadParticipationSettings();
   }
   _exportData() async {
     var now = new DateTime.now();
+    
+    // Get location data
     List allLocations = await bg.BackgroundGeolocation.locations;
     List<ShareLocation> customLocation = [];
 
@@ -61,9 +64,25 @@ class _WellbeingMapperSideDrawerState extends State<WellbeingMapperSideDrawer> {
       customLocation.add(_loc);
     }
 
-    String prettyString = JsonEncoder.withIndent('  ').convert(customLocation);
-    String subject =
-        "wellbeing-mapper-app_trajectory_" + now.toIso8601String() + ".json";
+    // Get wellbeing survey data
+    List wellbeingSurveys = [];
+    try {
+      final surveys = await WellbeingSurveyService().getWellbeingSurveysForExport();
+      wellbeingSurveys = surveys.map((survey) => survey.toJson()).toList();
+    } catch (e) {
+      print('[SideDrawer] Error getting wellbeing surveys for export: $e');
+    }
+
+    // Create combined export data
+    Map<String, dynamic> exportData = {
+      'export_timestamp': now.toIso8601String(),
+      'user_id': GlobalData.userUUID,
+      'location_data': customLocation,
+      'wellbeing_surveys': wellbeingSurveys,
+    };
+
+    String prettyString = JsonEncoder.withIndent('  ').convert(exportData);
+    String subject = "guateng-wellbeing-mapper_data_export_" + now.toIso8601String() + ".json";
     Share.share(prettyString, subject: subject);
   }
 
@@ -126,14 +145,15 @@ class _WellbeingMapperSideDrawerState extends State<WellbeingMapperSideDrawer> {
                 },
               ),
             ),
-            // Research Participation - Always visible
+            // App Mode - Always visible
             Card(
               child: ListTile(
-                leading: const Icon(Icons.privacy_tip),
-                title: Text("Research Participation"),
-                subtitle: Text("Manage consent and participation settings"),
+                leading: const Icon(Icons.settings),
+                title: Text("App Mode"),
+                subtitle: Text(isPrivateUser ? "Current: Private Mode" : "Current: Research Mode"),
+                trailing: Text("Change Mode", style: TextStyle(color: Colors.blue)),
                 onTap: () {
-                  _navigateToParticipationSelection();
+                  _navigateToChangeMode();
                 },
               ),
             ),

@@ -22,7 +22,7 @@ class SurveyDatabase {
     String path = join(await getDatabasesPath(), 'survey_database.db');
     return await openDatabase(
       path,
-      version: 2, // Bumped version to trigger migration
+      version: 3, // Bumped version to add wellbeing survey table
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -124,6 +124,20 @@ class SurveyDatabase {
       )
     ''');
 
+    // Create wellbeing survey responses table
+    await db.execute('''
+      CREATE TABLE wellbeing_survey_responses (
+        id TEXT PRIMARY KEY,
+        timestamp TEXT NOT NULL,
+        cheerful_spirits INTEGER NOT NULL,
+        calm_relaxed INTEGER NOT NULL,
+        active_vigorous INTEGER NOT NULL,
+        woke_rested INTEGER NOT NULL,
+        interesting_life INTEGER NOT NULL,
+        is_synced INTEGER DEFAULT 0
+      )
+    ''');
+
     // Create sync queue table for offline functionality
     await db.execute('''
       CREATE TABLE sync_queue (
@@ -195,6 +209,22 @@ class SurveyDatabase {
         await db.execute('DROP TABLE consent_responses');
         await db.execute('ALTER TABLE consent_responses_new RENAME TO consent_responses');
       }
+    }
+    
+    if (oldVersion < 3) {
+      // Add wellbeing survey responses table
+      await db.execute('''
+        CREATE TABLE wellbeing_survey_responses (
+          id TEXT PRIMARY KEY,
+          timestamp TEXT NOT NULL,
+          cheerful_spirits INTEGER NOT NULL,
+          calm_relaxed INTEGER NOT NULL,
+          active_vigorous INTEGER NOT NULL,
+          woke_rested INTEGER NOT NULL,
+          interesting_life INTEGER NOT NULL,
+          is_synced INTEGER DEFAULT 0
+        )
+      ''');
     }
   }
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/data_upload_service.dart';
+import '../services/wellbeing_survey_service.dart';
 import '../db/survey_database.dart';
 
 class DataUploadScreen extends StatefulWidget {
@@ -80,6 +81,7 @@ class _DataUploadScreenState extends State<DataUploadScreen> {
       final db = SurveyDatabase();
       final initialSurveys = await db.getInitialSurveys();
       final recurringSurveys = await db.getRecurringSurveys();
+      final wellbeingSurveys = await WellbeingSurveyService().getUnsyncedWellbeingSurveys();
       final locationTracks = await DataUploadService.getRecentLocationTracks();
 
       // Upload data
@@ -87,6 +89,7 @@ class _DataUploadScreenState extends State<DataUploadScreen> {
         researchSite: _researchSite!,
         initialSurveys: initialSurveys,
         recurringSurveys: recurringSurveys,
+        wellbeingSurveys: wellbeingSurveys,
         locationTracks: locationTracks,
         participantUuid: _participantUuid!,
       );
@@ -94,6 +97,11 @@ class _DataUploadScreenState extends State<DataUploadScreen> {
       if (result.success) {
         // Mark upload as completed
         await DataUploadService.markUploadCompleted(_researchSite!, result.uploadId!);
+        
+        // Mark wellbeing surveys as synced
+        for (final survey in wellbeingSurveys) {
+          await WellbeingSurveyService().markAsSynced(survey.id);
+        }
         
         _showSuccessDialog(result.uploadId!);
         await _loadParticipantInfo(); // Refresh UI
@@ -124,7 +132,7 @@ class _DataUploadScreenState extends State<DataUploadScreen> {
         ),
         backgroundColor: Colors.blue,
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

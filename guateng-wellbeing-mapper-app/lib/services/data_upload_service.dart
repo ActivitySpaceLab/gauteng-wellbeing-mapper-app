@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:fast_rsa/fast_rsa.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/survey_models.dart';
+import '../models/wellbeing_survey_models.dart';
 import '../db/survey_database.dart';
 
 /// Service for encrypting and uploading research data to study servers
@@ -29,6 +30,7 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0987654321...
     required String researchSite,
     required List<InitialSurveyResponse> initialSurveys,
     required List<RecurringSurveyResponse> recurringSurveys,
+    required List<WellbeingSurveyResponse> wellbeingSurveys,
     required List<LocationTrack> locationTracks,
     required String participantUuid,
   }) async {
@@ -45,6 +47,7 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0987654321...
         researchSite: researchSite,
         initialSurveys: initialSurveys,
         recurringSurveys: recurringSurveys,
+        wellbeingSurveys: wellbeingSurveys,
         locationTracks: locationTracks,
         timestamp: DateTime.now(),
       );
@@ -230,6 +233,7 @@ class DataPackage {
   final String researchSite;
   final List<InitialSurveyResponse> initialSurveys;
   final List<RecurringSurveyResponse> recurringSurveys;
+  final List<WellbeingSurveyResponse> wellbeingSurveys;
   final List<LocationTrack> locationTracks;
   final DateTime timestamp;
 
@@ -238,6 +242,7 @@ class DataPackage {
     required this.researchSite,
     required this.initialSurveys,
     required this.recurringSurveys,
+    required this.wellbeingSurveys,
     required this.locationTracks,
     required this.timestamp,
   });
@@ -248,6 +253,7 @@ class DataPackage {
       'research_site': researchSite,
       'initial_surveys': initialSurveys.map((s) => s.toJson()).toList(),
       'recurring_surveys': recurringSurveys.map((s) => s.toJson()).toList(),
+      'wellbeing_surveys': wellbeingSurveys.map((s) => s.toResearchJson(participantUuid)).toList(),
       'location_tracks': locationTracks.map((t) => t.toJson()).toList(),
       'timestamp': timestamp.toIso8601String(),
       'app_version': '0.1.0', // Should be loaded from package info

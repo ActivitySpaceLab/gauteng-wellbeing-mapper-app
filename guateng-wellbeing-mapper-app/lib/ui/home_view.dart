@@ -497,7 +497,16 @@ class HomeViewState extends State<HomeView>
       ),
       //body: body,
       drawer: new WellbeingMapperSideDrawer(),
-      body: MapView()
+      body: MapView(),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.of(context).pushNamed('/wellbeing_survey');
+        },
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
+        child: Icon(Icons.add),
+        tooltip: 'Take Wellbeing Survey',
+      ),
     );
   }
 
