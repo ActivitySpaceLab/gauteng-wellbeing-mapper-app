@@ -2,6 +2,7 @@ import 'package:wellbeing_mapper/services/notification_service.dart';
 import 'package:wellbeing_mapper/ui/side_drawer.dart';
 import 'package:wellbeing_mapper/util/env.dart';
 import 'package:wellbeing_mapper/theme/south_african_theme.dart';
+import 'package:wellbeing_mapper/util/onboarding_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:async';
@@ -83,6 +84,20 @@ class HomeViewState extends State<HomeView>
 
     initPlatformState();
     _checkForPendingSurveyPrompt();
+    _checkAndShowOnboarding();
+  }
+
+  // Check if this is the first time using the app and show onboarding
+  void _checkAndShowOnboarding() async {
+    // Wait a bit longer for the widget to be fully built and other dialogs to clear
+    Timer(Duration(seconds: 2), () async {
+      if (mounted) {
+        bool shouldShow = await OnboardingHelper.shouldShowOnboarding();
+        if (shouldShow && mounted) {
+          OnboardingHelper.showQuickTour(context);
+        }
+      }
+    });
   }
 
   // Check for pending survey prompts and show dialog if needed
@@ -489,25 +504,43 @@ class HomeViewState extends State<HomeView>
             icon: Icon(Icons.gps_fixed),
             color: SouthAfricanTheme.accentYellow,
             onPressed: _onClickGetCurrentPosition,
+            tooltip: 'Get current location - tap to update your precise position',
           ),
           Switch(
             value: _enabled,
             onChanged: _onClickEnable,
             activeColor: SouthAfricanTheme.accentYellow,
+            activeTrackColor: SouthAfricanTheme.accentYellow.withOpacity(0.5),
+            inactiveThumbColor: Colors.grey[300],
+            inactiveTrackColor: Colors.grey[400],
+          ),
+          Padding(
+            padding: EdgeInsets.only(right: 8.0),
+            child: Center(
+              child: Text(
+                _enabled ? 'ON' : 'OFF',
+                style: TextStyle(
+                  color: SouthAfricanTheme.pureWhite,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
           ),
         ],
       ),
       //body: body,
       drawer: new WellbeingMapperSideDrawer(),
       body: MapView(),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           Navigator.of(context).pushNamed('/wellbeing_survey');
         },
         backgroundColor: SouthAfricanTheme.primaryBlue,
         foregroundColor: SouthAfricanTheme.pureWhite,
-        child: Icon(Icons.add),
-        tooltip: 'Take Wellbeing Survey',
+        icon: Icon(Icons.add),
+        label: Text('Survey'),
+        tooltip: 'Take wellbeing survey - share how you feel in this location',
       ),
     );
   }

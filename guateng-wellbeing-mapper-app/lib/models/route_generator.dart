@@ -13,6 +13,7 @@ import '../ui/consent_form_screen.dart';
 import '../ui/data_upload_screen.dart';
 import '../ui/wellbeing_survey_screen.dart';
 import '../ui/change_mode_screen.dart';
+import '../ui/help_screen.dart';
 
 class GlobalRouteData {
   static String? user_route = "brown";
@@ -81,6 +82,8 @@ class RouteGenerator {
         return MaterialPageRoute(builder: (_) => WellbeingSurveyScreen());
       case '/change_mode':
         return MaterialPageRoute(builder: (_) => ChangeModeScreen());
+      case '/help':
+        return MaterialPageRoute(builder: (_) => HelpScreen());
       default:
         // If there is no such named route in the switch statement, e.g. /third
         return _errorRoute();

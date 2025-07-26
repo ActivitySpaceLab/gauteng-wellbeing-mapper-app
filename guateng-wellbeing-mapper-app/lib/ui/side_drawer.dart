@@ -210,6 +210,17 @@ class _WellbeingMapperSideDrawerState extends State<WellbeingMapperSideDrawer> {
                 ),
               ),
             ],
+            // Help & Guide - Always visible
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.help),
+                title: Text("Help & Guide"),
+                subtitle: Text("Learn how to use the app"),
+                onTap: () {
+                  Navigator.of(context).pushNamed('/help');
+                },
+              ),
+            ),
             // Visit Project Website - Second to last
             Card(
               child: ListTile(
