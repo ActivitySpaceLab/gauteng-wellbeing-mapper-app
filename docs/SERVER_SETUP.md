@@ -1,3 +1,9 @@
+---
+layout: default
+title: Server Setup
+description: Backend configuration for the Gauteng Wellbeing Mapper research infrastructure
+---
+
 # Server Setup Guide for Gauteng Wellbeing Mapper Research Data Collection
 
 This guide provides comprehensive instructions for setting up secure data collection servers for the Gauteng Wellbeing Mapper app's research participation features.

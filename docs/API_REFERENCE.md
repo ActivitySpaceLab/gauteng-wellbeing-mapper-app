@@ -1,3 +1,9 @@
+---
+layout: default
+title: API Reference
+description: Complete API documentation for the Gauteng Wellbeing Mapper app
+---
+
 # Gauteng Wellbeing Mapper - API Reference
 
 ## Overview

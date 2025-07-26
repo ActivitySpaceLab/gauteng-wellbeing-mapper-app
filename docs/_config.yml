@@ -1,0 +1,51 @@
+title: "Gauteng Wellbeing Mapper"
+description: "A mobile app for studying the relationship between place and mental wellbeing in South Africa"
+baseurl: "/guateng-wellbeing-mapper-app"
+url: "https://activityspacelab.github.io"
+
+# GitHub Pages settings
+remote_theme: pages-themes/cayman@v0.2.0
+plugins:
+  - jekyll-remote-theme
+
+# Site settings
+author: "Activity Space Lab"
+email: "john.palmer@upf.edu"
+github_username: "ActivitySpaceLab"
+
+# Navigation
+header_pages:
+  - USER_GUIDE.md
+  - DEVELOPER_GUIDE.md
+  - API_REFERENCE.md
+  - PRIVACY.md
+
+# Build settings
+markdown: kramdown
+highlighter: rouge
+kramdown:
+  input: GFM
+  syntax_highlighter: rouge
+
+# SEO settings
+lang: en
+google_analytics: # Add your GA tracking ID if needed
+
+# Social links
+social:
+  - name: GitHub
+    url: https://github.com/ActivitySpaceLab/guateng-wellbeing-mapper-app
+  - name: Website
+    url: http://activityspaceproject.com/
+
+# Exclude files
+exclude:
+  - README.md
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor/
+  - .bundle/
+  - .sass-cache/
+  - .jekyll-cache/
+  - gemfiles/

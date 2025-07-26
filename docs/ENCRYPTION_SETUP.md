@@ -20,16 +20,13 @@ Location Tracks     Generated Fresh        Research Team's         to Server
 Demographics        for Each Upload        Public Key              
 ```
 
-## Key Management Architecture
+---
+layout: default
+title: Encryption Setup
+description: Data security implementation for the Gauteng Wellbeing Mapper
+---
 
-### Research Site Keys
-The Gauteng research site has its own RSA key pair:
-
-```
-Gauteng Study:
-├── gauteng_private_key.pem (Server-side, SECRET)
-└── gauteng_public_key.pem (Embedded in app)
-```
+# Gauteng Wellbeing Mapper - Encryption and Security Setup
 
 ## Step 1: Generate RSA Key Pairs
 

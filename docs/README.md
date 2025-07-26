@@ -1,3 +1,9 @@
+---
+layout: default
+title: Documentation Overview
+nav_order: 1
+---
+
 # Wellbeing Mapper Documentation
 
 Welcome to the Wellbeing Mapper developer documentation. This documentation is designed to help new developers quickly understand and start working with the Wellbeing Mapper codebase.

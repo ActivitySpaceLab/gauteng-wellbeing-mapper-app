@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="{{ site.lang | default: "en-US" }}">
+  <head>
+    <meta charset="UTF-8">
+    <title>{% if page.title %}{{ page.title | escape }}{% else %}{{ site.title | escape }}{% endif %}</title>
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link rel="preload" href="https://fonts.googleapis.com/css?family=Open+Sans:400,700&display=swap" as="style" type="text/css" crossorigin>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#157878">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="stylesheet" href="{{ '/assets/css/style.css?v=' | append: site.github.build_revision | relative_url }}">
+    {% seo %}
+    <style>
+      .main-content {
+        margin-bottom: 2rem;
+      }
+      .nav-menu {
+        background: linear-gradient(120deg, #002868, #007749);
+        padding: 1rem 0;
+        margin-bottom: 2rem;
+        border-radius: 0.3rem;
+      }
+      .nav-menu ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 1rem;
+      }
+      .nav-menu a {
+        color: white;
+        text-decoration: none;
+        padding: 0.5rem 1rem;
+        border-radius: 0.3rem;
+        background: rgba(255, 255, 255, 0.1);
+        transition: background 0.3s;
+        font-weight: 500;
+      }
+      .nav-menu a:hover {
+        background: rgba(255, 255, 255, 0.2);
+        text-decoration: none;
+      }
+      .badge {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        background: #FFB612;
+        color: #000;
+        border-radius: 0.2rem;
+        font-size: 0.8rem;
+        font-weight: bold;
+        margin-left: 0.5rem;
+      }
+      .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin: 2rem 0;
+      }
+      .feature-card {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        border: 1px solid #e9ecef;
+      }
+      .feature-card h3 {
+        margin-top: 0;
+        color: #002868;
+      }
+      .footer {
+        background: #f8f9fa;
+        padding: 2rem 0;
+        margin-top: 3rem;
+        border-top: 1px solid #e9ecef;
+        text-align: center;
+        color: #6c757d;
+      }
+      @media (max-width: 768px) {
+        .nav-menu ul {
+          flex-direction: column;
+          align-items: center;
+        }
+        .nav-menu a {
+          display: block;
+          text-align: center;
+          min-width: 150px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <a id="skip-to-content" href="#content">Skip to the content.</a>
+
+    <header class="page-header" role="banner">
+      <h1 class="project-name">{{ page.title | default: site.title | default: site.github.repository_name }}</h1>
+      <h2 class="project-tagline">{{ page.description | default: site.description | default: site.github.project_tagline }}</h2>
+      {% if site.github.is_project_page %}
+        <a href="{{ site.github.repository_url }}" class="btn">View on GitHub</a>
+      {% endif %}
+      {% if site.show_downloads %}
+        <a href="{{ site.github.zip_url }}" class="btn">Download .zip</a>
+        <a href="{{ site.github.tar_url }}" class="btn">Download .tar.gz</a>
+      {% endif %}
+    </header>
+
+    <main id="content" class="main-content" role="main">
+      <nav class="nav-menu">
+        <ul>
+          <li><a href="{{ '/' | relative_url }}">🏠 Home</a></li>
+          <li><a href="{{ '/USER_GUIDE.html' | relative_url }}">📱 User Guide</a></li>
+          <li><a href="{{ '/DEVELOPER_GUIDE.html' | relative_url }}">🔧 Developer Guide</a></li>
+          <li><a href="{{ '/API_REFERENCE.html' | relative_url }}">📚 API Reference</a></li>
+          <li><a href="{{ '/ARCHITECTURE.html' | relative_url }}">🏗️ Architecture</a></li>
+          <li><a href="{{ '/NOTIFICATION_FEATURE_SUMMARY.html' | relative_url }}">🔔 Notifications</a></li>
+          <li><a href="{{ '/PRIVACY.html' | relative_url }}">🛡️ Privacy</a></li>
+          <li><a href="{{ site.github.repository_url }}" target="_blank">💻 GitHub</a></li>
+        </ul>
+      </nav>
+
+      {{ content }}
+
+      <footer class="footer">
+        <p>© 2025 Activity Space Lab | Part of the Planet4Health study</p>
+        <p>
+          <a href="http://activityspaceproject.com/" target="_blank">Project Website</a> | 
+          <a href="{{ site.github.repository_url }}" target="_blank">GitHub Repository</a> |
+          <a href="{{ '/PRIVACY.html' | relative_url }}">Privacy Policy</a>
+        </p>
+        <details style="margin-top: 1rem;">
+          <summary>Additional Documentation</summary>
+          <div style="margin-top: 0.5rem;">
+            <a href="{{ '/README.html' | relative_url }}">📖 Documentation Overview</a> |
+            <a href="{{ '/ENCRYPTION_SETUP.html' | relative_url }}">🔐 Encryption Setup</a> |
+            <a href="{{ '/SERVER_SETUP.html' | relative_url }}">🖥️ Server Setup</a> |
+            <a href="{{ '/FLOW_CHARTS.html' | relative_url }}">📊 Flow Charts</a> |
+            <a href="{{ '/RESEARCH_FEATURES_SUMMARY.html' | relative_url }}">🔬 Research Features</a>
+          </div>
+        </details>
+      </footer>
+    </main>
+  </body>
+</html>

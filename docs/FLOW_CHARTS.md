@@ -1,3 +1,9 @@
+---
+layout: default
+title: Flow Charts
+description: User flows and system diagrams for the Gauteng Wellbeing Mapper
+---
+
 # Wellbeing Mapper - Flow Charts and Diagrams
 
 ## Application Flow Overview

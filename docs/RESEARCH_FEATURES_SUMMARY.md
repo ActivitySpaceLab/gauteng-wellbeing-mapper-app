@@ -1,4 +1,10 @@
-# Gauteng Wellbeing Mapper - Research Participation & Encryption Features
+---
+layout: default
+title: Research Features
+description: Study participation tools and features for the Gauteng Wellbeing Mapper
+---
+
+# Gauteng Wellbeing Mapper - Research Features Summary
 
 ## Overview
 

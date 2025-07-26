@@ -1,4 +1,10 @@
-# Gauteng Wellbeing Mapper - Code Architecture
+---
+layout: default
+title: Architecture
+description: App structure and design patterns for the Gauteng Wellbeing Mapper
+---
+
+# Gauteng Wellbeing Mapper - Architecture Overview
 
 ## System Architecture Overview
 

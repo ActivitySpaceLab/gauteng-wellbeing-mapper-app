@@ -1,3 +1,9 @@
+---
+layout: default
+title: Developer Guide
+description: Setup, build, and development instructions for the Gauteng Wellbeing Mapper app
+---
+
 # Gauteng Wellbeing Mapper - Developer Guide
 
 ## Overview
