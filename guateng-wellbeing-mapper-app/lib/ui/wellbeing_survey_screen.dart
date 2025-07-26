@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/wellbeing_survey_models.dart';
 import '../services/wellbeing_survey_service.dart';
+import '../theme/south_african_theme.dart';
 
 class WellbeingSurveyScreen extends StatefulWidget {
   @override
@@ -29,7 +30,7 @@ class _WellbeingSurveyScreenState extends State<WellbeingSurveyScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Please answer all questions before submitting.'),
-          backgroundColor: Colors.orange,
+        backgroundColor: SouthAfricanTheme.warning,
         ),
       );
       return;
@@ -54,7 +55,7 @@ class _WellbeingSurveyScreenState extends State<WellbeingSurveyScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Wellbeing survey submitted successfully!'),
-          backgroundColor: Colors.green,
+          backgroundColor: SouthAfricanTheme.success,
         ),
       );
 
@@ -65,7 +66,7 @@ class _WellbeingSurveyScreenState extends State<WellbeingSurveyScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error submitting survey. Please try again.'),
-          backgroundColor: Colors.red,
+          backgroundColor: SouthAfricanTheme.error,
         ),
       );
     } finally {
@@ -140,8 +141,8 @@ class _WellbeingSurveyScreenState extends State<WellbeingSurveyScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Mental Wellbeing Survey'),
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
+        backgroundColor: SouthAfricanTheme.primaryBlue,
+        foregroundColor: SouthAfricanTheme.pureWhite,
       ),
       body: Column(
         children: [
@@ -149,7 +150,7 @@ class _WellbeingSurveyScreenState extends State<WellbeingSurveyScreen> {
           Container(
             width: double.infinity,
             padding: EdgeInsets.all(16),
-            color: Colors.blue[50],
+            color: SouthAfricanTheme.softYellow,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -158,7 +159,7 @@ class _WellbeingSurveyScreenState extends State<WellbeingSurveyScreen> {
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: Colors.blue[800],
+                    color: SouthAfricanTheme.primaryBlue,
                   ),
                 ),
                 SizedBox(height: 8),
@@ -166,7 +167,7 @@ class _WellbeingSurveyScreenState extends State<WellbeingSurveyScreen> {
                   'Please answer all questions about how you have felt in the past 2 weeks.',
                   style: TextStyle(
                     fontSize: 14,
-                    color: Colors.grey[700],
+                    color: SouthAfricanTheme.darkGrey,
                   ),
                 ),
               ],

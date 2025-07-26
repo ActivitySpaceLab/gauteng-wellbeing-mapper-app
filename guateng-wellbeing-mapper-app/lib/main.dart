@@ -2,6 +2,7 @@ import 'package:wellbeing_mapper/models/route_generator.dart';
 import 'package:wellbeing_mapper/util/env.dart';
 import 'package:wellbeing_mapper/services/notification_service.dart';
 import 'package:wellbeing_mapper/ui/home_view.dart';
+import 'package:wellbeing_mapper/theme/south_african_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
@@ -258,6 +259,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Wellbeing Mapper',
       debugShowCheckedModeBanner: false,
+      theme: SouthAfricanTheme.materialTheme,
       supportedLocales: [
         Locale('en', ''), // English, no country code. The first element of this list is the default language
         Locale('es', ''), // Spanish, no country code

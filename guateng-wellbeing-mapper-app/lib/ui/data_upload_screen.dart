@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../services/data_upload_service.dart';
 import '../services/wellbeing_survey_service.dart';
 import '../db/survey_database.dart';
+import '../theme/south_african_theme.dart';
 
 class DataUploadScreen extends StatefulWidget {
   @override
@@ -130,7 +131,7 @@ class _DataUploadScreenState extends State<DataUploadScreen> {
             overflow: TextOverflow.ellipsis,
           ),
         ),
-        backgroundColor: Colors.blue,
+        backgroundColor: SouthAfricanTheme.primaryBlue,
       ),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(16.0),

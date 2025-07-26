@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/consent_service.dart';
+import '../theme/south_african_theme.dart';
 
 class ChangeModeScreen extends StatefulWidget {
   @override
@@ -54,7 +55,7 @@ class _ChangeModeScreenState extends State<ChangeModeScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Successfully switched to Private Mode'),
-            backgroundColor: Colors.green,
+            backgroundColor: SouthAfricanTheme.success,
           ),
         );
         
@@ -64,7 +65,7 @@ class _ChangeModeScreenState extends State<ChangeModeScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error switching modes: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: SouthAfricanTheme.error,
           ),
         );
       }
@@ -106,8 +107,8 @@ class _ChangeModeScreenState extends State<ChangeModeScreen> {
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue,
-              foregroundColor: Colors.white,
+              backgroundColor: SouthAfricanTheme.primaryBlue,
+              foregroundColor: SouthAfricanTheme.pureWhite,
             ),
             child: Text('Continue'),
           ),
@@ -128,7 +129,7 @@ class _ChangeModeScreenState extends State<ChangeModeScreen> {
               children: [
                 Icon(
                   isPrivateUser ? Icons.lock : Icons.science,
-                  color: isPrivateUser ? Colors.orange : Colors.green,
+                  color: isPrivateUser ? SouthAfricanTheme.privateMode : SouthAfricanTheme.researchMode,
                   size: 28,
                 ),
                 SizedBox(width: 12),
@@ -138,7 +139,7 @@ class _ChangeModeScreenState extends State<ChangeModeScreen> {
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: isPrivateUser ? Colors.orange[800] : Colors.green[800],
+                      color: isPrivateUser ? SouthAfricanTheme.privateModeDark : SouthAfricanTheme.researchModeDark,
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -157,7 +158,7 @@ class _ChangeModeScreenState extends State<ChangeModeScreen> {
                 '• No automatic syncing to research servers\n'
                 '• You can export your data manually anytime\n'
                 '• Perfect for personal wellbeing tracking',
-                style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                style: TextStyle(fontSize: 14, color: SouthAfricanTheme.darkGrey),
               ),
             ] else ...[
               Text(
@@ -170,7 +171,7 @@ class _ChangeModeScreenState extends State<ChangeModeScreen> {
                 '• You contribute to important wellbeing research\n'
                 '• All participation is voluntary and anonymous\n'
                 '• You can stop participating at any time',
-                style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                style: TextStyle(fontSize: 14, color: SouthAfricanTheme.darkGrey),
               ),
             ],
           ],
@@ -198,7 +199,7 @@ class _ChangeModeScreenState extends State<ChangeModeScreen> {
             if (isPrivateUser) ...[
               Text(
                 'Switch to Research Mode to contribute to mental wellbeing research in Gauteng.',
-                style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                style: TextStyle(fontSize: 14, color: SouthAfricanTheme.darkGrey),
               ),
               SizedBox(height: 16),
               SizedBox(
@@ -208,8 +209,8 @@ class _ChangeModeScreenState extends State<ChangeModeScreen> {
                   icon: Icon(Icons.science),
                   label: Text('Switch to Research Mode'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    foregroundColor: Colors.white,
+                    backgroundColor: SouthAfricanTheme.researchMode,
+                    foregroundColor: SouthAfricanTheme.pureWhite,
                     padding: EdgeInsets.symmetric(vertical: 12),
                   ),
                 ),
@@ -217,7 +218,7 @@ class _ChangeModeScreenState extends State<ChangeModeScreen> {
             ] else ...[
               Text(
                 'Switch to Private Mode to keep all your data on your device only.',
-                style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                style: TextStyle(fontSize: 14, color: SouthAfricanTheme.darkGrey),
               ),
               SizedBox(height: 16),
               SizedBox(
@@ -227,8 +228,8 @@ class _ChangeModeScreenState extends State<ChangeModeScreen> {
                   icon: Icon(Icons.lock),
                   label: Text('Switch to Private Mode'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orange,
-                    foregroundColor: Colors.white,
+                    backgroundColor: SouthAfricanTheme.privateMode,
+                    foregroundColor: SouthAfricanTheme.pureWhite,
                     padding: EdgeInsets.symmetric(vertical: 12),
                   ),
                 ),
@@ -245,8 +246,8 @@ class _ChangeModeScreenState extends State<ChangeModeScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('App Mode'),
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
+        backgroundColor: SouthAfricanTheme.primaryBlue,
+        foregroundColor: SouthAfricanTheme.pureWhite,
       ),
       body: isLoading
           ? Center(child: CircularProgressIndicator())
@@ -258,7 +259,7 @@ class _ChangeModeScreenState extends State<ChangeModeScreen> {
                   Container(
                     width: double.infinity,
                     padding: EdgeInsets.all(16),
-                    color: Colors.blue[50],
+                    color: SouthAfricanTheme.softYellow,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -267,7 +268,7 @@ class _ChangeModeScreenState extends State<ChangeModeScreen> {
                           style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
-                            color: Colors.blue[800],
+                            color: SouthAfricanTheme.primaryBlue,
                           ),
                         ),
                         SizedBox(height: 8),
@@ -275,7 +276,7 @@ class _ChangeModeScreenState extends State<ChangeModeScreen> {
                           'Choose how you want to use the Gauteng Wellbeing Mapper app.',
                           style: TextStyle(
                             fontSize: 16,
-                            color: Colors.grey[700],
+                            color: SouthAfricanTheme.darkGrey,
                           ),
                         ),
                       ],
@@ -293,16 +294,16 @@ class _ChangeModeScreenState extends State<ChangeModeScreen> {
                     margin: EdgeInsets.all(16),
                     padding: EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.grey[100],
+                      color: SouthAfricanTheme.lightGrey,
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.grey[300]!),
+                      border: Border.all(color: SouthAfricanTheme.mediumGrey),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           children: [
-                            Icon(Icons.info_outline, color: Colors.blue),
+                            Icon(Icons.info_outline, color: SouthAfricanTheme.primaryBlue),
                             SizedBox(width: 8),
                             Text(
                               'Important Information',
@@ -320,7 +321,7 @@ class _ChangeModeScreenState extends State<ChangeModeScreen> {
                           '• In Private Mode, data is never sent to servers automatically\n'
                           '• In Research Mode, data is encrypted before transmission\n'
                           '• All research participation is voluntary and anonymous',
-                          style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                          style: TextStyle(fontSize: 14, color: SouthAfricanTheme.darkGrey),
                         ),
                       ],
                     ),

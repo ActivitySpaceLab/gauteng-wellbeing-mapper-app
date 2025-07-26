@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../models/consent_models.dart';
+import '../theme/south_african_theme.dart';
 
 class ParticipationSelectionScreen extends StatefulWidget {
   @override
@@ -26,7 +27,7 @@ class _ParticipationSelectionScreenState extends State<ParticipationSelectionScr
             overflow: TextOverflow.ellipsis,
           ),
         ),
-        backgroundColor: Colors.blue,
+        backgroundColor: SouthAfricanTheme.primaryBlue,
         automaticallyImplyLeading: false,
       ),
       body: SingleChildScrollView(

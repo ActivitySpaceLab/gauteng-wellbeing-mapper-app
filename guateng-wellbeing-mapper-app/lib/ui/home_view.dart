@@ -1,6 +1,7 @@
 import 'package:wellbeing_mapper/services/notification_service.dart';
 import 'package:wellbeing_mapper/ui/side_drawer.dart';
 import 'package:wellbeing_mapper/util/env.dart';
+import 'package:wellbeing_mapper/theme/south_african_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:async';
@@ -467,14 +468,15 @@ class HomeViewState extends State<HomeView>
           ),
         ),
         centerTitle: true,
-        backgroundColor: Colors.blue, // Lighter background for contrast
+        backgroundColor: SouthAfricanTheme.primaryBlue, // Better contrast for text and icons
+        foregroundColor: SouthAfricanTheme.pureWhite,
         systemOverlayStyle:
             SystemUiOverlayStyle(statusBarBrightness: Brightness.light),
         leading: Builder(
           builder: (BuildContext context) {
             return IconButton(
               icon: const Icon(Icons.menu),
-              color: Colors.white,
+              color: SouthAfricanTheme.pureWhite,
               onPressed: () {
                 Scaffold.of(context).openDrawer();
               },
@@ -485,13 +487,13 @@ class HomeViewState extends State<HomeView>
         actions: <Widget>[
           IconButton(
             icon: Icon(Icons.gps_fixed),
-            color: Colors.yellow,
+            color: SouthAfricanTheme.accentYellow,
             onPressed: _onClickGetCurrentPosition,
           ),
           Switch(
             value: _enabled,
             onChanged: _onClickEnable,
-            activeColor: Colors.yellow,
+            activeColor: SouthAfricanTheme.accentYellow,
           ),
         ],
       ),
@@ -502,8 +504,8 @@ class HomeViewState extends State<HomeView>
         onPressed: () {
           Navigator.of(context).pushNamed('/wellbeing_survey');
         },
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
+        backgroundColor: SouthAfricanTheme.primaryBlue,
+        foregroundColor: SouthAfricanTheme.pureWhite,
         child: Icon(Icons.add),
         tooltip: 'Take Wellbeing Survey',
       ),

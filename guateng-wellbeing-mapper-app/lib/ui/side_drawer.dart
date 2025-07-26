@@ -4,6 +4,7 @@ import 'package:wellbeing_mapper/models/app_localizations.dart';
 import 'package:wellbeing_mapper/models/custom_locations.dart';
 import 'package:wellbeing_mapper/services/consent_service.dart';
 import 'package:wellbeing_mapper/services/wellbeing_survey_service.dart';
+import 'package:wellbeing_mapper/theme/south_african_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:share/share.dart';
@@ -151,7 +152,7 @@ class _WellbeingMapperSideDrawerState extends State<WellbeingMapperSideDrawer> {
                 leading: const Icon(Icons.settings),
                 title: Text("App Mode"),
                 subtitle: Text(isPrivateUser ? "Current: Private Mode" : "Current: Research Mode"),
-                trailing: Text("Change Mode", style: TextStyle(color: Colors.blue)),
+                trailing: Text("Change Mode", style: TextStyle(color: SouthAfricanTheme.primaryBlue)),
                 onTap: () {
                   _navigateToChangeMode();
                 },
