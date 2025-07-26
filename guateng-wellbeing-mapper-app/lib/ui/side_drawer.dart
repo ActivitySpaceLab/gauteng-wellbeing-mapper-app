@@ -88,7 +88,7 @@ class _WellbeingMapperSideDrawerState extends State<WellbeingMapperSideDrawer> {
   }
 
   _launchProjectURL() async {
-    final Uri url = Uri.parse('http://activityspaceproject.com/');
+    final Uri url = Uri.parse('https://planet4health.eu/mental-wellbeing-in-environmental-climate-context/');
     if (await canLaunchUrl(url)) {
       await launchUrl(url, mode: LaunchMode.externalApplication);
     } else {

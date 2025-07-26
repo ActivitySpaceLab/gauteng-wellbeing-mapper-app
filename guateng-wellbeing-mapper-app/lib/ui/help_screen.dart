@@ -207,7 +207,7 @@ class HelpScreen extends StatelessWidget {
             _buildMenuOptionItem(
               Icons.web,
               'Visit Project Website',
-              'Opens the Wellbeing Mapper Project website in your browser for more information.',
+              'Opens the Planet4Health project website to learn more about the mental wellbeing research study.',
             ),
             
             _buildMenuOptionItem(
@@ -418,7 +418,7 @@ class HelpScreen extends StatelessWidget {
               'When to Take Surveys',
               '',
               [
-                '• Anytime using the blue button on main screen',
+                '• Anytime using blue button on main screen',
                 '• Research participants get reminders every 2 weeks',
                 '• Best to take when you have 2-3 minutes',
                 '• Try to answer honestly based on how you feel'

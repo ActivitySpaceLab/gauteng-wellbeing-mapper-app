@@ -1,12 +1,12 @@
 ---
 layout: default
-title: Gauteng Wellbeing Mapper
+title: Wellbeing Mapper
 description: A mobile app for studying the relationship between place and mental wellbeing in South Africa
 ---
 
-# Gauteng Wellbeing Mapper
+# Wellbeing Mapper
 
-A mobile app designed to help researchers understand the relationship between place and mental wellbeing in South African communities.
+A mobile app for studying mental wellbeing in environmental & climate context
 
 ## 📱 For App Users
 
@@ -16,10 +16,10 @@ A mobile app designed to help researchers understand the relationship between pl
 - **[Download](https://github.com/ActivitySpaceLab/guateng-wellbeing-mapper-app/releases)** - Get the latest version
 
 ### Key Features
-- **Private Mode**: Track your movements privately on your device
+- **Private Mode**: Track where you spend your time privately on your device
 - **Research Mode**: Contribute anonymously to important wellbeing research
 - **Location Tracking**: Background GPS tracking with full user control
-- **Wellbeing Surveys**: Quick 2-3 minute surveys about your mood and environment
+- **Wellbeing Surveys**: Quick 2-3 minute surveys about your mental wellbeing
 - **Data Export**: Full control over your personal data
 
 ### App Modes
@@ -75,7 +75,7 @@ flutter run
 
 ## 🔬 Research
 
-This app is part of the **Planet4Health** study investigating how environmental factors affect mental wellbeing in Gauteng, South Africa.
+This app is part of the **Planet4Health** study investigating how environmental factors affect mental wellbeing. This version of the app has been designed specifically for the case study in Gauteng, South Africa.
 
 ### Study Goals
 - Understand relationships between place and mental health
@@ -90,9 +90,10 @@ This app is part of the **Planet4Health** study investigating how environmental 
 - **Ethical**: Approved by university research ethics committees
 
 ### Principal Investigators
-- **John Palmer**: john.palmer@upf.edu (Universitat Pompeu Fabra, Barcelona)
 - **Linda Theron**: linda.theron@up.ac.za (University of Pretoria)
 - **Caradee Wright**: Caradee.Wright@mrc.ac.za (South African Medical Research Council)
+- **John Palmer**: john.palmer@upf.edu (Universitat Pompeu Fabra, Barcelona)
+
 
 ## 🛡️ Privacy & Security
 
@@ -111,7 +112,7 @@ We take your privacy seriously:
 ### For Users
 - **In-app**: Use "Report an Issue" in the app menu
 - **Email**: Contact the research team through the app
-- **Website**: Visit our [project website](http://activityspaceproject.com/)
+- **Website**: Visit the [Planet4Health website](https://planet4health.eu)
 
 ### For Developers
 - **Issues**: [GitHub Issues](https://github.com/ActivitySpaceLab/guateng-wellbeing-mapper-app/issues)
@@ -124,8 +125,14 @@ This project is licensed under the MIT License - see the [LICENSE](../LICENSE) f
 
 ---
 
-### About the Activity Space Lab
+### About the Planet4Health Project
 
-The [Activity Space Lab](http://activityspaceproject.com/) studies how people move through their environments and how these movements affect health and wellbeing. Our interdisciplinary team combines expertise in geography, public health, psychology, and computer science to understand the complex relationships between place and human flourishing.
+The [Planet4Health Project](https://planet4health.eu) is a Horizon Europe research initiative focused on translating science into policy through a multisectoral approach to adaptation and mitigation of adverse effects of vector-borne diseases, environmental pollution, and climate change on planetary health.
+
+**Mental Wellbeing in Environmental & Climate Context**
+
+Traditional studies on environmental and climate changes have predominantly focused on physical health. However, these changes also contribute to rising mental health and psychosocial issues linked to socio-economic threats, including emotional distress and exacerbation of existing mental health conditions—often referred to as climate-related psychological distress.
+
+This case study aims to collect and analyze mental wellbeing data alongside environmental data to develop a comprehensive understanding of mental health impacts. The project seeks to create integrated risk monitoring systems, map environmental hotspots, and provide solutions for better preparedness and response capacity.
 
 *Last updated: {{ site.time | date: "%B %Y" }}*

@@ -8,7 +8,9 @@ description: Complete guide to using the Gauteng Wellbeing Mapper app
 
 ## Welcome
 
-Wellbeing Mapper helps people learn more about the ways in which mental wellbeing depends on environmental conditions. You can use it privately to study your own movements and wellbeing. If you live in Gauteng, South Africa and have volunteered to be part of the Planet4Health study on mental wellbeing, you can use the app to respond to surveys and share your information anonymously with researchers.
+Wellbeing Mapper helps people learn more about the ways in which mental wellbeing depends on environmental conditions. You can use it privately to study your own movements and wellbeing. If you live in Gauteng, South Africa and have volunteered to be part of the **Planet4Health** study on mental wellbeing in environmental & climate context, you can use the app to respond to surveys and share your information anonymously with researchers.
+
+This app is part of the larger [Planet4Health project](https://planet4health.eu), a Horizon Europe research initiative investigating how environmental factors affect mental wellbeing and developing evidence-based interventions for healthier communities.
 
 ## Main Screen Controls
 
