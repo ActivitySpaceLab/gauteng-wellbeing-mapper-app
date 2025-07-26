@@ -8,260 +8,143 @@
     <meta name="theme-color" content="#2E8B57">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="stylesheet" href="{{ '/assets/css/style.css?v=' | append: site.github.build_revision | relative_url }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Open+Sans:wght@400;700&display=swap" rel="stylesheet">
     <style>
       :root {
         --primary-green: #2E8B57;
-        --secondary-green: #3CB371;
         --accent-blue: #4682B4;
-        --text-dark: #2c3e50;
-        --text-light: #6c757d;
-        --bg-light: #f8f9fa;
-        --white: #ffffff;
-        --border-light: #e9ecef;
+        --background: #F7FAF9;
+        --text: #222;
+        --nav: #3CB371;
+        --nav-hover: #4682B4;
+        --footer-bg: #F0F4F8;
       }
-      
       body {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        line-height: 1.6;
-        color: var(--text-dark);
+        font-family: 'Inter', 'Open Sans', 'Lato', Arial, sans-serif;
+        background: var(--background);
+        color: var(--text);
         margin: 0;
         padding: 0;
       }
-      
       .page-header {
-        background: linear-gradient(135deg, var(--primary-green) 0%, var(--secondary-green) 100%);
-        color: white;
-        text-align: center;
-        padding: 3rem 1rem 2rem;
-        position: relative;
-      }
-      
-      .logo-container {
         display: flex;
         align-items: center;
-        justify-content: center;
-        margin-bottom: 1.5rem;
-        gap: 1rem;
+        gap: 1.5rem;
+        background: var(--background);
+        border-bottom: 1px solid #e0e4e8;
+        padding: 1.5rem 2rem 1.5rem 2rem;
       }
-      
+      .logo-container {
+        flex-shrink: 0;
+      }
       .logo-container img {
-        height: 60px;
+        height: 48px;
         width: auto;
-        filter: brightness(0) invert(1);
+        margin-right: 0.5rem;
+        vertical-align: middle;
       }
-      
+      .header-title {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
       .project-name {
-        font-size: 2.5rem;
-        font-weight: 300;
+        font-size: 2rem;
+        font-weight: 600;
         margin: 0;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        color: var(--primary-green);
+        letter-spacing: -1px;
       }
-      
       .project-tagline {
         font-size: 1.1rem;
-        font-weight: 300;
-        margin: 0.5rem 0 0;
-        opacity: 0.9;
+        font-weight: 400;
+        color: #555;
+        margin: 0.2rem 0 0 0;
       }
-      
-      .main-content {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 2rem 1rem;
-        word-wrap: break-word;
-      }
-      
       .nav-menu {
-        background: var(--white);
-        border-bottom: 1px solid var(--border-light);
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        position: sticky;
-        top: 0;
-        z-index: 100;
-        margin-bottom: 2rem;
-      }
-      
-      .nav-menu ul {
-        list-style: none;
+        background: var(--nav);
+        box-shadow: 0 2px 4px rgba(44, 62, 80, 0.04);
         padding: 0;
         margin: 0;
+      }
+      .nav-menu ul {
+        list-style: none;
+        margin: 0;
+        padding: 0 2rem;
         display: flex;
         flex-wrap: wrap;
-        justify-content: center;
-        max-width: 1200px;
-        margin: 0 auto;
+        align-items: center;
       }
-      
       .nav-menu a {
-        color: var(--text-dark);
+        color: #fff;
         text-decoration: none;
-        padding: 1rem 1.5rem;
-        display: block;
-        transition: all 0.3s ease;
+        padding: 1rem 1.25rem;
         font-weight: 500;
-        border-bottom: 3px solid transparent;
+        border-bottom: 2px solid transparent;
+        transition: color 0.2s, border-bottom 0.2s, background 0.2s;
+        border-radius: 4px 4px 0 0;
       }
-      
-      .nav-menu a:hover {
-        color: var(--primary-green);
-        border-bottom-color: var(--primary-green);
-        background: var(--bg-light);
+      .nav-menu a:hover, .nav-menu a:focus {
+        color: #fff;
+        background: var(--nav-hover);
+        border-bottom: 2px solid var(--accent-blue);
       }
-      
-      .btn {
-        background: var(--primary-green);
-        color: white;
-        padding: 0.75rem 1.5rem;
-        border: none;
-        border-radius: 6px;
-        text-decoration: none;
-        display: inline-block;
-        font-weight: 500;
-        transition: all 0.3s ease;
-        margin: 0.5rem;
+      .main-content {
+        max-width: 900px;
+        margin: 2rem auto 0 auto;
+        padding: 2rem 1.5rem 2rem 1.5rem;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(44,62,80,0.04);
       }
-      
-      .btn:hover {
-        background: var(--secondary-green);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        color: white;
-        text-decoration: none;
-      }
-      
-      h1, h2, h3, h4, h5, h6 {
-        color: var(--text-dark);
-        margin-top: 2rem;
-        margin-bottom: 1rem;
-        font-weight: 600;
-      }
-      
-      h1 {
-        color: var(--primary-green);
-        border-bottom: 3px solid var(--primary-green);
-        padding-bottom: 0.5rem;
-      }
-      
-      h2 {
-        color: var(--secondary-green);
-        font-size: 1.8rem;
-      }
-      
-      a {
-        color: var(--primary-green);
-        text-decoration: none;
-      }
-      
-      a:hover {
-        color: var(--secondary-green);
-        text-decoration: underline;
-      }
-      
-      .highlight {
-        background: var(--bg-light);
-        border: 1px solid var(--border-light);
-        border-radius: 6px;
-        padding: 1rem;
-        margin: 1rem 0;
-      }
-      
-      code {
-        background: var(--bg-light);
-        padding: 0.2rem 0.4rem;
-        border-radius: 3px;
-        font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
-      }
-      
-      blockquote {
-        border-left: 4px solid var(--primary-green);
-        margin: 1rem 0;
-        padding-left: 1rem;
-        color: var(--text-light);
-        font-style: italic;
-      }
-      
       .footer {
-        background: var(--bg-light);
-        padding: 3rem 1rem 2rem;
-        margin-top: 4rem;
-        border-top: 1px solid var(--border-light);
+        background: var(--footer-bg);
+        color: #555;
         text-align: center;
-        color: var(--text-light);
+        padding: 2rem 1rem 1rem 1rem;
+        border-top: 1px solid #e0e4e8;
+        margin-top: 3rem;
       }
-      
-      .footer-content {
-        max-width: 1200px;
-        margin: 0 auto;
-      }
-      
       .footer-logos {
         display: flex;
         align-items: center;
         justify-content: center;
         gap: 2rem;
-        margin-bottom: 1.5rem;
+        margin-bottom: 1rem;
         flex-wrap: wrap;
       }
-      
       .footer-logos img {
-        height: 50px;
+        height: 36px;
         width: auto;
       }
-      
       .footer p {
         margin: 0.5rem 0;
+        font-size: 0.95rem;
       }
-      
       .footer a {
-        color: var(--text-light);
+        color: var(--primary-green);
+        text-decoration: underline;
         margin: 0 0.5rem;
       }
-      
       .footer a:hover {
-        color: var(--primary-green);
+        color: var(--accent-blue);
       }
-      
-      .additional-nav {
-        margin-top: 1.5rem;
-        padding-top: 1rem;
-        border-top: 1px solid var(--border-light);
-      }
-      
-      .additional-nav summary {
-        cursor: pointer;
-        font-weight: 500;
-        color: var(--text-dark);
-        margin-bottom: 0.5rem;
-      }
-      
-      .additional-nav a {
-        margin: 0 0.75rem;
-        font-size: 0.9rem;
-      }
-      
-      @media (max-width: 768px) {
-        .project-name {
-          font-size: 2rem;
+      @media (max-width: 700px) {
+        .page-header {
+          flex-direction: column;
+          align-items: flex-start;
+          padding: 1rem 1rem 1rem 1rem;
         }
-        
+        .main-content {
+          padding: 1rem 0.5rem;
+        }
         .nav-menu ul {
           flex-direction: column;
-          align-items: center;
+          padding: 0 0.5rem;
         }
-        
-        .nav-menu a {
-          padding: 0.75rem 1rem;
-          width: 100%;
-          text-align: center;
-        }
-        
         .footer-logos {
           flex-direction: column;
           gap: 1rem;
-        }
-        
-        .logo-container {
-          flex-direction: column;
         }
       }
     </style>
@@ -271,64 +154,43 @@
 
     <header class="page-header" role="banner">
       <div class="logo-container">
-        <img src="{{ '/assets/P4H_logo/P4H logo png - transparent/LOGO PLANET4HEALTH-white-horizontal.png' | relative_url }}" alt="Planet4Health Logo">
+        <img src="{{ '/assets/p4h_logo_horizontal.png' | relative_url }}" alt="Planet4Health Logo">
       </div>
-      <h1 class="project-name">{{ page.title | default: site.title | default: site.github.repository_name }}</h1>
-      <h2 class="project-tagline">{{ page.description | default: site.description | default: site.github.project_tagline }}</h2>
-      {% if site.github.is_project_page %}
-        <a href="{{ site.github.repository_url }}" class="btn">View on GitHub</a>
-      {% endif %}
-      {% if site.show_downloads %}
-        <a href="{{ site.github.zip_url }}" class="btn">Download .zip</a>
-        <a href="{{ site.github.tar_url }}" class="btn">Download .tar.gz</a>
-      {% endif %}
+      <div class="header-title">
+        <h1 class="project-name">{{ page.title | default: site.title | default: site.github.repository_name }}</h1>
+        <span class="project-tagline">{{ page.description | default: site.description | default: site.github.project_tagline }}</span>
+      </div>
     </header>
 
     <nav class="nav-menu">
       <ul>
-        <li><a href="{{ '/' | relative_url }}">🏠 Home</a></li>
-        <li><a href="{{ '/USER_GUIDE.html' | relative_url }}">📱 User Guide</a></li>
-        <li><a href="{{ '/DEVELOPER_GUIDE.html' | relative_url }}">🔧 Developer Guide</a></li>
-        <li><a href="{{ '/API_REFERENCE.html' | relative_url }}">📚 API Reference</a></li>
-        <li><a href="{{ '/ARCHITECTURE.html' | relative_url }}">🏗️ Architecture</a></li>
-        <li><a href="{{ '/NOTIFICATION_FEATURE_SUMMARY.html' | relative_url }}">🔔 Notifications</a></li>
-        <li><a href="{{ '/PRIVACY.html' | relative_url }}">🛡️ Privacy</a></li>
-        <li><a href="{{ site.github.repository_url }}" target="_blank">💻 GitHub</a></li>
+        <li><a href="{{ '/' | relative_url }}">Home</a></li>
+        <li><a href="{{ '/USER_GUIDE.html' | relative_url }}">User Guide</a></li>
+        <li><a href="{{ '/DEVELOPER_GUIDE.html' | relative_url }}">Developer Guide</a></li>
+        <li><a href="{{ '/API_REFERENCE.html' | relative_url }}">API Reference</a></li>
+        <li><a href="{{ '/ARCHITECTURE.html' | relative_url }}">Architecture</a></li>
+        <li><a href="{{ '/NOTIFICATION_FEATURE_SUMMARY.html' | relative_url }}">Notifications</a></li>
+        <li><a href="{{ '/PRIVACY.html' | relative_url }}">Privacy</a></li>
+        <li><a href="{{ site.github.repository_url }}" target="_blank">GitHub</a></li>
       </ul>
     </nav>
 
     <main id="content" class="main-content" role="main">
       {{ content }}
-
       <footer class="footer">
-        <div class="footer-content">
-          <div class="footer-logos">
-            <img src="{{ '/assets/P4H_logo/P4H logo png - transparent/LOGO PLANET4HEALTH-horizontal .png' | relative_url }}" alt="Planet4Health">
-            <img src="https://planet4health.eu/wp-content/uploads/2024/03/eu-logo.png" alt="Funded by the European Union">
-          </div>
-          <p>Part of the <a href="https://planet4health.eu" target="_blank">Planet4Health</a> project</p>
-          <p>Funded by the European Union under Horizon Europe (Grant Agreement No. 101137165)</p>
-          <p>
-            <a href="https://planet4health.eu" target="_blank">Planet4Health Project</a> | 
-            <a href="{{ site.github.repository_url }}" target="_blank">GitHub Repository</a> |
-            <a href="{{ '/PRIVACY.html' | relative_url }}">Privacy Policy</a>
-          </p>
-          <div class="additional-nav">
-            <details>
-              <summary>Additional Documentation</summary>
-              <div style="margin-top: 0.5rem;">
-                <a href="{{ '/README.html' | relative_url }}">📖 Documentation Overview</a>
-                <a href="{{ '/ENCRYPTION_SETUP.html' | relative_url }}">🔐 Encryption Setup</a>
-                <a href="{{ '/SERVER_SETUP.html' | relative_url }}">🖥️ Server Setup</a>
-                <a href="{{ '/FLOW_CHARTS.html' | relative_url }}">📊 Flow Charts</a>
-                <a href="{{ '/RESEARCH_FEATURES_SUMMARY.html' | relative_url }}">🔬 Research Features</a>
-              </div>
-            </details>
-          </div>
-          <p style="margin-top: 2rem; font-size: 0.9rem; opacity: 0.7;">
-            Views and opinions expressed are those of the author(s) only and do not necessarily reflect those of the European Union or the European Health and Digital Executive Agency (HADEA).
-          </p>
+        <div class="footer-logos">
+          <img src="{{ '/assets/p4h_logo_horizontal.png' | relative_url }}" alt="Planet4Health logo">
+          <img src="https://planet4health.eu/wp-content/uploads/2024/03/eu-logo.png" alt="Funded by the European Union" style="background:#fff; padding:2px 8px; border-radius:6px;">
         </div>
+        <p>Part of the <a href="https://planet4health.eu" target="_blank">Planet4Health</a> project. Funded by the European Union under Horizon Europe (Grant Agreement No. 101137165).</p>
+        <p>
+          <a href="https://planet4health.eu" target="_blank">Planet4Health Project</a> |
+          <a href="{{ site.github.repository_url }}" target="_blank">GitHub Repository</a> |
+          <a href="{{ '/PRIVACY.html' | relative_url }}">Privacy Policy</a>
+        </p>
+        <p style="margin-top: 1.5rem; font-size: 0.9rem; opacity: 0.7;">
+          Views and opinions expressed are those of the author(s) only and do not necessarily reflect those of the European Union or the European Health and Digital Executive Agency (HADEA).
+        </p>
       </footer>
     </main>
   </body>
