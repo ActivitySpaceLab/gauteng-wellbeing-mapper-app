@@ -151,7 +151,7 @@ class _WellbeingMapperSideDrawerState extends State<WellbeingMapperSideDrawer> {
               child: ListTile(
                 leading: const Icon(Icons.settings),
                 title: Text("App Mode"),
-                subtitle: Text(isPrivateUser ? "Current: Private Mode" : "Current: Research Mode"),
+                subtitle: Text(isPrivateUser ? "Private" : "Research"),
                 trailing: Text("Change Mode", style: TextStyle(color: SouthAfricanTheme.primaryBlue)),
                 onTap: () {
                   _navigateToChangeMode();
