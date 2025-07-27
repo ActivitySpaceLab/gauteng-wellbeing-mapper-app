@@ -1,8 +1,8 @@
 buildscript {
     ext.kotlin_version = '1.9.0'
     ext {
-        compileSdkVersion   = 34               // or higher
-        targetSdkVersion    = 34                // or higher
+        compileSdkVersion   = 35               // Updated to support latest plugins
+        targetSdkVersion    = 35               // Updated to support latest plugins
         minSdkVersion       = 21
         appCompatVersion    = "1.4.2"           // or higher
         playServicesLocationVersion = "21.0.1"  // or higher
@@ -13,7 +13,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.2.0'
+        classpath 'com.android.tools.build:gradle:8.1.4'  // Updated to support SDK 35
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }

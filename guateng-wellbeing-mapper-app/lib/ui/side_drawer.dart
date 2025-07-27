@@ -7,7 +7,7 @@ import 'package:wellbeing_mapper/services/wellbeing_survey_service.dart';
 import 'package:wellbeing_mapper/theme/south_african_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:share/share.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:flutter_background_geolocation/flutter_background_geolocation.dart'
     as bg;
 
@@ -83,8 +83,7 @@ class _WellbeingMapperSideDrawerState extends State<WellbeingMapperSideDrawer> {
     };
 
     String prettyString = JsonEncoder.withIndent('  ').convert(exportData);
-    String subject = "guateng-wellbeing-mapper_data_export_" + now.toIso8601String() + ".json";
-    Share.share(prettyString, subject: subject);
+    Share.share(prettyString);
   }
 
   _launchProjectURL() async {
