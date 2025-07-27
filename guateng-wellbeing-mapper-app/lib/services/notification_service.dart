@@ -146,9 +146,8 @@ class NotificationService {
 
   /// Navigate to the survey webview
   static void _navigateToSurvey(BuildContext context) {
-    // Navigate to available projects or active projects page
-    // This depends on the app's current state
-    Navigator.of(context).pushNamed('/participate_in_a_project');
+    // Navigate to the recurring survey screen
+    Navigator.of(context).pushNamed('/recurring_survey');
   }
 
   /// Get notification statistics
