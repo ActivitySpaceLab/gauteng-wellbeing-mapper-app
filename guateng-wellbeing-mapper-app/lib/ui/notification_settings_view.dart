@@ -296,15 +296,6 @@ class _NotificationSettingsViewState extends State<NotificationSettingsView> {
     );
   }
 
-  Future<void> _triggerSurveyPrompt() async {
-    try {
-      await NotificationService.showSurveyPromptDialog(context);
-      _showSnackBar('Survey prompt triggered');
-    } catch (error) {
-      _showSnackBar('Error triggering survey prompt: $error');
-    }
-  }
-
   Future<void> _resetNotificationSchedule() async {
     final confirmed = await _showConfirmDialog(
       'Reset Notification Schedule',

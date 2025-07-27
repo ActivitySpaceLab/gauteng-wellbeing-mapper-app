@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 class WellbeingSurveyResponse {
   final String id;
   final DateTime timestamp;
@@ -59,6 +61,58 @@ class WellbeingSurveyResponse {
       locationTimestamp: json['location_timestamp'],
       isSynced: (json['is_synced'] ?? 0) == 1,
     );
+  }
+
+  /// Calculate wellbeing score (0-5) based on 5 survey responses
+  /// Each "Yes" answer = 1 point, "No" answer = 0 points
+  int get wellbeingScore {
+    return cheerfulSpirits + calmRelaxed + activeVigorous + wokeRested + interestingLife;
+  }
+
+  /// Get wellbeing score as a normalized value (0.0 - 1.0) for color mapping
+  double get normalizedWellbeingScore {
+    return wellbeingScore / 5.0;
+  }
+
+  /// Get wellbeing category based on score
+  String get wellbeingCategory {
+    switch (wellbeingScore) {
+      case 0:
+        return 'Very Low';
+      case 1:
+        return 'Low';
+      case 2:
+        return 'Below Average';
+      case 3:
+        return 'Average';
+      case 4:
+        return 'Good';
+      case 5:
+        return 'Excellent';
+      default:
+        return 'Unknown';
+    }
+  }
+
+  /// Get color for wellbeing score (for map visualization)
+  /// Red (low) to Green (high) gradient
+  static Color getWellbeingColor(int score) {
+    switch (score) {
+      case 0:
+        return const Color(0xFFD32F2F); // Dark Red
+      case 1:
+        return const Color(0xFFFF5722); // Red-Orange
+      case 2:
+        return const Color(0xFFFF9800); // Orange
+      case 3:
+        return const Color(0xFFFFC107); // Amber
+      case 4:
+        return const Color(0xFF8BC34A); // Light Green
+      case 5:
+        return const Color(0xFF4CAF50); // Green
+      default:
+        return const Color(0xFF9E9E9E); // Grey
+    }
   }
 
   /// Creates a copy with updated sync status

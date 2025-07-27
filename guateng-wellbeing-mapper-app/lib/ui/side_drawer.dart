@@ -145,6 +145,17 @@ class _WellbeingMapperSideDrawerState extends State<WellbeingMapperSideDrawer> {
                 },
               ),
             ),
+            // Wellbeing Map - Always visible
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.map_outlined),
+                title: Text("Wellbeing Map"),
+                subtitle: Text("View your wellbeing responses on map"),
+                onTap: () {
+                  Navigator.of(context).pushNamed('/wellbeing_map');
+                },
+              ),
+            ),
             // App Mode - Always visible
             Card(
               child: ListTile(
