@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/data_upload_service.dart';
-import '../services/wellbeing_survey_service.dart';
+import '../services/consent_aware_upload_service.dart';
 import '../db/survey_database.dart';
 import '../theme/south_african_theme.dart';
 
@@ -78,43 +78,30 @@ class _DataUploadScreenState extends State<DataUploadScreen> {
     });
 
     try {
-      // Get survey data
-      final db = SurveyDatabase();
-      final initialSurveys = await db.getInitialSurveys();
-      final recurringSurveys = await db.getRecurringSurveys();
-      final wellbeingSurveys = await WellbeingSurveyService().getUnsyncedWellbeingSurveys();
-      final locationTracks = await DataUploadService.getRecentLocationTracks();
-
-      // Upload data
-      final result = await DataUploadService.uploadParticipantData(
-        researchSite: _researchSite!,
-        initialSurveys: initialSurveys,
-        recurringSurveys: recurringSurveys,
-        wellbeingSurveys: wellbeingSurveys,
-        locationTracks: locationTracks,
+      // Use consent-aware upload service
+      await ConsentAwareDataUploadService.uploadWithConsent(
+        context: context,
         participantUuid: _participantUuid!,
+        researchSite: _researchSite!,
+        onSuccess: () async {
+          setState(() {
+            _isLoading = false;
+          });
+          await _loadParticipantInfo(); // Refresh UI
+          _showSuccessDialog('Data uploaded successfully!');
+        },
+        onError: (error) {
+          setState(() {
+            _isLoading = false;
+          });
+          _showErrorDialog(error);
+        },
       );
-
-      if (result.success) {
-        // Mark upload as completed
-        await DataUploadService.markUploadCompleted(_researchSite!, result.uploadId!);
-        
-        // Mark wellbeing surveys as synced
-        for (final survey in wellbeingSurveys) {
-          await WellbeingSurveyService().markAsSynced(survey.id);
-        }
-        
-        _showSuccessDialog(result.uploadId!);
-        await _loadParticipantInfo(); // Refresh UI
-      } else {
-        _showErrorDialog('Upload failed: ${result.error}');
-      }
     } catch (e) {
-      _showErrorDialog('Upload error: $e');
-    } finally {
       setState(() {
         _isLoading = false;
       });
+      _showErrorDialog('Upload error: $e');
     }
   }
 
@@ -335,7 +322,7 @@ class _DataUploadScreenState extends State<DataUploadScreen> {
     return nextUpload.difference(now).inDays.clamp(0, 14);
   }
 
-  void _showSuccessDialog(String uploadId) {
+  void _showSuccessDialog(String message) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -344,10 +331,7 @@ class _DataUploadScreenState extends State<DataUploadScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Your research data has been successfully uploaded and encrypted.'),
-            SizedBox(height: 16),
-            Text('Upload ID:', style: TextStyle(fontWeight: FontWeight.bold)),
-            SelectableText(uploadId, style: TextStyle(fontFamily: 'monospace')),
+            Text(message),
             SizedBox(height: 8),
             Text(
               'Your next upload will be available in 2 weeks.',

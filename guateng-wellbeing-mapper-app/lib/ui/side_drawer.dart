@@ -209,6 +209,16 @@ class _WellbeingMapperSideDrawerState extends State<WellbeingMapperSideDrawer> {
                   },
                 ),
               ),
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.privacy_tip),
+                  title: Text("Data Sharing Preferences"),
+                  subtitle: Text("Manage your data sharing consent choices"),
+                  onTap: () {
+                    Navigator.of(context).pushNamed('/data_sharing_preferences');
+                  },
+                ),
+              ),
             ],
             // Help & Guide - Always visible
             Card(

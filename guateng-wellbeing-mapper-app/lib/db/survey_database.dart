@@ -3,6 +3,7 @@ import 'package:path/path.dart';
 import 'dart:convert';
 import '../models/survey_models.dart';
 import '../models/consent_models.dart';
+import '../models/data_sharing_consent.dart';
 import '../services/data_upload_service.dart';
 
 class SurveyDatabase {
@@ -22,7 +23,7 @@ class SurveyDatabase {
     String path = join(await getDatabasesPath(), 'survey_database.db');
     return await openDatabase(
       path,
-      version: 4, // Bumped version to add location fields to wellbeing survey table
+      version: 5, // Bumped version to add data sharing consent table
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -153,6 +154,19 @@ class SurveyDatabase {
         created_at TEXT DEFAULT CURRENT_TIMESTAMP
       )
     ''');
+
+    // Create data sharing consent table
+    await db.execute('''
+      CREATE TABLE data_sharing_consent (
+        id TEXT PRIMARY KEY,
+        participant_uuid TEXT NOT NULL,
+        location_sharing_option INTEGER NOT NULL,
+        decision_timestamp TEXT NOT NULL,
+        custom_location_ids TEXT,
+        reason_for_partial_sharing TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP
+      )
+    ''');
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -237,6 +251,21 @@ class SurveyDatabase {
       await db.execute('ALTER TABLE wellbeing_survey_responses ADD COLUMN longitude REAL');
       await db.execute('ALTER TABLE wellbeing_survey_responses ADD COLUMN accuracy REAL');
       await db.execute('ALTER TABLE wellbeing_survey_responses ADD COLUMN location_timestamp TEXT');
+    }
+    
+    if (oldVersion < 5) {
+      // Add data sharing consent table
+      await db.execute('''
+        CREATE TABLE data_sharing_consent (
+          id TEXT PRIMARY KEY,
+          participant_uuid TEXT NOT NULL,
+          location_sharing_option INTEGER NOT NULL,
+          decision_timestamp TEXT NOT NULL,
+          custom_location_ids TEXT,
+          reason_for_partial_sharing TEXT,
+          created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+      ''');
     }
   }
 
@@ -543,6 +572,74 @@ class SurveyDatabase {
       where: 'id IN (${ids.map((_) => '?').join(',')})',
       whereArgs: ids,
     );
+  }
+
+  // Data Sharing Consent Methods
+  Future<int> insertDataSharingConsent(DataSharingConsent consent) async {
+    final db = await database;
+    return await db.insert(
+      'data_sharing_consent',
+      {
+        'id': consent.id,
+        'participant_uuid': consent.participantUuid,
+        'location_sharing_option': consent.locationSharingOption.index,
+        'decision_timestamp': consent.decisionTimestamp.toIso8601String(),
+        'custom_location_ids': consent.customLocationIds != null 
+            ? jsonEncode(consent.customLocationIds) 
+            : null,
+        'reason_for_partial_sharing': consent.reasonForPartialSharing,
+      },
+    );
+  }
+
+  Future<DataSharingConsent?> getLatestDataSharingConsent(String participantUuid) async {
+    final db = await database;
+    final result = await db.query(
+      'data_sharing_consent',
+      where: 'participant_uuid = ?',
+      whereArgs: [participantUuid],
+      orderBy: 'decision_timestamp DESC',
+      limit: 1,
+    );
+
+    if (result.isNotEmpty) {
+      final map = result.first;
+      return DataSharingConsent(
+        id: map['id'] as String,
+        participantUuid: map['participant_uuid'] as String,
+        locationSharingOption: LocationSharingOption.values[map['location_sharing_option'] as int],
+        decisionTimestamp: DateTime.parse(map['decision_timestamp'] as String),
+        customLocationIds: map['custom_location_ids'] != null
+            ? List<String>.from(jsonDecode(map['custom_location_ids'] as String))
+            : null,
+        reasonForPartialSharing: map['reason_for_partial_sharing'] as String?,
+      );
+    }
+    return null;
+  }
+
+  Future<List<DataSharingConsent>> getAllDataSharingConsents(String participantUuid) async {
+    final db = await database;
+    final maps = await db.query(
+      'data_sharing_consent',
+      where: 'participant_uuid = ?',
+      whereArgs: [participantUuid],
+      orderBy: 'decision_timestamp DESC',
+    );
+
+    return List.generate(maps.length, (i) {
+      final map = maps[i];
+      return DataSharingConsent(
+        id: map['id'] as String,
+        participantUuid: map['participant_uuid'] as String,
+        locationSharingOption: LocationSharingOption.values[map['location_sharing_option'] as int],
+        decisionTimestamp: DateTime.parse(map['decision_timestamp'] as String),
+        customLocationIds: map['custom_location_ids'] != null
+            ? List<String>.from(jsonDecode(map['custom_location_ids'] as String))
+            : null,
+        reasonForPartialSharing: map['reason_for_partial_sharing'] as String?,
+      );
+    });
   }
 
   Future<void> close() async {

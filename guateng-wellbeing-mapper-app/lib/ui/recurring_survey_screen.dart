@@ -8,6 +8,7 @@ import 'dart:convert';
 import '../models/survey_models.dart';
 import '../models/consent_models.dart';
 import '../db/survey_database.dart';
+import '../services/consent_aware_upload_service.dart';
 
 class RecurringSurveyScreen extends StatefulWidget {
   @override
@@ -708,21 +709,111 @@ class _RecurringSurveyScreenState extends State<RecurringSurveyScreen> {
     }
   }
 
-  void _showSuccessDialog() {
+  void _showSuccessDialog() async {
+    // Check if user is a research participant
+    bool isResearchParticipant = false;
+    String? participantUuid;
+    
+    try {
+      final db = SurveyDatabase();
+      final consent = await db.getConsent();
+      isResearchParticipant = consent != null;
+      participantUuid = consent?.participantUuid;
+    } catch (e) {
+      print('Error checking research participation: $e');
+    }
+
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
         title: Text('Survey Submitted!'),
-        content: Text('Thank you for completing the wellbeing survey. Your responses have been saved.'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Thank you for completing the wellbeing survey. Your responses have been saved.'),
+            if (isResearchParticipant) ...[
+              SizedBox(height: 16),
+              Container(
+                padding: EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.blue[50],
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.blue[200]!),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Research Participation',
+                      style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue[700]),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'As a research participant, your data helps advance scientific understanding. Would you like to upload your survey responses and location data now?',
+                      style: TextStyle(fontSize: 13),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
         actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop(); // Close dialog
-              Navigator.of(context).pop(); // Go back to previous screen
-            },
-            child: Text('OK'),
-          ),
+          if (isResearchParticipant) ...[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close dialog
+                Navigator.of(context).pop(); // Go back to previous screen
+              },
+              child: Text('Skip Upload'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.of(context).pop(); // Close success dialog
+                
+                if (participantUuid != null) {
+                  // Trigger consent-aware upload
+                  ConsentAwareDataUploadService.uploadWithConsent(
+                    context: context,
+                    participantUuid: participantUuid,
+                    researchSite: _researchSite,
+                    onSuccess: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Data uploaded successfully!'),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                      Navigator.of(context).pop(); // Go back to previous screen
+                    },
+                    onError: (error) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Upload failed: $error'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                      Navigator.of(context).pop(); // Go back to previous screen
+                    },
+                  );
+                } else {
+                  Navigator.of(context).pop(); // Go back to previous screen
+                }
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+              child: Text('Upload Data', style: TextStyle(color: Colors.white)),
+            ),
+          ] else ...[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close dialog
+                Navigator.of(context).pop(); // Go back to previous screen
+              },
+              child: Text('OK'),
+            ),
+          ],
         ],
       ),
     );
