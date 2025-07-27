@@ -295,7 +295,7 @@ graph TD
 
 ## File Structure
 
-```
+
 ```
 guateng-wellbeing-mapper-app/lib/
 ├── main.dart                    # App entry point
@@ -700,20 +700,20 @@ The notification system provides recurring survey reminders to encourage user pa
 
 ```
 ┌─────────────────────────────────────────┐
-│         NotificationService            │
+│         NotificationService             │
 │  - Schedule management                  │
-│  - Timing checks                       │
-│  - User preference handling            │
+│  - Timing checks                        │
+│  - User preference handling             │
 ├─────────────────────────────────────────┤
-│         BackgroundFetch                │
-│  - Periodic execution                  │
-│  - Headless operation                  │
-│  - Cross-platform scheduling          │
+│         BackgroundFetch                 │
+│  - Periodic execution                   │
+│  - Headless operation                   │
+│  - Cross-platform scheduling            │
 ├─────────────────────────────────────────┤
-│         SharedPreferences              │
-│  - Notification timestamps             │
-│  - User preferences                    │
-│  - Statistics storage                  │
+│         SharedPreferences               │
+│  - Notification timestamps              │
+│  - User preferences                     │
+│  - Statistics storage                   │
 └─────────────────────────────────────────┘
 ```
 
