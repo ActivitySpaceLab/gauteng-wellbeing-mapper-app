@@ -70,7 +70,33 @@ Users can now choose between two modes when starting the app:
 - `DataSharingPreferencesScreen`: Ongoing preference management interface
 - Enhanced database schema with `data_sharing_consent` table
 
-### 4. Gauteng Research Features 🌍
+### 4. Enhanced Notification System 🔔
+
+**Dual-Notification Approach:**
+- **Device-level notifications**: System notifications that work even when app is closed
+- **In-app dialogs**: Traditional backup system for maximum reliability
+- **2-week recurring schedule**: Automatic survey reminders every 14 days
+- **Research-grade reliability**: Dramatically improved participant response rates
+
+**Enhanced Testing Tools:**
+- **Device notification testing**: Verify system-level notifications work properly
+- **Permission diagnostics**: Check and troubleshoot notification permissions
+- **Comprehensive statistics**: Monitor notification delivery and engagement
+- **Research team tools**: Detailed diagnostics for troubleshooting
+
+**Platform Support:**
+- Cross-platform implementation (Android/iOS)
+- Automatic permission handling with graceful fallbacks
+- Background processing that survives app termination
+- Minimal battery impact with efficient scheduling
+
+**Implementation:**
+- Enhanced `NotificationService`: Device notification support via flutter_local_notifications
+- `NotificationSettingsView`: Comprehensive testing and management interface
+- Platform-specific permission handling and diagnostics
+- Dual notification strategy for maximum research reliability
+
+### 5. Gauteng Research Features 🌍
 
 **Gauteng Research:**
 - South African demographics (ethnicity, building type)
@@ -83,7 +109,7 @@ Users can now choose between two modes when starting the app:
 - Enhanced survey models with site-specific fields
 - `SurveyModels`: Added `researchSite`, `suburb`, `generalHealth` fields
 
-### 5. Secure Data Upload System 📤
+### 6. Secure Data Upload System 📤
 
 **Features:**
 - Bi-weekly automated upload scheduling

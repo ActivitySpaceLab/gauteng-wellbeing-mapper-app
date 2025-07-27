@@ -19,7 +19,7 @@ This case study aims to:
 [![CI tests](https://github.com/ActivitySpaceLab/guateng-wellbeing-mapper-app/actions/workflows/CI.yml/badge.svg)](https://github.com/ActivitySpaceLab/guateng-wellbeing-mapper-app/actions/workflows/CI.yml)
 [![drive_test iOS](https://github.com/ActivitySpaceLab/guateng-wellbeing-mapper-app/actions/workflows/drive-ios.yml/badge.svg)](https://github.com/ActivitySpaceLab/guateng-wellbeing-mapper-app/actions/workflows/drive-ios.yml)
 [![drive_test Android](https://github.com/ActivitySpaceLab/guateng-wellbeing-mapper-app/actions/workflows/drive-android.yml/badge.svg)](https://github.com/ActivitySpaceLab/guateng-wellbeing-mapper-app/actions/workflows/drive-android.yml)
-[![codecov](https://codecov.io/gh/ActivitySpaceLab/guateng-wellbeing-mapper-app/graph/badge.svg?token=G72Y5TF6KP)](https://codecov.io/gh/ActivitySpaceLab/guateng-wellbeing-mapper-app)
+[![codecov](https://codecov.io/gh/ActivitySpaceLab/guateng-wellbeing-mapper-app/graph/badge.svg?token=CK8N6GEWKR)](https://codecov.io/gh/ActivitySpaceLab/guateng-wellbeing-mapper-app)
 [![Documentation](https://img.shields.io/badge/docs-available-brightgreen.svg)](https://github.com/ActivitySpaceLab/guateng-wellbeing-mapper-app/tree/main/docs)
 
 ## Prerequisites
@@ -69,6 +69,8 @@ If this project is useful for you, please consider starring this repository and 
 * **Mental Health Mapping**: Track your mental wellbeing alongside your location data to understand environmental influences on your psychological health.
 * **Environmental Context**: Correlate your wellbeing data with environmental factors like air quality, green spaces, and climate conditions.
 * **Privacy-First Design**: Your data is only stored on your phone, so only you have access to it.
+* **Enhanced Survey Reminders**: Dual notification system with both device notifications and in-app prompts ensures you never miss survey opportunities, even when the app is closed.
+* **Research-Grade Reliability**: Comprehensive testing tools and diagnostics for research teams to verify notification system functionality.
 * **Multi-Site Research Support**: Participate in research studies in Barcelona, Spain or Gauteng, South Africa with site-specific surveys and consent forms.
 * **End-to-End Encryption**: Research data is encrypted with military-grade RSA+AES encryption before transmission to protect participant privacy.
 * **Secure Data Upload**: Bi-weekly encrypted uploads of survey responses and location data to authorized research servers.

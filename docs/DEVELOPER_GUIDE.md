@@ -744,19 +744,26 @@ Wellbeing Mapper is designed with privacy as a core principle:
 ### Debug Mode
 Enable debug mode by setting `debug: true` in background geolocation configuration to see detailed logging.
 
-## Notification System
+## Enhanced Notification System
 
 ### Overview
-The notification system provides recurring survey reminders to encourage user participation in research studies. It uses the existing `background_fetch` infrastructure for scheduling and manages notifications through in-app dialogs.
+The notification system provides recurring survey reminders to encourage user participation in research studies. The system has been **significantly enhanced** to use a **dual-notification approach** combining device-level notifications with in-app dialogs for maximum research reliability. It uses the existing `background_fetch` infrastructure for scheduling and now supports cross-platform device notifications.
 
 ### Architecture
 
 ```
 ┌─────────────────────────────────────────┐
-│         NotificationService             │
+│      Enhanced NotificationService       │
+│  - Dual notification strategy           │
+│  - Device-level notifications           │
 │  - Schedule management                  │
-│  - Timing checks                        │
-│  - User preference handling             │
+│  - Permission handling                  │
+│  - Testing & diagnostics               │
+├─────────────────────────────────────────┤
+│     flutter_local_notifications        │
+│  - Cross-platform device notifications │
+│  - Android/iOS platform integration    │
+│  - Permission management               │
 ├─────────────────────────────────────────┤
 │         BackgroundFetch                 │
 │  - Periodic execution                   │
@@ -772,10 +779,15 @@ The notification system provides recurring survey reminders to encourage user pa
 
 ### Key Components
 
-#### 1. NotificationService
+#### 1. Enhanced NotificationService
 - **Location**: `lib/services/notification_service.dart`
-- **Purpose**: Manages all notification-related functionality
-- **Features**:
+- **Purpose**: Manages all notification-related functionality with device-level support
+- **New Features**:
+  - **Device notifications**: System-level notifications via flutter_local_notifications
+  - **Platform-specific permissions**: Android/iOS permission handling
+  - **Testing methods**: Comprehensive testing tools for research teams
+  - **Enhanced diagnostics**: Detailed system monitoring and troubleshooting
+- **Core Features**:
   - 2-week interval scheduling
   - Background timing checks
   - User preference management
@@ -804,24 +816,52 @@ await BackgroundFetch.scheduleTask(TaskConfig(
 ));
 ```
 
-#### Notification Flow
+#### Enhanced Notification Flow
 1. Background task executes hourly
-2. Checks time since last notification
-3. If ≥14 days, sets pending prompt flag
-4. When app opens, checks for pending prompts
-5. Shows survey dialog if prompt is pending
+2. Checks time since last notification  
+3. If ≥14 days, **triggers dual notification strategy**:
+   - **Device notification**: Immediate system notification sent
+   - **Pending flag**: Sets in-app dialog flag as backup
+4. User sees notification even if app is closed
+5. When app opens, checks for pending prompts (fallback)
+6. Shows survey dialog if prompt is pending
+
+#### New Testing & Diagnostics Methods
+```dart
+// Test device notifications
+await NotificationService.testDeviceNotification();
+
+// Test in-app notifications  
+await NotificationService.testInAppNotification(context);
+
+// Check notification permissions
+bool hasPermissions = await NotificationService.checkNotificationPermissions();
+
+// Get comprehensive diagnostics
+Map<String, dynamic> diagnostics = await NotificationService.getDiagnostics();
+```
 
 #### Data Storage
 - `last_survey_notification`: Timestamp of last notification
 - `survey_notification_count`: Total notifications sent
 - `pending_survey_prompt`: Flag for pending notifications
+- **NEW**: Device notification permissions and status tracking
 
-### Usage Examples
+### Enhanced Usage Examples
 
-#### Initialize Service
+#### Initialize Enhanced Service
 ```dart
 // In main.dart
 await NotificationService.initialize();
+```
+
+#### Check Device Notification Permissions
+```dart
+// Check permissions before relying on device notifications
+bool hasPermissions = await NotificationService.checkNotificationPermissions();
+if (!hasPermissions) {
+  // Handle permission request or inform user
+}
 ```
 
 #### Check for Pending Prompts
@@ -831,6 +871,21 @@ bool hasPendingPrompt = await NotificationService.hasPendingSurveyPrompt();
 if (hasPendingPrompt) {
   await NotificationService.showSurveyPromptDialog(context);
 }
+```
+
+#### Research Team Testing & Diagnostics
+```dart
+// Test device notifications
+await NotificationService.testDeviceNotification();
+
+// Test in-app notifications  
+await NotificationService.testInAppNotification(context);
+
+// Get comprehensive diagnostics
+Map<String, dynamic> diagnostics = await NotificationService.getDiagnostics();
+print('Platform: ${diagnostics['systemInfo']['platform']}');
+print('Device notifications enabled: ${diagnostics['deviceNotificationsEnabled']}');
+print('System initialized: ${diagnostics['notificationSystemInitialized']}');
 ```
 
 #### User Preference Management
@@ -844,6 +899,11 @@ await NotificationService.disableNotifications();
 // Reset schedule
 await NotificationService.resetNotificationSchedule();
 ```
+
+### Dependencies
+- **flutter_local_notifications: ^18.0.1** - Device notification support (NEW)
+- **background_fetch** - Background task scheduling (existing)
+- **shared_preferences** - Persistent storage (existing)
 
 ### Testing
 
