@@ -12,7 +12,7 @@ class WellbeingTimelineView extends StatefulWidget {
 class _WellbeingTimelineViewState extends State<WellbeingTimelineView> {
   List<WellbeingSurveyResponse> _surveyResponses = [];
   bool _isLoading = true;
-  String _selectedPeriod = '30'; // days
+  String _selectedPeriod = '14'; // days - default to 2 weeks to match biweekly survey
   
   @override
   void initState() {
@@ -62,7 +62,7 @@ class _WellbeingTimelineViewState extends State<WellbeingTimelineView> {
               });
             },
             itemBuilder: (context) => [
-              PopupMenuItem(value: '7', child: Text('Last 7 days')),
+              PopupMenuItem(value: '14', child: Text('Last 2 weeks')),
               PopupMenuItem(value: '30', child: Text('Last 30 days')),
               PopupMenuItem(value: '90', child: Text('Last 3 months')),
               PopupMenuItem(value: '365', child: Text('Last year')),
@@ -420,12 +420,12 @@ class _WellbeingTimelineViewState extends State<WellbeingTimelineView> {
 
   String _getPeriodText() {
     switch (_selectedPeriod) {
-      case '7': return 'Last 7 days';
+      case '14': return 'Last 2 weeks';
       case '30': return 'Last 30 days';
       case '90': return 'Last 3 months';
       case '365': return 'Last year';
       case 'all': return 'All time';
-      default: return 'Last 30 days';
+      default: return 'Last 2 weeks';
     }
   }
 }
