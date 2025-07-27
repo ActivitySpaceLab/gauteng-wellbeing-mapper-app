@@ -43,7 +43,34 @@ Users can now choose between two modes when starting the app:
 - `EncryptionResult`: Encryption operation results
 - `fast_rsa` package integration for RSA operations
 
-### 3. Gauteng Research Features 🌍
+### 3. Advanced Data Sharing Consent System 🛡️
+
+**Granular User Control:**
+- Three-tier consent options: Full data, Partial data, Survey-only
+- Interactive location cluster selection for partial sharing
+- Opt-out approach: all areas selected by default, users uncheck sensitive locations
+- Real-time data summary and privacy transparency
+
+**Location Clustering:**
+- Automatic grouping of GPS points into geographic areas (~1km radius)
+- Privacy-friendly area names instead of exact coordinates
+- Visit frequency and date range information for each cluster
+- User-friendly selection interface with checkboxes
+
+**Consent Management:**
+- Persistent preference storage with history tracking
+- Data Sharing Preferences screen for ongoing management
+- Consent decisions saved per participant with timestamps
+- Flexible filtering: users can share some areas while keeping others private
+
+**Implementation:**
+- `DataSharingConsent` model: Consent preferences with location cluster IDs
+- `DataSharingConsentDialog`: Interactive consent interface with data preview
+- `ConsentAwareDataUploadService`: Filtering service that respects user choices
+- `DataSharingPreferencesScreen`: Ongoing preference management interface
+- Enhanced database schema with `data_sharing_consent` table
+
+### 4. Gauteng Research Features 🌍
 
 **Gauteng Research:**
 - South African demographics (ethnicity, building type)
@@ -56,32 +83,36 @@ Users can now choose between two modes when starting the app:
 - Enhanced survey models with site-specific fields
 - `SurveyModels`: Added `researchSite`, `suburb`, `generalHealth` fields
 
-### 4. Secure Data Upload System 📤
+### 5. Secure Data Upload System 📤
 
 **Features:**
 - Bi-weekly automated upload scheduling
 - Encrypted survey responses and location data
 - Upload status tracking and retry logic
 - Privacy-focused upload management UI
+- **Consent-aware filtering:** Only uploads data according to user preferences
 
 **Implementation:**
 - `DataUploadScreen`: User interface for upload management
 - `LocationTrack` model: Location data for research uploads
 - Enhanced `SurveyDatabase`: Location tracking table and methods
 - Upload synchronization and status tracking
+- `ConsentAwareDataUploadService`: Respects user data sharing preferences
 
-### 5. Enhanced Database Schema 🗄️
+### 6. Enhanced Database Schema 🗄️
 
 **New/Updated Tables:**
 - `location_tracks`: GPS coordinates with accuracy and timestamps
 - Enhanced survey tables with `research_site` field
 - `consent_responses`: Complete consent tracking with all required fields
+- **`data_sharing_consent`**: User consent preferences and location cluster selections
 
 **Features:**
 - Location data synchronized with uploads
 - Site-specific survey storage
-- Consent audit trail
+- Consent audit trail with granular preferences
 - Local data retention management
+- **Consent history tracking:** Full record of user data sharing decisions
 
 ## Technical Architecture
 

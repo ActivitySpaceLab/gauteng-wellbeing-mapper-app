@@ -69,6 +69,13 @@ class _DataSharingConsentDialogState extends State<DataSharingConsentDialog> {
             locationAccuracyStats: avgAccuracy,
             locationClusters: clusters,
           );
+          
+          // Initialize all clusters as selected for partial sharing
+          _selectedClusterIds.clear();
+          for (int i = 0; i < clusters.length; i++) {
+            _selectedClusterIds.add('cluster_$i');
+          }
+          
           _isLoading = false;
         });
       } else {
@@ -316,7 +323,7 @@ class _DataSharingConsentDialogState extends State<DataSharingConsentDialog> {
         
         RadioListTile<LocationSharingOption>(
           title: Text('Share Partial Location Data'),
-          subtitle: Text('Select specific locations or time periods to share'),
+          subtitle: Text('Choose which location areas to share (all selected by default)'),
           value: LocationSharingOption.partialData,
           groupValue: _selectedOption,
           onChanged: _handleOptionChanged,
@@ -384,9 +391,9 @@ class _DataSharingConsentDialogState extends State<DataSharingConsentDialog> {
       return true;
     }
     
-    // For partial data, require at least one cluster to be selected
+    // For partial data, always allow (even if no clusters selected - equivalent to survey-only)
     if (_selectedOption == LocationSharingOption.partialData) {
-      return _selectedClusterIds.isNotEmpty;
+      return true;
     }
     
     return false;
@@ -432,7 +439,7 @@ class _DataSharingConsentDialogState extends State<DataSharingConsentDialog> {
           ),
           SizedBox(height: 8),
           Text(
-            'Choose which location areas you want to include in your data sharing:',
+            'All location areas are selected by default. Uncheck any areas you prefer to keep private:',
             style: TextStyle(fontSize: 13, color: Colors.blue[800]),
           ),
           if (_selectedClusterIds.isEmpty)
@@ -450,7 +457,7 @@ class _DataSharingConsentDialogState extends State<DataSharingConsentDialog> {
                   SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Please select at least one location area to continue.',
+                      'You have unchecked all areas. This means no location data will be shared (survey responses only).',
                       style: TextStyle(fontSize: 12, color: Colors.orange[800]),
                     ),
                   ),
@@ -513,7 +520,9 @@ class _DataSharingConsentDialogState extends State<DataSharingConsentDialog> {
                 SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Selected: ${_selectedClusterIds.length} of ${_dataSummary!.locationClusters.length} areas',
+                    _selectedClusterIds.isEmpty 
+                        ? 'No location areas selected (survey responses only)'
+                        : 'Sharing: ${_selectedClusterIds.length} of ${_dataSummary!.locationClusters.length} location areas',
                     style: TextStyle(fontSize: 12, color: Colors.amber[800]),
                   ),
                 ),

@@ -97,9 +97,59 @@ The hamburger menu (three lines) in the top-left:
 - Contribute to important wellbeing studies
 - Regular survey reminders every 2 weeks
 - All participation is voluntary and anonymous
+- **Full control over location data sharing** (see Data Sharing Preferences below)
 - Can switch back to Private Mode anytime
 
 > **Note:** You can switch between modes anytime through the menu. Your data will be preserved when switching.
+
+## Data Sharing Preferences (Research Mode Only)
+
+Research participants have **complete control** over what location data they share with researchers. 
+
+### Data Sharing Options
+
+When you complete biweekly surveys in Research Mode, you'll be asked to choose:
+
+1. **Share Full Location Data** 📍
+   - Upload complete 2-week location history with survey responses
+   - Helps researchers understand environmental context fully
+   - All data is encrypted and anonymous
+
+2. **Share Partial Location Data** 🗺️
+   - **All location areas are selected by default**
+   - Uncheck any areas you prefer to keep private (e.g., home, work, sensitive locations)
+   - You can share some areas while keeping others completely private
+   - Perfect for sharing public spaces while protecting personal locations
+
+3. **Survey Responses Only** 📝
+   - Upload only your survey answers, no location data
+   - Still valuable for mood and wellbeing research
+   - Complete privacy for your movements
+
+### Managing Your Preferences
+
+**Data Sharing Preferences** (Available in side menu):
+- View your current sharing settings
+- Change preferences anytime
+- See history of your consent decisions
+- Update which location areas you're comfortable sharing
+
+### Location Area Selection
+
+When choosing "Partial Location Data":
+- The app groups your locations into general areas (like "Central Johannesburg" or "Sandton CBD")
+- **All areas start selected** - you uncheck ones you want to keep private
+- Each area shows how many location records and visit dates
+- You can select all areas, some areas, or no areas (equivalent to survey-only)
+- Your choices are saved for future uploads
+
+### Privacy Protection
+
+- All data is encrypted before leaving your device
+- No personal identifiers are ever transmitted
+- Location areas are shown as general regions, not exact addresses
+- You can change or withdraw consent at any time
+- Complete transparency about what data is being shared
 
 ## About the Surveys
 

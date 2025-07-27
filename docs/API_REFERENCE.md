@@ -598,6 +598,179 @@ class ShareLocation {
 }
 ```
 
+### DataSharingConsent
+
+Manages user consent preferences for research data sharing with granular location control.
+
+```dart
+class DataSharingConsent {
+  // Properties
+  String id;                          // Unique consent record ID
+  LocationSharingOption locationSharingOption;  // User's sharing preference
+  DateTime decisionTimestamp;         // When consent was given
+  String participantUuid;             // Anonymous participant identifier
+  List<String>? customLocationIds;    // Selected location cluster IDs for partial sharing
+  String? reasonForPartialSharing;    // Optional reason for partial selection
+  
+  // Constructor
+  DataSharingConsent({
+    required this.id,
+    required this.locationSharingOption,
+    required this.decisionTimestamp,
+    required this.participantUuid,
+    this.customLocationIds,
+    this.reasonForPartialSharing,
+  });
+  
+  // JSON serialization
+  Map<String, dynamic> toJson()
+  factory DataSharingConsent.fromJson(Map<String, dynamic> json)
+}
+```
+
+### LocationSharingOption
+
+Enumeration of data sharing options for research participants.
+
+```dart
+enum LocationSharingOption {
+  fullData,        // Upload complete 2-week geolocation history
+  partialData,     // Upload selected/filtered location data
+  surveyOnly,      // Upload only survey responses, no location data
+}
+```
+
+### DataUploadSummary
+
+Preview information shown to users before data sharing consent.
+
+```dart
+class DataUploadSummary {
+  // Properties
+  int surveyResponseCount;            // Number of survey responses to upload
+  int locationTrackCount;             // Number of location records to upload
+  DateTime oldestLocationDate;        // Date range of location data
+  DateTime newestLocationDate;
+  double locationAccuracyStats;       // Average location accuracy
+  List<LocationCluster> locationClusters;  // Grouped locations for privacy preview
+  
+  // Constructor
+  DataUploadSummary({
+    required this.surveyResponseCount,
+    required this.locationTrackCount,
+    required this.oldestLocationDate,
+    required this.newestLocationDate,
+    required this.locationAccuracyStats,
+    required this.locationClusters,
+  });
+}
+```
+
+### LocationCluster
+
+Grouped location data for privacy-conscious display and selection.
+
+```dart
+class LocationCluster {
+  // Properties
+  String areaName;                    // General area name (e.g., "Johannesburg CBD")
+  int trackCount;                     // Number of location records in cluster
+  double centerLatitude;              // Cluster center coordinates
+  double centerLongitude;
+  DateTime firstVisit;                // Time range of visits to this area
+  DateTime lastVisit;
+  
+  // Constructor
+  LocationCluster({
+    required this.areaName,
+    required this.trackCount,
+    required this.centerLatitude,
+    required this.centerLongitude,
+    required this.firstVisit,
+    required this.lastVisit,
+  });
+}
+```
+
+## Data Sharing Services
+
+### ConsentAwareDataUploadService
+
+Enhanced upload service that respects user data sharing preferences.
+
+```dart
+class ConsentAwareDataUploadService {
+  // Core upload method with consent dialog
+  static Future<void> uploadWithConsent({
+    required BuildContext context,
+    required String participantUuid,
+    required String researchSite,
+    required VoidCallback onSuccess,
+    required Function(String) onError,
+  });
+  
+  // Get upload summary for preview
+  static Future<Map<String, dynamic>> getUploadSummary({
+    required String participantUuid,
+    required LocationSharingOption sharingOption,
+  });
+}
+```
+
+### DataSharingConsentDialog
+
+Interactive dialog for collecting user consent with data preview.
+
+```dart
+class DataSharingConsentDialog extends StatefulWidget {
+  // Constructor
+  DataSharingConsentDialog({
+    Key? key,
+    required this.participantUuid,
+    required this.onUploadProceed,
+    required this.onUploadCancelled,
+  });
+  
+  // Callbacks
+  final String participantUuid;
+  final VoidCallback onUploadProceed;
+  final VoidCallback onUploadCancelled;
+}
+```
+
+## Database Schema Updates
+
+### data_sharing_consent Table
+
+Stores user consent preferences and location cluster selections.
+
+```sql
+CREATE TABLE data_sharing_consent (
+  id TEXT PRIMARY KEY,
+  participant_uuid TEXT NOT NULL,
+  location_sharing_option INTEGER NOT NULL,
+  decision_timestamp TEXT NOT NULL,
+  custom_location_ids TEXT,              -- JSON array of selected cluster IDs
+  reason_for_partial_sharing TEXT
+);
+```
+
+## UI Components
+
+### DataSharingPreferencesScreen
+
+Management interface for ongoing consent preferences.
+
+```dart
+class DataSharingPreferencesScreen extends StatefulWidget {
+  // Features:
+  // - View current consent settings
+  // - Update preferences anytime  
+  // - See consent history
+  // - Privacy information and explanations
+}
+```
+
 ## Database APIs
 
 ### ProjectDatabase

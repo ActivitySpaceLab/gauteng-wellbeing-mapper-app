@@ -237,7 +237,36 @@ Multiple SQLite databases handle different data types:
 - **Project Detail** (`ui/project_detail.dart`): Project information and participation
 - **Project List** (`ui/projects_list.dart`): Available and active projects
 
-### 7. Web Integration (`ui/web_view.dart`)
+### 7. Data Sharing Consent System (`models/data_sharing_consent.dart`, `ui/data_sharing_consent_dialog.dart`)
+- **Purpose**: Advanced user consent management for research data sharing
+- **Key Classes**:
+  - `DataSharingConsent`: Consent preferences with granular location control
+  - `LocationSharingOption`: Enum for sharing options (full, partial, survey-only)
+  - `DataUploadSummary`: Preview information for users before consent
+  - `LocationCluster`: Geographic clustering for privacy-friendly location selection
+- **Key Functions**:
+  - Interactive consent dialog with real-time data preview
+  - Location clustering algorithm for area-based selection
+  - Persistent consent tracking with history
+  - Consent-aware data filtering during uploads
+
+### 8. Consent-Aware Upload Service (`services/consent_aware_upload_service.dart`)
+- **Purpose**: Data upload service that respects user consent preferences
+- **Key Functions**:
+  - `uploadWithConsent()`: Shows consent dialog and uploads according to preferences
+  - `_getPartialLocationData()`: Filters location data based on selected clusters
+  - Location clustering and distance calculation for geographic filtering
+- **Integration**: Works with existing `DataUploadService` while adding consent layer
+
+### 9. Data Sharing Preferences Management (`ui/data_sharing_preferences_screen.dart`)
+- **Purpose**: Ongoing management interface for user consent preferences
+- **Key Functions**:
+  - View current consent settings and history
+  - Update preferences without penalty
+  - Privacy information and transparency features
+- **Navigation**: Accessible through side drawer menu in research mode
+
+### 10. Web Integration (`ui/web_view.dart`)
 - **Purpose**: Displays project surveys and external content
 - **Key Functions**:
   - Load survey URLs with location data
@@ -277,6 +306,30 @@ graph TD
     H --> I[Auto-fill Location Data]
     I --> J[User Completes Survey]
     J --> K[Mark Project as Complete]
+```
+
+### Data Sharing Consent Flow
+```mermaid
+graph TD
+    A[Research Participant Completes Survey] --> B[Trigger Data Upload]
+    B --> C[ConsentAwareDataUploadService]
+    C --> D[Load Location Data & Create Clusters]
+    D --> E[Show DataSharingConsentDialog]
+    E --> F[User Sees Data Summary]
+    F --> G{User Selects Sharing Option}
+    
+    G -->|Full Data| H[Upload All Location Data + Surveys]
+    G -->|Partial Data| I[Show Location Cluster Selection]
+    G -->|Survey Only| J[Upload Only Survey Responses]
+    
+    I --> K[User Selects/Deselects Location Areas]
+    K --> L[Upload Filtered Location Data + Surveys]
+    
+    H --> M[Save Consent Decision]
+    L --> M
+    J --> M
+    M --> N[Encrypt & Upload to Research Server]
+    N --> O[Mark Data as Synced]
 ```
 
 ### Background Processing Flow
