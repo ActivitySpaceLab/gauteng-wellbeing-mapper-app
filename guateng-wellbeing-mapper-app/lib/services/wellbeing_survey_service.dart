@@ -87,13 +87,17 @@ class WellbeingSurveyService {
     return result.first['count'] as int;
   }
 
-  /// Create a new wellbeing survey response with current timestamp
+  /// Create a new wellbeing survey response with current timestamp and optional location
   static WellbeingSurveyResponse createResponse({
     required int cheerfulSpirits,
     required int calmRelaxed,
     required int activeVigorous,
     required int wokeRested,
     required int interestingLife,
+    double? latitude,
+    double? longitude,
+    double? accuracy,
+    String? locationTimestamp,
   }) {
     return WellbeingSurveyResponse(
       id: const Uuid().v4(),
@@ -103,6 +107,10 @@ class WellbeingSurveyService {
       activeVigorous: activeVigorous,
       wokeRested: wokeRested,
       interestingLife: interestingLife,
+      latitude: latitude,
+      longitude: longitude,
+      accuracy: accuracy,
+      locationTimestamp: locationTimestamp,
       isSynced: false,
     );
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_background_geolocation/flutter_background_geolocation.dart' as bg;
 import '../models/wellbeing_survey_models.dart';
 import '../services/wellbeing_survey_service.dart';
 import '../theme/south_african_theme.dart';
@@ -11,6 +12,9 @@ class WellbeingSurveyScreen extends StatefulWidget {
 class _WellbeingSurveyScreenState extends State<WellbeingSurveyScreen> {
   final Map<String, int?> _responses = {};
   bool _isSubmitting = false;
+  bool _isCaptingLocation = false;
+  bg.Location? _currentLocation;
+  String? _locationError;
 
   @override
   void initState() {
@@ -19,10 +23,43 @@ class _WellbeingSurveyScreenState extends State<WellbeingSurveyScreen> {
     for (final question in WellbeingSurveyQuestion.questions) {
       _responses[question.id] = null;
     }
+    _captureLocation();
   }
 
   bool get _allQuestionsAnswered {
     return _responses.values.every((response) => response != null);
+  }
+
+  Future<void> _captureLocation() async {
+    setState(() {
+      _isCaptingLocation = true;
+      _locationError = null;
+    });
+
+    try {
+      final location = await bg.BackgroundGeolocation.getCurrentPosition(
+        persist: false,
+        desiredAccuracy: 40,
+        maximumAge: 10000,
+        timeout: 30,
+        samples: 3,
+        extras: {"wellbeing_survey": true}
+      );
+      
+      setState(() {
+        _currentLocation = location;
+        _isCaptingLocation = false;
+      });
+      
+      print('[WellbeingSurveyScreen] Location captured: ${location.coords.latitude}, ${location.coords.longitude}');
+    } catch (error) {
+      setState(() {
+        _locationError = error.toString();
+        _isCaptingLocation = false;
+      });
+      
+      print('[WellbeingSurveyScreen] Location capture error: $error');
+    }
   }
 
   Future<void> _submitSurvey() async {
@@ -47,6 +84,10 @@ class _WellbeingSurveyScreenState extends State<WellbeingSurveyScreen> {
         activeVigorous: _responses['active_vigorous']!,
         wokeRested: _responses['woke_rested']!,
         interestingLife: _responses['interesting_life']!,
+        latitude: _currentLocation?.coords.latitude,
+        longitude: _currentLocation?.coords.longitude,
+        accuracy: _currentLocation?.coords.accuracy,
+        locationTimestamp: _currentLocation?.timestamp,
       );
 
       await WellbeingSurveyService().insertWellbeingSurvey(response);
@@ -73,6 +114,72 @@ class _WellbeingSurveyScreenState extends State<WellbeingSurveyScreen> {
       setState(() {
         _isSubmitting = false;
       });
+    }
+  }
+
+  Widget _buildLocationStatus() {
+    if (_isCaptingLocation) {
+      return Row(
+        children: [
+          SizedBox(
+            width: 16,
+            height: 16,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              valueColor: AlwaysStoppedAnimation<Color>(SouthAfricanTheme.primaryBlue),
+            ),
+          ),
+          SizedBox(width: 8),
+          Text(
+            'Capturing location...',
+            style: TextStyle(
+              fontSize: 12,
+              color: SouthAfricanTheme.primaryBlue,
+              fontStyle: FontStyle.italic,
+            ),
+          ),
+        ],
+      );
+    } else if (_currentLocation != null) {
+      return Row(
+        children: [
+          Icon(
+            Icons.location_on,
+            size: 16,
+            color: Colors.green,
+          ),
+          SizedBox(width: 4),
+          Text(
+            'Location captured (±${_currentLocation!.coords.accuracy.round()}m)',
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.green,
+            ),
+          ),
+        ],
+      );
+    } else if (_locationError != null) {
+      return Row(
+        children: [
+          Icon(
+            Icons.location_off,
+            size: 16,
+            color: Colors.orange,
+          ),
+          SizedBox(width: 4),
+          Expanded(
+            child: Text(
+              'Location unavailable - survey will be saved without location',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.orange,
+              ),
+            ),
+          ),
+        ],
+      );
+    } else {
+      return SizedBox.shrink();
     }
   }
 
@@ -116,8 +223,8 @@ class _WellbeingSurveyScreenState extends State<WellbeingSurveyScreen> {
               
               return RadioListTile<int>(
                 title: Text(
-                  '$optionIndex = $optionText',
-                  style: TextStyle(fontSize: 14),
+                  optionText,
+                  style: TextStyle(fontSize: 16),
                 ),
                 value: optionIndex,
                 groupValue: _responses[question.id],
@@ -164,12 +271,14 @@ class _WellbeingSurveyScreenState extends State<WellbeingSurveyScreen> {
                 ),
                 SizedBox(height: 8),
                 Text(
-                  'Please answer all questions about how you have felt in the past 2 weeks.',
+                  'Please answer all questions about how you feel right now.',
                   style: TextStyle(
                     fontSize: 14,
                     color: SouthAfricanTheme.darkGrey,
                   ),
                 ),
+                SizedBox(height: 8),
+                _buildLocationStatus(),
               ],
             ),
           ),

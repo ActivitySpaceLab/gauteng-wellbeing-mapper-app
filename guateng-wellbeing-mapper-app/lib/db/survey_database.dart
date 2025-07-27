@@ -22,7 +22,7 @@ class SurveyDatabase {
     String path = join(await getDatabasesPath(), 'survey_database.db');
     return await openDatabase(
       path,
-      version: 3, // Bumped version to add wellbeing survey table
+      version: 4, // Bumped version to add location fields to wellbeing survey table
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -134,6 +134,10 @@ class SurveyDatabase {
         active_vigorous INTEGER NOT NULL,
         woke_rested INTEGER NOT NULL,
         interesting_life INTEGER NOT NULL,
+        latitude REAL,
+        longitude REAL,
+        accuracy REAL,
+        location_timestamp TEXT,
         is_synced INTEGER DEFAULT 0
       )
     ''');
@@ -225,6 +229,14 @@ class SurveyDatabase {
           is_synced INTEGER DEFAULT 0
         )
       ''');
+    }
+    
+    if (oldVersion < 4) {
+      // Add location fields to wellbeing survey responses table
+      await db.execute('ALTER TABLE wellbeing_survey_responses ADD COLUMN latitude REAL');
+      await db.execute('ALTER TABLE wellbeing_survey_responses ADD COLUMN longitude REAL');
+      await db.execute('ALTER TABLE wellbeing_survey_responses ADD COLUMN accuracy REAL');
+      await db.execute('ALTER TABLE wellbeing_survey_responses ADD COLUMN location_timestamp TEXT');
     }
   }
 

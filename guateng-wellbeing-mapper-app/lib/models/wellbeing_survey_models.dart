@@ -6,6 +6,10 @@ class WellbeingSurveyResponse {
   final int activeVigorous;
   final int wokeRested;
   final int interestingLife;
+  final double? latitude;
+  final double? longitude;
+  final double? accuracy;
+  final String? locationTimestamp;
   final bool isSynced; // For research users - tracks if synced to server
 
   WellbeingSurveyResponse({
@@ -16,6 +20,10 @@ class WellbeingSurveyResponse {
     required this.activeVigorous,
     required this.wokeRested,
     required this.interestingLife,
+    this.latitude,
+    this.longitude,
+    this.accuracy,
+    this.locationTimestamp,
     this.isSynced = false,
   });
 
@@ -28,6 +36,10 @@ class WellbeingSurveyResponse {
       'active_vigorous': activeVigorous,
       'woke_rested': wokeRested,
       'interesting_life': interestingLife,
+      'latitude': latitude,
+      'longitude': longitude,
+      'accuracy': accuracy,
+      'location_timestamp': locationTimestamp,
       'is_synced': isSynced ? 1 : 0,
     };
   }
@@ -41,6 +53,10 @@ class WellbeingSurveyResponse {
       activeVigorous: json['active_vigorous'],
       wokeRested: json['woke_rested'],
       interestingLife: json['interesting_life'],
+      latitude: json['latitude']?.toDouble(),
+      longitude: json['longitude']?.toDouble(),
+      accuracy: json['accuracy']?.toDouble(),
+      locationTimestamp: json['location_timestamp'],
       isSynced: (json['is_synced'] ?? 0) == 1,
     );
   }
@@ -55,6 +71,10 @@ class WellbeingSurveyResponse {
       activeVigorous: activeVigorous,
       wokeRested: wokeRested,
       interestingLife: interestingLife,
+      latitude: latitude,
+      longitude: longitude,
+      accuracy: accuracy,
+      locationTimestamp: locationTimestamp,
       isSynced: synced,
     );
   }
@@ -72,6 +92,12 @@ class WellbeingSurveyResponse {
         'woke_rested': wokeRested,
         'interesting_life': interestingLife,
       },
+      'location': latitude != null && longitude != null ? {
+        'latitude': latitude,
+        'longitude': longitude,
+        'accuracy': accuracy,
+        'timestamp': locationTimestamp,
+      } : null,
       'survey_type': 'wellbeing_action_button',
     };
   }
@@ -88,40 +114,36 @@ class WellbeingSurveyQuestion {
     required this.options,
   });
 
-  static const List<String> likertOptions = [
-    'At no time',
-    'Some of the time',
-    'Less than half of the time',
-    'More than half of the time',
-    'Most of the time',
-    'All of the time',
+  static const List<String> yesNoOptions = [
+    'Yes',
+    'No',
   ];
 
   static const List<WellbeingSurveyQuestion> questions = [
     WellbeingSurveyQuestion(
       id: 'cheerful_spirits',
-      text: 'I have felt cheerful in good spirits',
-      options: likertOptions,
+      text: 'Do you feel cheerful and in good spirits right now?',
+      options: yesNoOptions,
     ),
     WellbeingSurveyQuestion(
       id: 'calm_relaxed',
-      text: 'I have felt calm and relaxed',
-      options: likertOptions,
+      text: 'Do you feel calm and relaxed right now?',
+      options: yesNoOptions,
     ),
     WellbeingSurveyQuestion(
       id: 'active_vigorous',
-      text: 'I have felt active and vigorous',
-      options: likertOptions,
+      text: 'Do you feel active and vigorous right now?',
+      options: yesNoOptions,
     ),
     WellbeingSurveyQuestion(
       id: 'woke_rested',
-      text: 'I woke up feeling fresh and rested',
-      options: likertOptions,
+      text: 'Did you wake up today feeling fresh and rested?',
+      options: yesNoOptions,
     ),
     WellbeingSurveyQuestion(
       id: 'interesting_life',
-      text: 'My daily life has been filled with things that interest me',
-      options: likertOptions,
+      text: 'Has your life today been filled with things that interest you?',
+      options: yesNoOptions,
     ),
   ];
 }
