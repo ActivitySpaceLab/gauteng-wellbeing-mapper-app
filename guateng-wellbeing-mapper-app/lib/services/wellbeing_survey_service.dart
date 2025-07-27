@@ -88,6 +88,7 @@ class WellbeingSurveyService {
   }
 
   /// Create a new wellbeing survey response with current timestamp and optional location
+  /// Note: Input values are option indices (0="Yes", 1="No"), converted to scoring values (1="Yes", 0="No")
   static WellbeingSurveyResponse createResponse({
     required int cheerfulSpirits,
     required int calmRelaxed,
@@ -99,14 +100,17 @@ class WellbeingSurveyService {
     double? accuracy,
     String? locationTimestamp,
   }) {
+    // Convert option indices to scoring values: 0 (Yes) -> 1 point, 1 (No) -> 0 points
+    int convertOptionToScore(int optionIndex) => optionIndex == 0 ? 1 : 0;
+    
     return WellbeingSurveyResponse(
       id: const Uuid().v4(),
       timestamp: DateTime.now(),
-      cheerfulSpirits: cheerfulSpirits,
-      calmRelaxed: calmRelaxed,
-      activeVigorous: activeVigorous,
-      wokeRested: wokeRested,
-      interestingLife: interestingLife,
+      cheerfulSpirits: convertOptionToScore(cheerfulSpirits),
+      calmRelaxed: convertOptionToScore(calmRelaxed),
+      activeVigorous: convertOptionToScore(activeVigorous),
+      wokeRested: convertOptionToScore(wokeRested),
+      interestingLife: convertOptionToScore(interestingLife),
       latitude: latitude,
       longitude: longitude,
       accuracy: accuracy,
