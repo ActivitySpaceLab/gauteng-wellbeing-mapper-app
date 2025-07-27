@@ -156,6 +156,17 @@ class _WellbeingMapperSideDrawerState extends State<WellbeingMapperSideDrawer> {
                 },
               ),
             ),
+            // Wellbeing Timeline - Always visible
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.timeline),
+                title: Text("Wellbeing Timeline"),
+                subtitle: Text("Track your wellbeing trends over time"),
+                onTap: () {
+                  Navigator.of(context).pushNamed('/wellbeing_timeline');
+                },
+              ),
+            ),
             // App Mode - Always visible
             Card(
               child: ListTile(

@@ -14,6 +14,7 @@ import '../ui/data_upload_screen.dart';
 import '../ui/data_sharing_preferences_screen.dart';
 import '../ui/wellbeing_survey_screen.dart';
 import '../ui/wellbeing_map_view.dart';
+import '../ui/wellbeing_timeline_view.dart';
 import '../ui/change_mode_screen.dart';
 import '../ui/help_screen.dart';
 
@@ -86,6 +87,8 @@ class RouteGenerator {
         return MaterialPageRoute(builder: (_) => WellbeingSurveyScreen());
       case '/wellbeing_map':
         return MaterialPageRoute(builder: (_) => WellbeingMapView());
+      case '/wellbeing_timeline':
+        return MaterialPageRoute(builder: (_) => WellbeingTimelineView());
       case '/change_mode':
         return MaterialPageRoute(builder: (_) => ChangeModeScreen());
       case '/help':
