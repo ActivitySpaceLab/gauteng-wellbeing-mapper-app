@@ -7,7 +7,6 @@ url: "https://activityspacelab.github.io"
 remote_theme: pages-themes/slate@v0.2.0
 plugins:
   - jekyll-remote-theme
-mermaid: true
 
 # Site settings
 author: "Planet4Health Project"
@@ -15,7 +14,7 @@ email: "john.palmer@upf.edu"
 github_username: "ActivitySpaceLab"
 
 # Planet4Health branding
-logo_url: "assets/P4H_logo/P4H logo png - transparent/LOGO PLANET4HEALTH-horizontal .png"
+logo_url: "assets/icon.png"
 project_url: "https://planet4health.eu"
 project_name: "Planet4Health"
 
