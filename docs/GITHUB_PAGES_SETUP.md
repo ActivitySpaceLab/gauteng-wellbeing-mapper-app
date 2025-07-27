@@ -57,14 +57,6 @@ GitHub Pages automatically provides HTTPS for github.io domains and custom domai
 
 ## Customization
 
-### Theme Colors
-
-The site uses South African flag colors:
-- **Primary**: #007A4D (Green)
-- **Secondary**: #FFB612 (Gold/Yellow)
-- **Accent**: #DE3831 (Red)
-- **Navy**: #002395 (Blue)
-
 ### Navigation
 
 The main navigation is defined in `_layouts/default.html`. To add new pages:
