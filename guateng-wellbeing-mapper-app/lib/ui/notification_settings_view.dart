@@ -114,8 +114,21 @@ class _NotificationSettingsViewState extends State<NotificationSettingsView> {
             ),
             SizedBox(height: 8),
             Text(
-              'When a notification is due, you\'ll see a dialog when you open the app asking if you\'d like to participate.',
+              'The app uses both device notifications and in-app dialogs to ensure you don\'t miss survey opportunities. '
+              'Device notifications work even when the app is closed.',
               style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+            ),
+            SizedBox(height: 8),
+            Row(
+              children: [
+                Icon(Icons.phone_android, size: 16, color: Colors.green),
+                SizedBox(width: 4),
+                Text('Device notifications', style: TextStyle(fontSize: 12, color: Colors.green[700])),
+                SizedBox(width: 16),
+                Icon(Icons.chat_bubble, size: 16, color: Colors.blue),
+                SizedBox(width: 4),
+                Text('In-app dialogs', style: TextStyle(fontSize: 12, color: Colors.blue[700])),
+              ],
             ),
           ],
         ),
@@ -200,19 +213,58 @@ class _NotificationSettingsViewState extends State<NotificationSettingsView> {
               ],
             ),
             SizedBox(height: 16),
+            // Testing Buttons
+            Text(
+              'Testing Tools',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 8),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                icon: Icon(Icons.refresh),
-                label: Text('Trigger Survey Prompt Now'),
-                onPressed: () => _triggerSurveyPrompt(),
+                icon: Icon(Icons.phone_android),
+                label: Text('Test Device Notification'),
+                onPressed: () => _testDeviceNotification(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  foregroundColor: Colors.white,
+                ),
+              ),
+            ),
+            SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                icon: Icon(Icons.chat_bubble),
+                label: Text('Test In-App Notification'),
+                onPressed: () => _testInAppNotification(),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
                   foregroundColor: Colors.white,
                 ),
               ),
             ),
-            SizedBox(height: 12),
+            SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                icon: Icon(Icons.security),
+                label: Text('Check Notification Permissions'),
+                onPressed: () => _checkPermissions(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.purple,
+                  foregroundColor: Colors.white,
+                ),
+              ),
+            ),
+            SizedBox(height: 16),
+            
+            // Management Buttons
+            Text(
+              'Management',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 8),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
@@ -225,7 +277,7 @@ class _NotificationSettingsViewState extends State<NotificationSettingsView> {
                 ),
               ),
             ),
-            SizedBox(height: 12),
+            SizedBox(height: 8),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
@@ -267,6 +319,65 @@ class _NotificationSettingsViewState extends State<NotificationSettingsView> {
       } catch (error) {
         _showSnackBar('Error resetting notification schedule: $error');
       }
+    }
+  }
+
+  Future<void> _testDeviceNotification() async {
+    try {
+      await NotificationService.testDeviceNotification();
+      _showSnackBar('Device notification sent! Check your device notifications.');
+    } catch (error) {
+      _showSnackBar('Error sending device notification: $error');
+    }
+  }
+
+  Future<void> _testInAppNotification() async {
+    try {
+      await NotificationService.testInAppNotification(context);
+      _showSnackBar('In-app notification shown');
+    } catch (error) {
+      _showSnackBar('Error showing in-app notification: $error');
+    }
+  }
+
+  Future<void> _checkPermissions() async {
+    try {
+      final hasPermissions = await NotificationService.checkNotificationPermissions();
+      final diagnostics = await NotificationService.getDiagnostics();
+      
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Notification Permissions'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Device Notifications: ${hasPermissions ? "✅ Enabled" : "❌ Disabled"}'),
+                SizedBox(height: 8),
+                Text('Platform: ${diagnostics['systemInfo']['platform']}'),
+                SizedBox(height: 8),
+                Text('System Initialized: ${diagnostics['notificationSystemInitialized'] ? "✅" : "❌"}'),
+                SizedBox(height: 8),
+                if (!hasPermissions)
+                  Text(
+                    'Please enable notifications in your device settings for the best research experience.',
+                    style: TextStyle(color: Colors.orange[700]),
+                  ),
+              ],
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: Text('OK'),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ],
+          );
+        },
+      );
+    } catch (error) {
+      _showSnackBar('Error checking permissions: $error');
     }
   }
 
