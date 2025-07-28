@@ -94,7 +94,8 @@ chmod +x build-release.sh
 ## Release Checklist
 
 ### Pre-Release
-- [ ] Update version number in `pubspec.yaml`
+- [ ] **Update version** in `pubspec.yaml` (see Version Management section)
+- [ ] **Run version check**: `./check-version.sh` to validate consistency
 - [ ] Update changelog/release notes
 - [ ] Test on both iOS and Android devices
 - [ ] Verify location permissions work correctly
@@ -103,8 +104,10 @@ chmod +x build-release.sh
 
 ### Release Process
 - [ ] Choose release method (automated vs manual)
-- [ ] If automated: Create and push version tag
-- [ ] If manual: Run `./build-release.sh`
+- [ ] **If automated**: 
+  - [ ] Commit version change: `git add pubspec.yaml && git commit -m "Bump version to X.Y.Z"`
+  - [ ] Create and push version tag: `git tag vX.Y.Z && git push origin main && git push origin vX.Y.Z`
+- [ ] **If manual**: Run `./build-release.sh`
 - [ ] Verify build artifacts are created successfully
 - [ ] Test release builds on physical devices
 
@@ -114,12 +117,76 @@ chmod +x build-release.sh
 - [ ] Update documentation if needed
 - [ ] Monitor for any release-specific issues
 
-## Version Tagging
+## Version Management
 
-Use semantic versioning for releases:
-- `v1.0.0` - Major release
-- `v1.1.0` - Minor release with new features
-- `v1.0.1` - Patch release with bug fixes
+### Version Format
+Flutter uses the format: `version: major.minor.patch+buildNumber`
+- Example: `1.0.0+1` means version 1.0.0, build 1
+- Git tags should match the version part: `v1.0.0`
+
+### Ensuring Version Consistency
+
+**Manual Process:**
+1. Update `pubspec.yaml` version first
+2. Commit the version change
+3. Create git tag matching the version
+4. Push both commit and tag
+
+**Example Workflow:**
+```bash
+# 1. Update version in pubspec.yaml
+# Change: version: 0.1.0+1
+# To:     version: 1.0.0+1
+
+# 2. Commit version change
+git add pubspec.yaml
+git commit -m "Bump version to 1.0.0+1"
+
+# 3. Create matching tag (without build number)
+git tag v1.0.0
+
+# 4. Push both
+git push origin main
+git push origin v1.0.0
+```
+
+**Automated Version Checking:**
+The GitHub Actions workflow now includes version validation to ensure consistency.
+
+### Version Checking Script
+Use the included `check-version.sh` script to validate version consistency before releases:
+
+```bash
+# Check version consistency
+./check-version.sh
+
+# The script will:
+# - Compare pubspec.yaml version with latest git tag
+# - Provide guidance on next steps
+# - Prevent accidental duplicate releases
+```
+
+**Script Output Examples:**
+```bash
+# First release (no tags exist)
+🔍 Checking version consistency...
+📄 pubspec.yaml version: 0.1.0
+📋 No git tags found. This will be the first release.
+✅ Ready to create tag: v0.1.0
+
+# Ready for new release
+✅ Versions are different - ready for new release!
+📋 Suggested next steps:
+   1. git add pubspec.yaml
+   2. git commit -m 'Bump version to 1.0.0'
+   3. git tag v1.0.0
+   4. git push origin main
+   5. git push origin v1.0.0
+
+# Version needs updating
+⚠️  Versions match current tag!
+💡 If you want to create a new release, update the version in pubspec.yaml first
+```
 
 ## GitHub Actions Workflow
 
@@ -172,11 +239,22 @@ If you encounter code signing issues during manual builds:
 ## Quick Reference
 
 ```bash
+# Check version consistency
+./check-version.sh
+
 # Local release build
 ./build-release.sh
 
-# Automated release
-git tag v1.0.0 && git push origin v1.0.0
+# Automated release (complete process)
+# 1. Update version in pubspec.yaml
+# 2. Run version check
+./check-version.sh
+# 3. Commit and tag
+git add pubspec.yaml
+git commit -m "Bump version to 1.0.0"
+git tag v1.0.0
+git push origin main
+git push origin v1.0.0
 
 # Test release build locally
 flutter build apk --release
