@@ -8,8 +8,8 @@ void main() {
   
   // Configure screenshot directory based on device type
   String getScreenshotPath(String screenName) {
-    final size = binding.window.physicalSize;
-    final devicePixelRatio = binding.window.devicePixelRatio;
+    final size = binding.platformDispatcher.views.first.physicalSize;
+    final devicePixelRatio = binding.platformDispatcher.views.first.devicePixelRatio;
     final logicalSize = size / devicePixelRatio;
     
     String deviceType;
@@ -54,12 +54,13 @@ void main() {
       await waitForAppReady(tester);
       
       // Print device info for debugging
-      final size = tester.binding.window.physicalSize;
-      final devicePixelRatio = tester.binding.window.devicePixelRatio;
-      final logicalSize = size / devicePixelRatio;
+      final view = tester.view;
+      final screenSize = view.physicalSize;
+      final devicePixelRatio = view.devicePixelRatio;
+      final logicalSize = screenSize / devicePixelRatio;
       
-      print('📱 Device Info:');
-      print('   Physical size: ${size.width} x ${size.height}');
+      print('Tablet mode screenshot test');
+      print('   Physical size: ${screenSize.width} x ${screenSize.height}');
       print('   Device pixel ratio: $devicePixelRatio');
       print('   Logical size: ${logicalSize.width} x ${logicalSize.height}');
       print('   Shortest side: ${logicalSize.shortestSide}');

@@ -62,6 +62,50 @@ This document contains common issues, their solutions, and lessons learned durin
 
 ## Build and Deployment Issues
 
+### Issue: CI/CD Analysis Failures Due to Deprecated APIs
+**Problem:** GitHub Actions CI fails with errors about deprecated `window` API usage in integration tests and syntax errors in test files.
+
+**Error Messages:**
+```
+'window' is deprecated and shouldn't be used. Use WidgetTester.platformDispatcher or WidgetTester.view instead
+Expected a method, getter, setter or operator declaration
+Functions must have an explicit list of parameters
+```
+
+**Root Cause:** Flutter updated APIs in v3.9+ but integration test files were using deprecated `window` API and had structural syntax issues.
+
+**Solution:**
+1. **Update deprecated API usage:**
+   ```dart
+   // Old (deprecated)
+   final size = binding.window.physicalSize;
+   final ratio = binding.window.devicePixelRatio;
+   final size = tester.binding.window.physicalSize;
+   
+   // New (current)
+   final size = binding.platformDispatcher.views.first.physicalSize;
+   final ratio = binding.platformDispatcher.views.first.devicePixelRatio;
+   final size = tester.view.physicalSize;
+   ```
+
+2. **Fix file structure issues:**
+   - Remove duplicate test method definitions
+   - Ensure proper closing braces and brackets
+   - Clean up malformed code blocks
+
+3. **Remove unused imports:**
+   ```dart
+   // Remove unused imports like:
+   import 'package:wellbeing_mapper/debug/ios_location_debug.dart';
+   ```
+
+**Verification:**
+- Run `flutter analyze --no-fatal-infos` to check for remaining issues
+- Run `flutter test` to ensure tests pass
+- Check CI/CD pipeline passes all analysis steps
+
+**Key Lesson:** Keep integration tests updated with Flutter API changes and regularly run analysis locally before pushing to avoid CI failures.
+
 ### Issue: iOS Provisioning Profile Entitlement Conflicts
 **Problem:** Build fails with errors like "Provisioning profile doesn't include the [entitlement] entitlement" when using advanced entitlements.
 

@@ -6,7 +6,6 @@ import 'package:wellbeing_mapper/ui/initial_survey_screen.dart';
 import 'package:wellbeing_mapper/util/env.dart';
 import 'package:wellbeing_mapper/theme/south_african_theme.dart';
 import 'package:wellbeing_mapper/util/onboarding_helper.dart';
-import 'package:wellbeing_mapper/debug/ios_location_debug.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:async';
