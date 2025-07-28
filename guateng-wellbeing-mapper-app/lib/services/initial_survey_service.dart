@@ -20,7 +20,10 @@ class InitialSurveyService {
       final prefs = await SharedPreferences.getInstance();
       final completedFromPrefs = prefs.getBool(_INITIAL_SURVEY_COMPLETED_KEY);
       
+      print('[InitialSurveyService] completedFromPrefs: $completedFromPrefs');
+      
       if (completedFromPrefs == true) {
+        print('[InitialSurveyService] Survey marked as completed in SharedPreferences');
         return true;
       }
       
@@ -29,9 +32,13 @@ class InitialSurveyService {
       final surveys = await db.getInitialSurveys();
       final hasCompleted = surveys.isNotEmpty;
       
+      print('[InitialSurveyService] surveys from database: ${surveys.length}');
+      print('[InitialSurveyService] hasCompleted from database: $hasCompleted');
+      
       // Update SharedPreferences if we found a completed survey
       if (hasCompleted) {
         await prefs.setBool(_INITIAL_SURVEY_COMPLETED_KEY, true);
+        print('[InitialSurveyService] Updated SharedPreferences with completion status');
       }
       
       return hasCompleted;
@@ -143,19 +150,30 @@ class InitialSurveyService {
       final prefs = await SharedPreferences.getInstance();
       final participationJson = prefs.getString('participation_settings');
       
+      print('[InitialSurveyService] participationJson: $participationJson');
+      
       if (participationJson == null) {
+        print('[InitialSurveyService] No participation settings - private user, no survey needed');
         return false; // Private users don't need initial survey
       }
 
       final participationData = jsonDecode(participationJson);
       final isResearchParticipant = participationData['isResearchParticipant'] ?? false;
       
+      print('[InitialSurveyService] isResearchParticipant: $isResearchParticipant');
+      
       if (!isResearchParticipant) {
+        print('[InitialSurveyService] Not a research participant - no survey needed');
         return false; // Private users don't need initial survey
       }
 
       // Research participants need initial survey if not completed
-      return !(await hasCompletedInitialSurvey());
+      final hasCompleted = await hasCompletedInitialSurvey();
+      print('[InitialSurveyService] hasCompletedInitialSurvey: $hasCompleted');
+      
+      final needsSurvey = !hasCompleted;
+      print('[InitialSurveyService] needsInitialSurvey result: $needsSurvey');
+      return needsSurvey;
     } catch (e) {
       print('[InitialSurveyService] Error checking if initial survey is needed: $e');
       return false;

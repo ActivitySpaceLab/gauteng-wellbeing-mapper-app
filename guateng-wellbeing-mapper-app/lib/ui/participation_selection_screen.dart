@@ -277,8 +277,7 @@ class _ParticipationSelectionScreenState extends State<ParticipationSelectionScr
         );
 
         if (result == true) {
-          // Consent completed in testing mode, save settings and go to main app
-          await _savePrivateUserSettings(); // Use private settings since data stays local
+          // Consent completed in testing mode - settings already saved by consent form
           _navigateToMainApp();
         }
         // If consent was cancelled or failed, do nothing (stay on current screen)

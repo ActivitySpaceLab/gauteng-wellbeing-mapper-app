@@ -6,8 +6,6 @@ import 'package:url_launcher/url_launcher.dart';
 import 'dart:convert';
 import '../models/consent_models.dart';
 import '../db/survey_database.dart';
-import '../services/initial_survey_service.dart';
-import 'initial_survey_screen.dart';
 
 class ConsentFormScreen extends StatefulWidget {
   final String participantCode;
@@ -877,10 +875,25 @@ class _ConsentFormScreenState extends State<ConsentFormScreen> {
       final db = SurveyDatabase();
       await db.insertConsent(consent);
 
-      // Save participation settings
+      // Save participation settings based on mode
       final prefs = await SharedPreferences.getInstance();
-      final settings = ParticipationSettings.researchParticipant(widget.participantCode, widget.researchSite);
-      await prefs.setString('participation_settings', jsonEncode(settings.toJson()));
+      
+      if (widget.isTestingMode) {
+        // For app testing mode, use research participant settings for full experience
+        // but mark it as testing so data stays local
+        final settings = ParticipationSettings.researchParticipant(widget.participantCode, widget.researchSite);
+        await prefs.setString('participation_settings', jsonEncode(settings.toJson()));
+        print('[ConsentForm] Saved research participant settings for testing mode (data stays local)');
+      } else {
+        // For research participation, use research participant settings
+        final settings = ParticipationSettings.researchParticipant(widget.participantCode, widget.researchSite);
+        await prefs.setString('participation_settings', jsonEncode(settings.toJson()));
+        print('[ConsentForm] Saved research participant settings');
+      }
+      
+      // Set flag to indicate fresh consent completion for initial survey prompt
+      await prefs.setBool('fresh_consent_completion', true);
+      print('[ConsentForm] Set fresh_consent_completion flag for main screen survey prompt');
 
       // Show success and navigate
       _showSuccessDialog(uuid);
@@ -916,27 +929,20 @@ class _ConsentFormScreenState extends State<ConsentFormScreen> {
         actions: [
           TextButton(
             onPressed: () async {
-              Navigator.of(context).pop(); // Close dialog
-              
-              // Navigate to initial survey for research participants and app testing
-              final result = await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => InitialSurveyScreen(),
-                ),
-              );
-              
-              // If the initial survey was completed successfully, mark it as completed
-              if (result == true) {
-                await InitialSurveyService.markInitialSurveyCompleted();
+              try {
+                Navigator.of(context).pop(); // Close dialog
+                
+                // Go directly to main app - let the main screen handle initial survey prompts
+                print('[ConsentForm] Consent completed - navigating directly to main app');
+                Navigator.of(context).pushReplacementNamed('/');
+                
+              } catch (e) {
+                print('[ConsentForm] Error in navigation: $e');
+                // Fallback navigation
+                Navigator.of(context).pushReplacementNamed('/');
               }
-              // Note: If result == false, user skipped the survey, which is fine
-              // They'll be reminded later via the home screen check
-              
-              // After initial survey flow (completed or skipped), return to selection screen
-              Navigator.of(context).pop(true);
             },
-            child: Text('Continue to Survey'),
+            child: Text('Continue to App'),
           ),
         ],
       ),

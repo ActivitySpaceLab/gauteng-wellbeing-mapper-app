@@ -40,17 +40,23 @@
 		<true/>
 	</dict>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>Wellbeing Mapper uses the device's location to track your movement even when you have the app closed so that you build up a clear map of where you spend time, which you can compare to your wellbeing responses.</string>
+	<string>Wellbeing Mapper uses your location to track where you spend time so you can map your activity spaces and compare them to your wellbeing responses. This helps you understand how different places affect your mental health.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
-	<string>Wellbeing Mapper uses the device's location to track your movement even when you have the app closed so that you build up a clear map of where you spend time, which you can compare to your wellbeing responses.</string>
+	<string>Wellbeing Mapper uses your location to track where you spend time so you can map your activity spaces and compare them to your wellbeing responses. This helps you understand how different places affect your mental health.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Wellbeing Mapper needs to access your location when in use in order to enable you to track your activity spaces. The location data it collects does not leave your phone unless you choose to share it by participating in a survey or by exporting it manually.</string>
+	<string>Wellbeing Mapper uses your location to track where you spend time so you can map your activity spaces and compare them to your wellbeing responses. This helps you understand how different places affect your mental health.</string>
+	<key>NSLocationUsageDescription</key>
+	<string>Wellbeing Mapper uses your location to track where you spend time so you can map your activity spaces and compare them to your wellbeing responses. This helps you understand how different places affect your mental health.</string>
+	<key>NSLocationUsageDescription</key>
+	<string>Wellbeing Mapper uses your location to track where you spend time so you can map your activity spaces and compare them to your wellbeing responses. This helps you understand how different places affect your mental health.</string>
 	<key>NSMotionUsageDescription</key>
 	<string>Wellbeing Mapper access your motion data in order to improve location tracking of your activity spaces. The motion and location data it collects does not leave your phone unless you choose to share it by participating in a survey or by exporting it manually.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Wellbeing Mapper uses your camera to make it possible for you to join new projects by scanning their QR codes.</string>
 	<key>NSUserNotificationsUsageDescription</key>
 	<string>Wellbeing Mapper sends you periodic reminders to participate in research surveys. These notifications help improve research participation and data quality.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Wellbeing Mapper may access your photo library to attach images to survey responses or export data visualizations.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UIBackgroundModes</key>

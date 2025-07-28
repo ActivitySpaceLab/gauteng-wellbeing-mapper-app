@@ -119,21 +119,84 @@ class HomeViewState extends State<HomeView>
 
   // Check if research/testing user needs to complete initial survey
   void _checkForIncompleteInitialSurvey() {
-    // Wait longer to avoid conflicting with other dialogs and give user time to settle
-    Timer(Duration(seconds: 5), () async {
+    // Wait a bit to allow widget to build, but shorter for fresh consent users
+    Timer(Duration(seconds: 2), () async {
       if (mounted) {
+        print('[HomeView] Checking for incomplete initial survey...');
         bool needsInitialSurvey = await InitialSurveyService.needsInitialSurvey();
+        print('[HomeView] needsInitialSurvey: $needsInitialSurvey');
+        
         if (needsInitialSurvey && mounted) {
-          // Check if we should show a reminder (respects timing intervals)
-          String? reminderMessage = await InitialSurveyService.shouldShowReminder();
-          if (reminderMessage != null) {
-            _showInitialSurveyReminder(reminderMessage);
+          
+          // Check if this is a fresh consent completion (user just came from consent form)
+          final prefs = await SharedPreferences.getInstance();
+          bool isFirstTime = prefs.getBool('fresh_consent_completion') ?? false;
+          print('[HomeView] isFirstTime (fresh_consent_completion): $isFirstTime');
+          
+          if (isFirstTime) {
+            // Clear the flag and show immediate survey popup
+            await prefs.remove('fresh_consent_completion');
+            print('[HomeView] Showing immediate initial survey offering');
+            _showInitialSurveyOffering();
+          } else {
+            // Check if we should show a reminder (respects timing intervals)
+            String? reminderMessage = await InitialSurveyService.shouldShowReminder();
+            print('[HomeView] reminderMessage: $reminderMessage');
+            if (reminderMessage != null) {
+              print('[HomeView] Showing initial survey reminder');
+              _showInitialSurveyReminder(reminderMessage);
+            }
           }
-          // Note: Removed immediate reminder for first-time users to avoid being pushy
-          // They already saw the survey after consent, so let the normal reminder cycle handle it
+        } else {
+          print('[HomeView] No initial survey needed or widget not mounted');
         }
       }
     });
+  }
+
+  // Show immediate survey offering for fresh consent users
+  void _showInitialSurveyOffering() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: Text('Complete Initial Survey'),
+        content: Text(
+          'Would you like to complete the initial demographic survey now? '
+          'This helps us understand our participants better, but you can also do it later.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              // User declined, they can do it later via regular reminders
+            },
+            child: Text('No, I\'ll do it later'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.of(context).pop();
+              
+              // Navigate to initial survey
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => InitialSurveyScreen(),
+                ),
+              );
+              
+              // If survey was completed, mark it as completed
+              if (result == true) {
+                await InitialSurveyService.markInitialSurveyCompleted();
+              }
+              // If result == false (skipped), user will get reminders later
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+            child: Text('Yes, complete now', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showInitialSurveyReminder(String message) {

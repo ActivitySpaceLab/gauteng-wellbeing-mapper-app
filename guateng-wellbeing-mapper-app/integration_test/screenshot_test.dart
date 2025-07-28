@@ -6,48 +6,203 @@ import 'package:wellbeing_mapper/main.dart' as app;
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   
+  // Configure screenshot directory based on device type
+  String getScreenshotPath(String screenName) {
+    final size = binding.window.physicalSize;
+    final devicePixelRatio = binding.window.devicePixelRatio;
+    final logicalSize = size / devicePixelRatio;
+    
+    String deviceType;
+    if (logicalSize.shortestSide >= 600) {
+      if (logicalSize.shortestSide >= 900) {
+        deviceType = '10inch_tablet';
+      } else {
+        deviceType = '7inch_tablet';
+      }
+    } else {
+      deviceType = 'phone';
+    }
+    
+    return '${deviceType}_${screenName}';
+  }
+  
+  // Helper to wait for app to be ready
+  Future<void> waitForAppReady(WidgetTester tester) async {
+    await tester.pumpAndSettle(const Duration(seconds: 3));
+    // Wait for MaterialApp to be ready
+    expect(find.byType(MaterialApp), findsOneWidget);
+  }
+  
+  // Helper to take screenshot with retry logic
+  Future<void> takeScreenshotSafely(String screenName, {int retries = 3}) async {
+    for (int i = 0; i < retries; i++) {
+      try {
+        await binding.takeScreenshot(getScreenshotPath(screenName));
+        print('✅ Screenshot taken: ${getScreenshotPath(screenName)}');
+        return;
+      } catch (e) {
+        print('⚠️  Screenshot attempt ${i + 1} failed: $e');
+        if (i == retries - 1) rethrow;
+        await Future.delayed(const Duration(milliseconds: 500));
+      }
+    }
+  }
+  
   group('Wellbeing Mapper Screenshots', () {
-    testWidgets('01 - App Launch and Home Screen', (WidgetTester tester) async {
+    testWidgets('01 - App Launch and Participation Selection', (WidgetTester tester) async {
       app.main();
-      await tester.pumpAndSettle(const Duration(seconds: 3));
+      await waitForAppReady(tester);
       
-      // Take screenshot of the home screen
-      await binding.takeScreenshot('01_home_screen');
+      // Take screenshot of the initial screen (participation selection)
+      await takeScreenshotSafely('01_participation_selection');
       
-      // Add some debug info to help understand the app state
-      print('Widgets found: ${find.byType(Widget).evaluate().length}');
+      print('Screen size: ${tester.binding.window.physicalSize}');
+      print('Device pixel ratio: ${tester.binding.window.devicePixelRatio}');
+      print('Logical size: ${tester.binding.window.physicalSize / tester.binding.window.devicePixelRatio}');
     });
 
-    testWidgets('02 - Participation Selection Screen', (WidgetTester tester) async {
+    testWidgets('02 - Private Mode Selection', (WidgetTester tester) async {
       app.main();
-      await tester.pumpAndSettle(const Duration(seconds: 2));
+      await waitForAppReady(tester);
       
-      // Look for participation selection elements
-      final participationText = find.textContaining('participation');
-      final modeText = find.textContaining('mode');
-      final privateText = find.textContaining('Private');
-      final barcelonaText = find.textContaining('Barcelona');
-      final gautengText = find.textContaining('Gauteng');
-      
-      print('Found participation text: ${participationText.evaluate().length}');
-      print('Found mode text: ${modeText.evaluate().length}');
-      print('Found private text: ${privateText.evaluate().length}');
-      print('Found Barcelona text: ${barcelonaText.evaluate().length}');
-      print('Found Gauteng text: ${gautengText.evaluate().length}');
-      
-      await binding.takeScreenshot('02_participation_selection');
-    });
-
-    testWidgets('03 - Navigate to Private Mode', (WidgetTester tester) async {
-      app.main();
-      await tester.pumpAndSettle(const Duration(seconds: 2));
-      
-      // Try to find and interact with private mode option
-      final privateButtons = find.textContaining('Private');
-      if (privateButtons.evaluate().isNotEmpty) {
-        await tester.tap(privateButtons.first);
+      // Find and tap private mode
+      final privateMode = find.textContaining('Private').first;
+      if (privateMode.evaluate().isNotEmpty) {
+        await tester.tap(privateMode);
         await tester.pumpAndSettle();
-        await binding.takeScreenshot('03_private_mode_selected');
+        await takeScreenshotSafely('02_private_mode_main');
+      } else {
+        await takeScreenshotSafely('02_private_mode_fallback');
+      }
+    });
+
+    testWidgets('03 - Research Participation - Barcelona', (WidgetTester tester) async {
+      app.main();
+      await waitForAppReady(tester);
+      
+      // Navigate to Barcelona research mode
+      final barcelonaOption = find.textContaining('Barcelona');
+      if (barcelonaOption.evaluate().isNotEmpty) {
+        await tester.tap(barcelonaOption.first);
+        await tester.pumpAndSettle();
+        
+        // Look for consent form or next step
+        final continueButton = find.textContaining('Continue');
+        final consentButton = find.textContaining('Consent');
+        
+        if (continueButton.evaluate().isNotEmpty) {
+          await takeScreenshotSafely('03_barcelona_consent_step1');
+          await tester.tap(continueButton.first);
+          await tester.pumpAndSettle();
+          await takeScreenshotSafely('03_barcelona_consent_step2');
+        } else if (consentButton.evaluate().isNotEmpty) {
+          await takeScreenshotSafely('03_barcelona_consent_form');
+        } else {
+          await takeScreenshotSafely('03_barcelona_research_mode');
+        }
+      }
+    });
+
+    testWidgets('04 - Map Interface', (WidgetTester tester) async {
+      app.main();
+      await waitForAppReady(tester);
+      
+      // Navigate to private mode first to access main app
+      final privateMode = find.textContaining('Private');
+      if (privateMode.evaluate().isNotEmpty) {
+        await tester.tap(privateMode.first);
+        await tester.pumpAndSettle(const Duration(seconds: 2));
+        
+        // Look for map navigation elements
+        final mapButton = find.textContaining('Map');
+        final mapIcon = find.byIcon(Icons.map);
+        
+        if (mapButton.evaluate().isNotEmpty) {
+          await tester.tap(mapButton.first);
+          await tester.pumpAndSettle(const Duration(seconds: 3));
+          await takeScreenshotSafely('04_map_interface');
+        } else if (mapIcon.evaluate().isNotEmpty) {
+          await tester.tap(mapIcon.first);
+          await tester.pumpAndSettle(const Duration(seconds: 3));
+          await takeScreenshotSafely('04_map_via_icon');
+        } else {
+          // Check for bottom navigation
+          final bottomNav = find.byType(BottomNavigationBar);
+          if (bottomNav.evaluate().isNotEmpty) {
+            await takeScreenshotSafely('04_main_app_with_navigation');
+          } else {
+            await takeScreenshotSafely('04_main_app_home');
+          }
+        }
+      }
+    });
+
+    testWidgets('05 - Survey Interface', (WidgetTester tester) async {
+      app.main();
+      await waitForAppReady(tester);
+      
+      // Navigate to private mode
+      final privateMode = find.textContaining('Private');
+      if (privateMode.evaluate().isNotEmpty) {
+        await tester.tap(privateMode.first);
+        await tester.pumpAndSettle(const Duration(seconds: 2));
+        
+        // Look for survey-related elements
+        final surveyButton = find.textContaining('Survey');
+        final addButton = find.byIcon(Icons.add);
+        final floatingActionButton = find.byType(FloatingActionButton);
+        
+        if (surveyButton.evaluate().isNotEmpty) {
+          await tester.tap(surveyButton.first);
+          await tester.pumpAndSettle();
+          await takeScreenshotSafely('05_survey_interface');
+        } else if (addButton.evaluate().isNotEmpty) {
+          await tester.tap(addButton.first);
+          await tester.pumpAndSettle();
+          await takeScreenshotSafely('05_add_survey');
+        } else if (floatingActionButton.evaluate().isNotEmpty) {
+          await tester.tap(floatingActionButton.first);
+          await tester.pumpAndSettle();
+          await takeScreenshotSafely('05_fab_survey');
+        } else {
+          await takeScreenshotSafely('05_main_screen_for_survey');
+        }
+      }
+    });
+
+    testWidgets('06 - Settings and Navigation', (WidgetTester tester) async {
+      app.main();
+      await waitForAppReady(tester);
+      
+      // Navigate to private mode
+      final privateMode = find.textContaining('Private');
+      if (privateMode.evaluate().isNotEmpty) {
+        await tester.tap(privateMode.first);
+        await tester.pumpAndSettle(const Duration(seconds: 2));
+        
+        // Look for settings or menu
+        final settingsIcon = find.byIcon(Icons.settings);
+        final menuIcon = find.byIcon(Icons.menu);
+        final moreIcon = find.byIcon(Icons.more_vert);
+        
+        if (settingsIcon.evaluate().isNotEmpty) {
+          await tester.tap(settingsIcon.first);
+          await tester.pumpAndSettle();
+          await takeScreenshotSafely('06_settings_interface');
+        } else if (menuIcon.evaluate().isNotEmpty) {
+          await tester.tap(menuIcon.first);
+          await tester.pumpAndSettle();
+          await takeScreenshotSafely('06_navigation_menu');
+        } else if (moreIcon.evaluate().isNotEmpty) {
+          await tester.tap(moreIcon.first);
+          await tester.pumpAndSettle();
+          await takeScreenshotSafely('06_more_options_menu');
+        } else {
+          await takeScreenshotSafely('06_main_interface_overview');
+        }
+      }
+    });
+  });
       } else {
         // Look for radio buttons or other selection widgets
         final radioButtons = find.byType(Radio);
