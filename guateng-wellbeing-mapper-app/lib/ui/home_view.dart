@@ -6,6 +6,7 @@ import 'package:wellbeing_mapper/ui/initial_survey_screen.dart';
 import 'package:wellbeing_mapper/util/env.dart';
 import 'package:wellbeing_mapper/theme/south_african_theme.dart';
 import 'package:wellbeing_mapper/util/onboarding_helper.dart';
+import 'package:wellbeing_mapper/debug/ios_location_debug.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:async';
@@ -268,13 +269,20 @@ class HomeViewState extends State<HomeView>
         // The difference is in server sync settings, not location tracking capability
         // Only configure once to prevent multiple initializations
         if (!_backgroundGeoConfigured) {
-          // Request location permissions before configuring background geolocation
-          bool hasLocationPermission = await LocationService.initializeLocationServices(context: context);
-          if (hasLocationPermission) {
-            _configureBackgroundGeolocation(userUUID, sampleId);
-            _backgroundGeoConfigured = true;
-          } else {
-            print('[home_view.dart] Location permission denied, skipping background geolocation configuration');
+          try {
+            // Request location permissions before configuring background geolocation
+            bool hasLocationPermission = await LocationService.initializeLocationServices(context: context);
+            if (hasLocationPermission) {
+              _configureBackgroundGeolocation(userUUID, sampleId);
+              _backgroundGeoConfigured = true;
+              print('[home_view.dart] Background geolocation configured successfully');
+            } else {
+              print('[home_view.dart] Location permission denied, skipping background geolocation configuration');
+              // Don't set _backgroundGeoConfigured to true, so it can be tried again later
+            }
+          } catch (error) {
+            print('[home_view.dart] Error during location initialization: $error');
+            // Continue with app initialization even if location setup fails
           }
         } else {
           print('[home_view.dart] Background geolocation already configured, skipping');
@@ -301,7 +309,12 @@ class HomeViewState extends State<HomeView>
         print('[home_view.dart] Participation settings not found, but still requesting location permissions for basic app functionality');
         // Even without participation settings, we should request location permissions
         // so the app can function properly when the user does make a choice
-        await LocationService.initializeLocationServices(context: context);
+        try {
+          await LocationService.initializeLocationServices(context: context);
+        } catch (error) {
+          print('[home_view.dart] Error requesting location permissions: $error');
+          // Continue with app initialization even if location setup fails
+        }
       }
       print('[home_view.dart] initPlatformState completed successfully');
     } catch (error) {

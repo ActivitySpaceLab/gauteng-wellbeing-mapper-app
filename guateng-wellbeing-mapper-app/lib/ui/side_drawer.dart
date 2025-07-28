@@ -7,6 +7,7 @@ import 'package:wellbeing_mapper/services/app_mode_service.dart';
 import 'package:wellbeing_mapper/services/wellbeing_survey_service.dart';
 import 'package:wellbeing_mapper/services/initial_survey_service.dart';
 import 'package:wellbeing_mapper/theme/south_african_theme.dart';
+import 'package:wellbeing_mapper/debug/ios_location_debug.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
@@ -256,6 +257,21 @@ class _WellbeingMapperSideDrawerState extends State<WellbeingMapperSideDrawer> {
                 title: Text("Export Data"),
                 onTap: () {
                   _exportData();
+                },
+              ),
+            ),
+            // iOS Location Debug - Debug tool for diagnosing iOS location permission issues
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.bug_report, color: Colors.orange),
+                title: Text("iOS Location Debug"),
+                subtitle: Text("Diagnose location permission issues"),
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => IosLocationDebugScreen(),
+                    ),
+                  );
                 },
               ),
             ),

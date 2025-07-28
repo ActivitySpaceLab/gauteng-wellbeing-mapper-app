@@ -1,4 +1,4 @@
-# Beta Testing and Release Guide
+# Developers' Guid to Beta Testing and Release
 
 ## Overview
 
