@@ -1,5 +1,8 @@
 import 'package:wellbeing_mapper/services/notification_service.dart';
+import 'package:wellbeing_mapper/services/location_service.dart';
+import 'package:wellbeing_mapper/services/initial_survey_service.dart';
 import 'package:wellbeing_mapper/ui/side_drawer.dart';
+import 'package:wellbeing_mapper/ui/initial_survey_screen.dart';
 import 'package:wellbeing_mapper/util/env.dart';
 import 'package:wellbeing_mapper/theme/south_african_theme.dart';
 import 'package:wellbeing_mapper/util/onboarding_helper.dart';
@@ -84,6 +87,7 @@ class HomeViewState extends State<HomeView>
 
     initPlatformState();
     _checkForPendingSurveyPrompt();
+    _checkForIncompleteInitialSurvey();
     _checkAndShowOnboarding();
   }
 
@@ -111,6 +115,63 @@ class HomeViewState extends State<HomeView>
         }
       }
     });
+  }
+
+  // Check if research/testing user needs to complete initial survey
+  void _checkForIncompleteInitialSurvey() {
+    // Wait longer to avoid conflicting with other dialogs and give user time to settle
+    Timer(Duration(seconds: 5), () async {
+      if (mounted) {
+        bool needsInitialSurvey = await InitialSurveyService.needsInitialSurvey();
+        if (needsInitialSurvey && mounted) {
+          // Check if we should show a reminder (respects timing intervals)
+          String? reminderMessage = await InitialSurveyService.shouldShowReminder();
+          if (reminderMessage != null) {
+            _showInitialSurveyReminder(reminderMessage);
+          }
+          // Note: Removed immediate reminder for first-time users to avoid being pushy
+          // They already saw the survey after consent, so let the normal reminder cycle handle it
+        }
+      }
+    });
+  }
+
+  void _showInitialSurveyReminder(String message) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: Text('Initial Survey'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: Text('Later'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.of(context).pop();
+              
+              // Navigate to initial survey
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => InitialSurveyScreen(),
+                ),
+              );
+              
+              // If survey was completed, mark it as completed
+              if (result == true) {
+                await InitialSurveyService.markInitialSurveyCompleted();
+              }
+            },
+            child: Text('Complete Now'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -144,8 +205,14 @@ class HomeViewState extends State<HomeView>
         // The difference is in server sync settings, not location tracking capability
         // Only configure once to prevent multiple initializations
         if (!_backgroundGeoConfigured) {
-          _configureBackgroundGeolocation(userUUID, sampleId);
-          _backgroundGeoConfigured = true;
+          // Request location permissions before configuring background geolocation
+          bool hasLocationPermission = await LocationService.initializeLocationServices(context: context);
+          if (hasLocationPermission) {
+            _configureBackgroundGeolocation(userUUID, sampleId);
+            _backgroundGeoConfigured = true;
+          } else {
+            print('[home_view.dart] Location permission denied, skipping background geolocation configuration');
+          }
         } else {
           print('[home_view.dart] Background geolocation already configured, skipping');
         }
@@ -168,7 +235,10 @@ class HomeViewState extends State<HomeView>
           _configureBackgroundServicesAsync(userUUID, sampleId, false);
         }
       } else {
-        print('[home_view.dart] Participation settings not found, skipping background service configuration');
+        print('[home_view.dart] Participation settings not found, but still requesting location permissions for basic app functionality');
+        // Even without participation settings, we should request location permissions
+        // so the app can function properly when the user does make a choice
+        await LocationService.initializeLocationServices(context: context);
       }
       print('[home_view.dart] initPlatformState completed successfully');
     } catch (error) {

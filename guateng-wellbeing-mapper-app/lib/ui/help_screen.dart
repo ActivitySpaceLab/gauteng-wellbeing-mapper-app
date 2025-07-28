@@ -19,6 +19,8 @@ class HelpScreen extends StatelessWidget {
             SizedBox(height: 20),
             _buildMainScreenSection(),
             SizedBox(height: 20),
+            _buildPermissionsSection(),
+            SizedBox(height: 20),
             _buildMenuOptionsSection(),
             SizedBox(height: 20),
             _buildAppModesSection(),
@@ -59,7 +61,7 @@ class HelpScreen extends StatelessWidget {
             ),
             SizedBox(height: 12),
             Text(
-              'Wellbeing Mapper helps people learn more about the ways in which mental wellbeing depends on environmental conditions. You can use it privately to study your own movements and wellbeing. If you live in Guateng, South Africa and have volunteered to be part of the Planet4Health study on mental wellbeing, you can use the app to respond to surveys and share your information anonymously with researchers.',
+              'Wellbeing Mapper helps people learn more about the ways in which mental wellbeing depends on environmental conditions. You can use it privately to study your own movements and wellbeing, try app testing mode to experience research features safely, or participate in the Planet4Health study on mental wellbeing if you live in Gauteng, South Africa.',
               style: TextStyle(fontSize: 16, height: 1.4),
             ),
           ],
@@ -152,6 +154,81 @@ class HelpScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildPermissionsSection() {
+    return Card(
+      child: Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.security, color: SouthAfricanTheme.accentYellow, size: 24),
+                SizedBox(width: 8),
+                Text(
+                  'App Permissions',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 16),
+            
+            _buildFeatureItem(
+              Icons.location_on,
+              'Location Permission',
+              'Required for the core functionality of tracking your movements:',
+              [
+                '• Allows the app to record where you spend time',
+                '• Needed for wellbeing mapping and research features',
+                '• You control whether location data is shared or kept private',
+                '• The app will request this permission when you first choose your participation mode'
+              ],
+            ),
+            
+            SizedBox(height: 16),
+            
+            _buildFeatureItem(
+              Icons.notifications,
+              'Notification Permission',
+              'Optional but recommended for research participants:',
+              [
+                '• Sends bi-weekly survey reminders',
+                '• Helps you stay engaged with the study',
+                '• You can disable notifications anytime in phone settings',
+                '• Private mode users won\'t receive research reminders'
+              ],
+            ),
+            
+            SizedBox(height: 12),
+            
+            Container(
+              padding: EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: SouthAfricanTheme.softYellow,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline, color: SouthAfricanTheme.darkGrey),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'You can manage all permissions in your phone\'s Settings app. The app will guide you through granting necessary permissions when you first set up your participation mode.',
+                      style: TextStyle(fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildMenuOptionsSection() {
     return Card(
       child: Padding(
@@ -195,7 +272,7 @@ class HelpScreen extends StatelessWidget {
             _buildMenuOptionItem(
               Icons.settings,
               'App Mode',
-              'Switch between Private Mode (data stays on your phone unless you manually export it) and Research Mode (anonymous data shared with researchers using end-to-end encryption).',
+              'Switch between Private Mode (data stays on your phone), App Testing Mode (safely try research features), and Research Mode (contribute to studies with encrypted data sharing).',
             ),
             
             _buildMenuOptionItem(
@@ -219,7 +296,7 @@ class HelpScreen extends StatelessWidget {
             SizedBox(height: 16),
             
             Text(
-              'Research Mode Only:',
+              'App Testing & Research Mode:',
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: SouthAfricanTheme.researchMode),
             ),
             SizedBox(height: 8),
@@ -227,13 +304,13 @@ class HelpScreen extends StatelessWidget {
             _buildMenuOptionItem(
               Icons.assignment,
               'Initial Survey',
-              'Complete a one-time survey when you first join the research study.',
+              'Complete a one-time survey when you first join the research study (available in testing mode for practice).',
             ),
             
             _buildMenuOptionItem(
               Icons.assignment_turned_in,
               'Wellbeing Survey',
-              'Take the bi-weekly wellbeing check-in survey. You\'ll also be reminded automatically.',
+              'Take the bi-weekly wellbeing check-in survey. You\'ll also be reminded automatically in research mode.',
             ),
             
             _buildMenuOptionItem(
@@ -245,13 +322,13 @@ class HelpScreen extends StatelessWidget {
             _buildMenuOptionItem(
               Icons.notifications_outlined,
               'Survey Notifications',
-              'Manage when and how often you receive survey reminder notifications.',
+              'Manage when and how often you receive survey reminder notifications (research mode only).',
             ),
             
             _buildMenuOptionItem(
               Icons.cloud_upload,
               'Research Data Upload',
-              'Manually upload your encrypted data to research servers (usually happens automatically).',
+              'Manually upload your encrypted data to research servers (research mode only - testing mode keeps data local).',
             ),
           ],
         ),
@@ -321,6 +398,46 @@ class HelpScreen extends StatelessWidget {
             
             SizedBox(height: 12),
             
+            // App Testing Mode
+            Container(
+              padding: EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.orange.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.science, color: Colors.orange),
+                      SizedBox(width: 8),
+                      Text(
+                        'App Testing Mode 🧪',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: Colors.orange.shade800,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    '• Experience the full research consent process safely\n'
+                    '• Practice taking surveys without submitting real data\n'
+                    '• Test all app features in a safe environment\n'
+                    '• Understand what research participation involves\n'
+                    '• No data is sent to researchers (stays local only)',
+                    style: TextStyle(height: 1.4),
+                  ),
+                ],
+              ),
+            ),
+            
+            SizedBox(height: 12),
+            
             // Research Mode
             Container(
               padding: EdgeInsets.all(12),
@@ -334,7 +451,7 @@ class HelpScreen extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.science, color: SouthAfricanTheme.researchMode),
+                      Icon(Icons.school, color: SouthAfricanTheme.researchMode),
                       SizedBox(width: 8),
                       Text(
                         'Research Mode',
@@ -352,7 +469,7 @@ class HelpScreen extends StatelessWidget {
                     '• Contribute to important wellbeing studies\n'
                     '• Regular survey reminders every 2 weeks\n'
                     '• All participation is voluntary and anonymous\n'
-                    '• Can switch back to Private Mode anytime',
+                    '• Currently in development for future release',
                     style: TextStyle(height: 1.4),
                   ),
                 ],
@@ -373,7 +490,7 @@ class HelpScreen extends StatelessWidget {
                   SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'You can switch between modes anytime through the menu. Your data will be preserved when switching.',
+                      'You can switch between Private and App Testing modes anytime. App Testing mode lets you safely experience research features without submitting real data.',
                       style: TextStyle(fontWeight: FontWeight.w500),
                     ),
                   ),
@@ -521,6 +638,16 @@ class HelpScreen extends StatelessWidget {
             SizedBox(height: 12),
             
             _buildTroubleshootItem(
+              'Location permission issues?',
+              [
+                '• Check that location permission is granted in phone settings',
+                '• Some phones have "precise location" settings - enable this',
+                '• Try restarting the app after granting permissions',
+                '• On Android, ensure "Allow all the time" location access is enabled'
+              ],
+            ),
+            
+            _buildTroubleshootItem(
               'Location not updating?',
               [
                 '• Check that location tracking switch is ON (yellow)',
@@ -547,6 +674,16 @@ class HelpScreen extends StatelessWidget {
                 '• Open "Survey Notifications" in the menu',
                 '• Ensure the app has permission to send notifications',
                 '• Try triggering a test notification'
+              ],
+            ),
+            
+            _buildTroubleshootItem(
+              'App testing mode questions?',
+              [
+                '• App testing mode is completely safe - no real data is submitted',
+                '• You can practice the full research experience without commitment',
+                '• All testing data stays on your phone only',
+                '• Switch back to private mode anytime through the menu'
               ],
             ),
           ],

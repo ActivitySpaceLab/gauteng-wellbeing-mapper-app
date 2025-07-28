@@ -245,7 +245,7 @@ class _InitialSurveyScreenState extends State<InitialSurveyScreen> {
               ],
               _buildClimateActivismField(),
               SizedBox(height: 32),
-              _buildSubmitButton(),
+              _buildActionButtons(),
               SizedBox(height: 24),
             ],
           ),
@@ -504,21 +504,118 @@ class _InitialSurveyScreenState extends State<InitialSurveyScreen> {
     );
   }
 
-  Widget _buildSubmitButton() {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: _isSubmitting ? null : _submitSurvey,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.blue,
-          padding: EdgeInsets.symmetric(vertical: 16),
+  Widget _buildActionButtons() {
+    return Column(
+      children: [
+        // Primary submit button
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: _isSubmitting ? null : _submitSurvey,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue,
+              padding: EdgeInsets.symmetric(vertical: 16),
+            ),
+            child: _isSubmitting
+                ? CircularProgressIndicator(color: Colors.white)
+                : Text(
+                    'Submit Survey',
+                    style: TextStyle(fontSize: 18, color: Colors.white),
+                  ),
+          ),
         ),
-        child: _isSubmitting
-            ? CircularProgressIndicator(color: Colors.white)
-            : Text(
-                'Submit Survey',
-                style: TextStyle(fontSize: 18, color: Colors.white),
+        SizedBox(height: 12),
+        // Skip button
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton(
+            onPressed: _isSubmitting ? null : _showSkipDialog,
+            style: OutlinedButton.styleFrom(
+              padding: EdgeInsets.symmetric(vertical: 16),
+              side: BorderSide(color: Colors.grey),
+            ),
+            child: Text(
+              'Skip for Now - Enter App',
+              style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+            ),
+          ),
+        ),
+        SizedBox(height: 8),
+        // Informational text
+        Text(
+          'You can complete this survey later from the app menu.\nWe\'ll send gentle reminders to help you complete it.',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 12,
+            color: Colors.grey[600],
+            height: 1.3,
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showSkipDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Skip Initial Survey?'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Are you sure you want to skip the initial survey for now?'),
+            SizedBox(height: 12),
+            Container(
+              padding: EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.blue.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.blue.shade200),
               ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.info_outline, color: Colors.blue, size: 16),
+                      SizedBox(width: 6),
+                      Text(
+                        'What happens next:',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 6),
+                  Text(
+                    '• You can access the app immediately\n'
+                    '• Find "Initial Survey" in the app menu\n'
+                    '• We\'ll send periodic reminders\n'
+                    '• Complete it when convenient for you',
+                    style: TextStyle(fontSize: 13, height: 1.4),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text('Go Back'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop(); // Close dialog
+              Navigator.of(context).pop(false); // Return to previous screen indicating survey was skipped
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+            child: Text(
+              'Skip & Enter App',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -585,7 +682,7 @@ class _InitialSurveyScreenState extends State<InitialSurveyScreen> {
           TextButton(
             onPressed: () {
               Navigator.of(context).pop(); // Close dialog
-              Navigator.of(context).pop(); // Go back to previous screen
+              Navigator.of(context).pop(true); // Go back to previous screen with success result
             },
             child: Text('OK'),
           ),

@@ -5,6 +5,7 @@ import 'package:wellbeing_mapper/models/custom_locations.dart';
 import 'package:wellbeing_mapper/models/app_mode.dart';
 import 'package:wellbeing_mapper/services/app_mode_service.dart';
 import 'package:wellbeing_mapper/services/wellbeing_survey_service.dart';
+import 'package:wellbeing_mapper/services/initial_survey_service.dart';
 import 'package:wellbeing_mapper/theme/south_african_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -20,11 +21,13 @@ class WellbeingMapperSideDrawer extends StatefulWidget {
 class _WellbeingMapperSideDrawerState extends State<WellbeingMapperSideDrawer> {
   AppMode currentMode = AppMode.private; // Default to private mode
   bool isLoading = true;
+  bool hasCompletedInitialSurvey = false;
 
   @override
   void initState() {
     super.initState();
     _loadCurrentMode();
+    _checkInitialSurveyStatus();
   }
 
   Future<void> _loadCurrentMode() async {
@@ -43,10 +46,22 @@ class _WellbeingMapperSideDrawerState extends State<WellbeingMapperSideDrawer> {
     }
   }
 
+  Future<void> _checkInitialSurveyStatus() async {
+    try {
+      final completed = await InitialSurveyService.hasCompletedInitialSurvey();
+      setState(() {
+        hasCompletedInitialSurvey = completed;
+      });
+    } catch (e) {
+      print('Error checking initial survey status: $e');
+    }
+  }
+
   void _navigateToChangeMode() async {
     await Navigator.of(context).pushNamed('/change_mode');
-    // Refresh current mode when returning from change mode
+    // Refresh current mode and survey status when returning from change mode
     _loadCurrentMode();
+    _checkInitialSurveyStatus();
   }
   _exportData() async {
     var now = new DateTime.now();
@@ -124,25 +139,15 @@ class _WellbeingMapperSideDrawerState extends State<WellbeingMapperSideDrawer> {
               ),
             )
           else ...[
-            // Locations History - Always visible
+            // App Mode - Always visible (moved to first position)
             Card(
               child: ListTile(
-                leading: const Icon(Icons.list),
-                title: Text(AppLocalizations.of(context)
-                        ?.translate("locations_history") ??
-                    ""),
+                leading: const Icon(Icons.settings),
+                title: Text("App Mode"),
+                subtitle: Text(currentMode.displayName),
+                trailing: Text("Change Mode", style: TextStyle(color: SouthAfricanTheme.primaryBlue)),
                 onTap: () {
-                  Navigator.of(context).pushNamed('/locations_history');
-                },
-              ),
-            ),
-            // Export Data - Always visible (renamed from Share Locations)
-            Card(
-              child: ListTile(
-                leading: const Icon(Icons.share),
-                title: Text("Export Data"),
-                onTap: () {
-                  _exportData();
+                  _navigateToChangeMode();
                 },
               ),
             ),
@@ -168,27 +173,29 @@ class _WellbeingMapperSideDrawerState extends State<WellbeingMapperSideDrawer> {
                 },
               ),
             ),
-            // App Mode - Always visible
-            Card(
-              child: ListTile(
-                leading: const Icon(Icons.settings),
-                title: Text("App Mode"),
-                subtitle: Text(currentMode.displayName),
-                trailing: Text("Change Mode", style: TextStyle(color: SouthAfricanTheme.primaryBlue)),
-                onTap: () {
-                  _navigateToChangeMode();
-                },
-              ),
-            ),
             // Research and App Testing mode menu items
             if (currentMode != AppMode.private) ...[
               Card(
                 child: ListTile(
-                  leading: const Icon(Icons.assignment),
+                  leading: Icon(
+                    hasCompletedInitialSurvey ? Icons.assignment_turned_in : Icons.assignment,
+                    color: hasCompletedInitialSurvey ? Colors.green : null,
+                  ),
                   title: Text("Initial Survey"),
-                  subtitle: Text("Complete your initial demographics survey"),
-                  onTap: () {
-                    Navigator.of(context).pushNamed('/initial_survey');
+                  subtitle: Text(hasCompletedInitialSurvey 
+                    ? "Completed ✓" 
+                    : "Complete your initial demographics survey"
+                  ),
+                  trailing: hasCompletedInitialSurvey 
+                    ? Icon(Icons.check_circle, color: Colors.green)
+                    : Icon(Icons.warning, color: Colors.orange),
+                  onTap: () async {
+                    final result = await Navigator.of(context).pushNamed('/initial_survey');
+                    // Refresh status when returning
+                    if (result == true) {
+                      await InitialSurveyService.markInitialSurveyCompleted();
+                      _checkInitialSurveyStatus();
+                    }
                   },
                 ),
               ),
@@ -242,6 +249,16 @@ class _WellbeingMapperSideDrawerState extends State<WellbeingMapperSideDrawer> {
                 ),
               ),
             ],
+            // Export Data - Always visible (renamed from Share Locations)
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.share),
+                title: Text("Export Data"),
+                onTap: () {
+                  _exportData();
+                },
+              ),
+            ),
             // Help & Guide - Always visible
             Card(
               child: ListTile(

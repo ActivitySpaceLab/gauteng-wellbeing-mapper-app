@@ -4,6 +4,7 @@ import 'dart:convert';
 import '../models/consent_models.dart';
 import '../models/app_mode.dart';
 import '../services/app_mode_service.dart';
+import '../services/location_service.dart';
 import '../theme/south_african_theme.dart';
 
 class ParticipationSelectionScreen extends StatefulWidget {
@@ -247,17 +248,41 @@ class _ParticipationSelectionScreenState extends State<ParticipationSelectionScr
     });
 
     try {
+      // Request location permissions first for both modes
+      print('[ParticipationSelection] Requesting location permissions...');
+      bool hasLocationPermission = await LocationService.initializeLocationServices(context: context);
+      
+      if (!hasLocationPermission) {
+        _showErrorDialog('Location permission is required for this app to function properly. Please grant location permission and try again.');
+        return;
+      }
+
       if (_selectedMode == 'private') {
-        // Private use flow
+        // Private use flow - skip consent, go directly to main app
         await AppModeService.setCurrentMode(AppMode.private);
         await _savePrivateUserSettings();
+        _navigateToMainApp();
       } else if (_selectedMode == 'appTesting') {
-        // App testing flow
+        // App testing flow - go through consent process like research participants
         await AppModeService.setCurrentMode(AppMode.appTesting);
-        // No additional setup needed - app mode service handles test participant code generation
+        
+        // Navigate to consent form with testing parameters
+        final result = await Navigator.of(context).pushNamed(
+          '/consent_form',
+          arguments: {
+            'participantCode': 'TESTING_MODE', // Special code for testing
+            'researchSite': 'gauteng', // Use Gauteng site for testing
+            'isTestingMode': true, // Flag to indicate this is testing
+          },
+        );
+
+        if (result == true) {
+          // Consent completed in testing mode, save settings and go to main app
+          await _savePrivateUserSettings(); // Use private settings since data stays local
+          _navigateToMainApp();
+        }
+        // If consent was cancelled or failed, do nothing (stay on current screen)
       }
-      
-      _navigateToMainApp();
     } catch (error) {
       _showErrorDialog('Error setting up app mode: $error');
     } finally {
@@ -275,6 +300,9 @@ class _ParticipationSelectionScreenState extends State<ParticipationSelectionScr
     final settings = ParticipationSettings.privateUser();
     await prefs.setString('participation_settings', jsonEncode(settings.toJson()));
   }
+
+  // Note: App testing mode uses same participation settings as private mode
+  // since both modes keep data local and don't upload to research servers
 
   void _navigateToMainApp() {
     Navigator.of(context).pushReplacementNamed('/');

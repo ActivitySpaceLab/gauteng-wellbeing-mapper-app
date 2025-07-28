@@ -70,11 +70,12 @@ class RouteGenerator {
       case '/participation_selection':
         return MaterialPageRoute(builder: (_) => ParticipationSelectionScreen());
       case '/consent_form':
-        if (args is Map<String, String>) {
+        if (args is Map<String, dynamic>) {
           return MaterialPageRoute(
             builder: (_) => ConsentFormScreen(
               participantCode: args['participantCode'] ?? '',
               researchSite: args['researchSite'] ?? 'barcelona',
+              isTestingMode: args['isTestingMode'] ?? false,
             ),
           );
         }

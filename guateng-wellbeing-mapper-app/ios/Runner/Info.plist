@@ -40,9 +40,9 @@
 		<true/>
 	</dict>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>Wellbeing Mapper needs to access your location always and when in use in order to enable you to track your activity spaces. The location data it collects does not leave your phone unless you choose to share it by participating in a survey or by exporting it manually.</string>
+	<string>Wellbeing Mapper uses the device's location to track your movement even when you have the app closed so that you build up a clear map of where you spend time, which you can compare to your wellbeing responses.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
-	<string>Wellbeing Mapper needs access your location when in the background in order to enable you to track your activity spaces. The location data it collects does not leave your phone unless you choose to share it by participating in a survey or by exporting it manually.</string>
+	<string>Wellbeing Mapper uses the device's location to track your movement even when you have the app closed so that you build up a clear map of where you spend time, which you can compare to your wellbeing responses.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Wellbeing Mapper needs to access your location when in use in order to enable you to track your activity spaces. The location data it collects does not leave your phone unless you choose to share it by participating in a survey or by exporting it manually.</string>
 	<key>NSMotionUsageDescription</key>

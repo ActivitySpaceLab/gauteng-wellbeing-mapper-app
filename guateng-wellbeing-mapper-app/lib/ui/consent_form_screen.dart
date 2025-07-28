@@ -6,12 +6,19 @@ import 'package:url_launcher/url_launcher.dart';
 import 'dart:convert';
 import '../models/consent_models.dart';
 import '../db/survey_database.dart';
+import '../services/initial_survey_service.dart';
+import 'initial_survey_screen.dart';
 
 class ConsentFormScreen extends StatefulWidget {
   final String participantCode;
   final String researchSite; // 'barcelona' or 'gauteng'
+  final bool isTestingMode; // Whether this is for app testing mode
 
-  ConsentFormScreen({required this.participantCode, required this.researchSite});
+  ConsentFormScreen({
+    required this.participantCode, 
+    required this.researchSite,
+    this.isTestingMode = false,
+  });
 
   @override
   _ConsentFormScreenState createState() => _ConsentFormScreenState();
@@ -73,13 +80,15 @@ class _ConsentFormScreenState extends State<ConsentFormScreen> {
         title: FittedBox(
           fit: BoxFit.scaleDown,
           child: Text(
-            _showInformationSheet ? 'Information Sheet' : 'Consent Form',
+            widget.isTestingMode 
+              ? '🧪 ${_showInformationSheet ? 'Information Sheet' : 'Consent Form'} (Testing)'
+              : _showInformationSheet ? 'Information Sheet' : 'Consent Form',
             style: TextStyle(fontWeight: FontWeight.bold),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
         ),
-        backgroundColor: Colors.blue,
+        backgroundColor: widget.isTestingMode ? Colors.orange : Colors.blue,
       ),
       body: _showInformationSheet ? _buildInformationSheet() : _buildConsentForm(),
     );
@@ -92,66 +101,384 @@ class _ConsentFormScreenState extends State<ConsentFormScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Beta Testing Mode Notice
+          if (widget.isTestingMode) ...[
+            Container(
+              width: double.infinity,
+              margin: EdgeInsets.only(bottom: 16),
+              padding: EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.orange.shade50,
+                border: Border.all(color: Colors.orange, width: 2),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.science, color: Colors.orange, size: 24),
+                      SizedBox(width: 8),
+                      Text(
+                        '🧪 APP TESTING MODE',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.orange.shade800,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'You are experiencing the consent process in testing mode. This allows you to:',
+                    style: TextStyle(fontSize: 14, color: Colors.orange.shade700),
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    '• Practice the full research consent experience\n'
+                    '• Understand what real research participation involves\n'
+                    '• Test all app features safely\n'
+                    '• NO real research data will be collected',
+                    style: TextStyle(fontSize: 14, color: Colors.orange.shade700),
+                  ),
+                  SizedBox(height: 8),
+                  Container(
+                    padding: EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.shade100,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      'This is for testing purposes only. Your responses will stay on your device.',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.orange.shade900,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           if (widget.researchSite == 'gauteng') ...[
             Card(
               margin: EdgeInsets.only(bottom: 16),
               child: Padding(
-                padding: EdgeInsets.all(16),
+                padding: EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Information Sheet', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                    SizedBox(height: 8),
-                    Text('Hello', style: TextStyle(fontSize: 15, height: 1.4)),
-                    SizedBox(height: 8),
-                    Text('We invite you to take part in a project called Mental wellbeing in climate and environmental context (Case Study 4 of the PLANET4HEALTH project) – Gauteng Study Site.', style: TextStyle(fontSize: 15, height: 1.4)),
-                    SizedBox(height: 8),
-                    Text('This project has been approved by the Research Ethics Committee of the Faculty of Education, University of Pretoria with clearance number EDU092/24.', style: TextStyle(fontSize: 15, height: 1.4)),
-                    SizedBox(height: 8),
-                    Text('Institutions involved in this project: University of Pretoria (UP, South Africa), the South African Medical Research Council (SAMRC), the Universitat Pompeu Fabra (UPF, Spain) and Institut Za Medicinska Istra Ivanja (Serbia)', style: TextStyle(fontSize: 15, height: 1.4)),
-                    SizedBox(height: 8),
-                    Text('Principal researchers: Linda Theron (linda.theron@up.ac.za), Caradee Wright (Caradee.Wright@mrc.ac.za), John Palmer (john.palmer@upf.edu) and Suzana Blesic (blesic.suzana@gmail.com)', style: TextStyle(fontSize: 15, height: 1.4)),
-                    SizedBox(height: 8),
-                    Text('Research Assistant: Mudalo Ndou (planet4health.research@gmail.com) and +27 64 898 6212)', style: TextStyle(fontSize: 15, height: 1.4)),
-                    SizedBox(height: 8),
-                    Text('Funding body: This project is funded by the European Union as part of the PLANET4HEALTH Project (https://planet4health.eu).', style: TextStyle(fontSize: 15, height: 1.4)),
-                    SizedBox(height: 8),
-                    Text('The purpose of this project: We want to learn how climate change and the environment affect the mental wellbeing of people living in Gauteng (South Africa) and what might support human resilience to climate change-related challenges.', style: TextStyle(fontSize: 15, height: 1.4)),
-                    SizedBox(height: 8),
-                    Text('Voluntary participation: In South Africa, we are inviting 300 participants to join the study. Participation is on a voluntary basis; participants may withdraw from the study at any time without having to justify their decision.', style: TextStyle(fontSize: 15, height: 1.4)),
-                    SizedBox(height: 8),
-                    Text('Who can participate: Anyone who (i) is 18 years old or older; (ii) lives in Gauteng; (iii) has a smart mobile device and regular access to the internet; (iv) is OK reading and writing basic English; and (v) can install the Space Mapper App onto their smart mobile device.', style: TextStyle(fontSize: 15, height: 1.4)),
-                    SizedBox(height: 8),
-                    Text('What participants will be asked to do: This study involves a mobile phone application called Space Mapper, which keeps track of where participants spend time, and lets participants share this information, if they choose to, with the researchers. It also involves a series of surveys. Participants can participate by installing Space Mapper on their mobile phone and letting it track their locations for up to six months. They will receive surveys (questions and digital diary prompts) every two weeks, in which they will be asked a series of questions about themselves and about their mental wellbeing. When responding to the survey, they will have the opportunity to share the locations tracked by Space Mapper during the previous two weeks. Participants can choose which questions they wish to answer and whether they wish to share their locations. Among other things, the surveys will ask about participants\' race/ethnicity, health, sexual orientation, location and mobility, wellbeing, environmental challenges in the past two weeks, and supports that help them cope with challenges.', style: TextStyle(fontSize: 15, height: 1.4)),
-                    SizedBox(height: 8),
-                    Text('What the data will be used for: The data will be used to better understand how to protect the wellbeing of people who experience environmental and climate change challenges (e.g., exposure to air pollution or extreme heat events). This understanding will inform various products (e.g., resilience toolkits or early warning systems) that can be used by mental health professionals, service providers and policy makers.', style: TextStyle(fontSize: 15, height: 1.4)),
-                    SizedBox(height: 8),
-                    Text('The aggregate or anonymised results of this study may be presented at academic conferences, used for academic publications and lecture content, and when reporting the study on the study website (https://planet4health.eu/), in the popular press, or on social media. A similar project is being done in Barcelona, Spain, and we could compare the South African and Spanish results.', style: TextStyle(fontSize: 15, height: 1.4)),
-                    SizedBox(height: 8),
-                    Text('We request participant permission to use the data, confidentially and anonymously, for further research purposes, as the data sets are the intellectual property of the University of Pretoria and partner institutions. Further research will focus on climate challenges and human wellbeing and what enables wellbeing when environmental conditions are challenging and may include secondary data analysis and using the data for teaching purposes. The confidentiality and privacy applicable to this study will be binding on future research studies (i.e., secondary analyses of the data to further investigate climate challenges and human wellbeing, and what enables wellbeing when environmental conditions are challenging).', style: TextStyle(fontSize: 15, height: 1.4)),
-                    SizedBox(height: 8),
-                    Text('Data protection: We will keep the data for 10 years. To protect participants\' privacy, we will not identify their data with their name, but rather with a code (a participant number) that will only be known to the research team members. Only the researcher team and partners directly involved in this project (see names at the beginning of this information sheet) will have access to the survey responses. We will use a participant number to identify data (i.e., no data can be linked to someone\'s name). To make participants\' location data only accessible to research team members, this data will be protected using end-to-end encryption and it will be stored with access control systems. In the event of data publication, only anonymous data will be published. Anonymized data may be hosted or published in a public repository. If you would like your data to be deleted, you can request this by emailing the PIs and including in the email your participant UUID, which can be found in the Space Mapper application on the device you are using to collect it. Please note that the survey is being conducted with the help of Qualtrics (they have their own privacy and security policies that you can read about at https://www.qualtrics.com/privacy-statement/).', style: TextStyle(fontSize: 15, height: 1.4)),
-                    SizedBox(height: 8),
-                    Text('Possible risks and benefits of participation: It is not expected that anything that participants will be asked to do in this study will pose a risk to their health. However, it is very important that participants do not interact with their mobile phone while driving or engaged in any activity that requires their attention. Using a mobile phone while driving can increase risk of injury or death.', style: TextStyle(fontSize: 15, height: 1.4)),
-                    SizedBox(height: 8),
-                    Text('Participation also involves some risk to participant privacy because you will be asked to share information about where you spend time. However, you can choose not to. If you choose to share this information, it will be kept confidential by the research team using encryption and standard data protection techniques.', style: TextStyle(fontSize: 15, height: 1.4)),
-                    SizedBox(height: 8),
-                    Text('Participation will involve answering questions about your mental wellbeing and about climate change. In case these make you anxious or uncomfortable in any way, we will recommend a set of resources that you can turn to at the end of every survey. These include: South African Depression and Anxiety Group (SADAG; SMS: 31393 or 32312, WhatsApp Chat: 076 882 2775, or Call: 0800 21 22 23 or 0800 70 80 90 or 0800 456 789, or Suicide Helpline: 0800 567 567) or Lifeline (Pretoria: 012 804 3619 or 0861 322 322; Johannesburg: 011 728 1347 or 0861 322 322; Alexandra: 011 443 3555; Soweto: 011 988 0155 or 0861 322 322; Vaal Triangle: 016 428 1740 or 016 428 5959; WhatsApp counselling: 065 989 9238 or 072 677 9090).', style: TextStyle(fontSize: 15, height: 1.4)),
-                    SizedBox(height: 8),
-                    Text('We cannot and do not guarantee that you will receive any benefits from this study, but we are hopeful that that the project will help us better understand how climate change is impacting mental wellbeing and what can be done to support human resilience to climate change and environmental challenges. We will disseminate our results broadly. Participants can follow the progress of the study and read a summary of the results on the study website (https://planet4health.eu/).', style: TextStyle(fontSize: 15, height: 1.4)),
-                    SizedBox(height: 8),
-                    Text('Token of appreciation for study participation: We offer participants a Shoprite | Checkers shopping voucher after every two surveys completed – meaning one voucher per month of completed research activity. The voucher is sent electronically to the cellular phone number that participants register with the study. The value of the vouchers will be R100 (Month 1), R 150 (Month 2), R 200 (Month 3), R 250 (Month 4), R 300 (Month 5) and R 500 (Month 6). These vouchers are not redeemable for cash and cannot be replaced if lost or stolen.', style: TextStyle(fontSize: 15, height: 1.4)),
-                    SizedBox(height: 8),
-                    Text('Further information about the project: If participants have any questions, they are encouraged to contact Mudalo Ndou at (planet4health.research@gmail.com) or +27 64 898 6212)', style: TextStyle(fontSize: 15, height: 1.4)),
-                    SizedBox(height: 8),
-                    Text('Alternatively, contact the project leader, Professor Linda Theron, at Linda.theron@up.ac.za or phone her on 012 420 6211.', style: TextStyle(fontSize: 15, height: 1.4)),
-                    SizedBox(height: 8),
-                    Text('Questions relating to ethics of this project: If participants have any concerns or complaints regarding the ethical procedures of this study, they are welcome to contact the Chair of the Faculty of Education Research Ethics Committee: Prof Funke Omidire at Funke.omidire@up.ac.za.', style: TextStyle(fontSize: 15, height: 1.4)),
+                    // University of Pretoria Logo
+                    Center(
+                      child: Container(
+                        height: 80,
+                        margin: EdgeInsets.only(bottom: 20),
+                        child: Image.asset(
+                          'assets/images/up_ed_logo.png',
+                          fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              height: 80,
+                              child: Icon(Icons.school, size: 60, color: Colors.blue),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                    
+                    // Title
+                    Center(
+                      child: Text(
+                        'Information Sheet',
+                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    SizedBox(height: 20),
+                    
+                    // Greeting
+                    Text('Hello', style: TextStyle(fontSize: 16, height: 1.5)),
+                    SizedBox(height: 12),
+                    
+                    // Introduction
+                    RichText(
+                      text: TextSpan(
+                        style: TextStyle(fontSize: 16, height: 1.5, color: Colors.black87),
+                        children: [
+                          TextSpan(text: 'We invite you to take part in a project called '),
+                          TextSpan(text: 'Mental wellbeing in climate and environmental context', style: TextStyle(fontWeight: FontWeight.bold)),
+                          TextSpan(text: ' (Case Study 4 of the PLANET4HEALTH project) -- Gauteng Study Site.'),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 12),
+                    
+                    Text(
+                      'This project has been approved by the Research Ethics Committee of the Faculty of Education, University of Pretoria with clearance number EDU092/24.',
+                      style: TextStyle(fontSize: 16, height: 1.5),
+                    ),
                     SizedBox(height: 16),
-                    Text('Thank you for considering our invitation.', style: TextStyle(fontSize: 15, height: 1.4)),
-                    SizedBox(height: 8),
-                    Text('Yours sincerely,', style: TextStyle(fontSize: 15, height: 1.4)),
-                    Text('Linda Theron, Mudalo Ndou and Research Team', style: TextStyle(fontSize: 15, height: 1.4)),
+                    
+                    // Institutions
+                    RichText(
+                      text: TextSpan(
+                        style: TextStyle(fontSize: 16, height: 1.5, color: Colors.black87),
+                        children: [
+                          TextSpan(text: 'Institutions involved in this project: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                          TextSpan(text: 'University of Pretoria (UP, South Africa), the South African Medical Research Council (SAMRC), the Universitat Pompeu Fabra (UPF, Spain) and Institut Za Medicinska Istra Ivanja (Serbia)'),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 12),
+                    
+                    // Principal researchers
+                    RichText(
+                      text: TextSpan(
+                        style: TextStyle(fontSize: 16, height: 1.5, color: Colors.black87),
+                        children: [
+                          TextSpan(text: 'Principal researchers: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                          TextSpan(text: 'Linda Theron (linda.theron@up.ac.za), Caradee Wright (Caradee.Wright@mrc.ac.za), John Palmer (john.palmer@upf.edu) and Suzana Blesic (blesic.suzana@gmail.com)'),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 12),
+                    
+                    // Research Assistant
+                    RichText(
+                      text: TextSpan(
+                        style: TextStyle(fontSize: 16, height: 1.5, color: Colors.black87),
+                        children: [
+                          TextSpan(text: 'Research Assistant: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                          TextSpan(text: 'Mudalo Ndou (planet4health.research@gmail.com) and +27 64 898 6212)'),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 12),
+                    
+                    // Funding body
+                    RichText(
+                      text: TextSpan(
+                        style: TextStyle(fontSize: 16, height: 1.5, color: Colors.black87),
+                        children: [
+                          TextSpan(text: 'Funding body: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                          TextSpan(text: 'This project is funded by the European Union as part of the PLANET4HEALTH Project (https://planet4health.eu).'),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 16),
+                    
+                    // Purpose
+                    RichText(
+                      text: TextSpan(
+                        style: TextStyle(fontSize: 16, height: 1.5, color: Colors.black87),
+                        children: [
+                          TextSpan(text: 'The purpose of this project: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                          TextSpan(text: 'We want to learn how climate change and the environment affect the mental wellbeing of people living in Gauteng (South Africa) and what might support human resilience to climate change-related challenges.'),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 16),
+                    
+                    // Voluntary participation
+                    RichText(
+                      text: TextSpan(
+                        style: TextStyle(fontSize: 16, height: 1.5, color: Colors.black87),
+                        children: [
+                          TextSpan(text: 'Voluntary participation: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                          TextSpan(text: 'In South Africa, we are inviting 300 participants to join the study. Participation is on a voluntary basis; participants may withdraw from the study at any time without having to justify their decision.'),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 16),
+                    
+                    // Who can participate
+                    RichText(
+                      text: TextSpan(
+                        style: TextStyle(fontSize: 16, height: 1.5, color: Colors.black87),
+                        children: [
+                          TextSpan(text: 'Who can participate: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                          TextSpan(text: 'Anyone who (i) is 18 years old or older; (ii) lives in Gauteng; (iii) has a smart mobile device and regular access to the internet; (iv) is OK reading and writing basic English; and (v) can install the Space Mapper App onto their smart mobile device.'),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 16),
+                    
+                    // What participants will be asked to do
+                    RichText(
+                      text: TextSpan(
+                        style: TextStyle(fontSize: 16, height: 1.5, color: Colors.black87),
+                        children: [
+                          TextSpan(text: 'What participants will be asked to do: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                          TextSpan(text: 'This study involves a mobile phone application called Space Mapper, which keeps track of where participants spend time, and lets participants share this information, '),
+                          TextSpan(text: 'if they choose to', style: TextStyle(fontStyle: FontStyle.italic)),
+                          TextSpan(text: ', with the researchers. It also involves a series of surveys. Participants can participate by installing Space Mapper on their mobile phone and letting it track their locations for up to six months. They will receive surveys (questions and digital diary prompts) every two weeks, in which they will be asked a series of questions about themselves and about their mental wellbeing. When responding to the survey, they will have the opportunity to share the locations tracked by Space Mapper during the previous two weeks. Participants can choose which questions they wish to answer and whether they wish to share their locations. Among other things, the surveys will ask about participants\' race/ethnicity, health, sexual orientation, location and mobility, wellbeing, environmental challenges in the past two weeks, and supports that help them cope with challenges.'),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 16),
+                    
+                    // What the data will be used for
+                    RichText(
+                      text: TextSpan(
+                        style: TextStyle(fontSize: 16, height: 1.5, color: Colors.black87),
+                        children: [
+                          TextSpan(text: 'What the data will be used for: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                          TextSpan(text: 'The data will be used to better understand how to protect the wellbeing of people who experience environmental and climate change challenges (e.g., exposure to air pollution or extreme heat events). This understanding will inform various products (e.g., resilience toolkits or early warning systems) that can be used by mental health professionals, service providers and policy makers.'),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 12),
+                    
+                    RichText(
+                      text: TextSpan(
+                        style: TextStyle(fontSize: 16, height: 1.5, color: Colors.black87),
+                        children: [
+                          TextSpan(text: 'The aggregate or anonymised results of this study may be presented at academic conferences, used for academic publications and lecture content, and when reporting the study on the study website ('),
+                          TextSpan(text: 'https://planet4health.eu/', style: TextStyle(decoration: TextDecoration.underline, color: Colors.blue)),
+                          TextSpan(text: '), in the popular press, or on social media. A similar project is being done in Barcelona, Spain, and we could compare the South African and Spanish results.'),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 12),
+                    
+                    RichText(
+                      text: TextSpan(
+                        style: TextStyle(fontSize: 16, height: 1.5, color: Colors.black87),
+                        children: [
+                          TextSpan(text: 'We request participant permission to use the data, confidentially and anonymously, for further research purposes, as the data sets are the intellectual property of the University of Pretoria and partner institutions. Further research will focus on climate challenges and human wellbeing and what enables wellbeing when environmental conditions are challenging and may include secondary data analysis and using the data for teaching purposes. The confidentiality and privacy applicable to this study will be binding on future research studies (i.e., secondary analyses of the data to further investigate climate challenges and human wellbeing, and what enables wellbeing when environmental conditions are challenging).'),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 16),
+                    
+                    // Data protection
+                    RichText(
+                      text: TextSpan(
+                        style: TextStyle(fontSize: 16, height: 1.5, color: Colors.black87),
+                        children: [
+                          TextSpan(text: 'Data protection: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                          TextSpan(text: 'We will keep the data for 10 years. To protect participants\' privacy, we will not identify their data with their name, but rather with a code (a participant number) that will only be known to the research team members. Only the researcher team and partners directly involved in this project (see names at the beginning of this information sheet) will have access to the survey responses. We will use a participant number to identify data (i.e., no data can be linked to someone\'s name). To make participants\' location data only accessible to research team members, this data will be protected using end-to-end encryption and it will be stored with access control systems. In the event of data publication, only anonymous data will be published. Anonymized data may be hosted or published in a public repository. If you would like your data to be deleted, you can request this by emailing the PIs and including in the email your participant UUID, which can be found in the Space Mapper application on the device you are using to collect it. Please note that the survey is being conducted with the help of Qualtrics (they have their own privacy and security policies that you can read about at https://www.qualtrics.com/privacy-statement/).'),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 16),
+                    // Possible risks and benefits
+                    RichText(
+                      text: TextSpan(
+                        style: TextStyle(fontSize: 16, height: 1.5, color: Colors.black87),
+                        children: [
+                          TextSpan(text: 'Possible risks and benefits of participation: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                          TextSpan(text: 'It is not expected that anything that participants will be asked to do in this study will pose a risk to their health. However, it is very important that participants do not interact with their mobile phone while driving or engaged in any activity that requires their attention. Using a mobile phone while driving can increase risk of injury or death.'),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 12),
+                    RichText(
+                      text: TextSpan(
+                        style: TextStyle(fontSize: 16, height: 1.5, color: Colors.black87),
+                        children: [
+                          TextSpan(text: 'Participation also involves some risk to participant privacy because you will be asked to share information about where you spend time. However, you can choose not to. If you choose to share this information, it will be kept confidential by the research team using encryption and standard data protection techniques.'),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 12),
+                    RichText(
+                      text: TextSpan(
+                        style: TextStyle(fontSize: 16, height: 1.5, color: Colors.black87),
+                        children: [
+                          TextSpan(text: 'Participation will involve answering questions about your mental wellbeing and about climate change. In case these make you anxious or uncomfortable in any way, we will recommend a set of resources that you can turn to at the end of every survey. These include: '),
+                          TextSpan(text: 'South African Depression and Anxiety Group (SADAG; SMS: 31393 or 32312, WhatsApp Chat: 076 882 2775, or Call: 0800 21 22 23 or 0800 70 80 90 or 0800 456 789, or Suicide Helpline: 0800 567 567)', style: TextStyle(fontWeight: FontWeight.w500)),
+                          TextSpan(text: ' or '),
+                          TextSpan(text: 'Lifeline (Pretoria: 012 804 3619 or 0861 322 322; Johannesburg: 011 728 1347 or 0861 322 322; Alexandra: 011 443 3555; Soweto: 011 988 0155 or 0861 322 322; Vaal Triangle: 016 428 1740 or 016 428 5959; WhatsApp counselling: 065 989 9238 or 072 677 9090)', style: TextStyle(fontWeight: FontWeight.w500)),
+                          TextSpan(text: '.'),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 12),
+                    RichText(
+                      text: TextSpan(
+                        style: TextStyle(fontSize: 16, height: 1.5, color: Colors.black87),
+                        children: [
+                          TextSpan(text: 'We cannot and do not guarantee that you will receive any benefits from this study, but we are hopeful that that the project will help us better understand how climate change is impacting mental wellbeing and what can be done to support human resilience to climate change and environmental challenges. We will disseminate our results broadly. Participants can follow the progress of the study and read a summary of the results on the study website ('),
+                          TextSpan(text: 'https://planet4health.eu/', style: TextStyle(decoration: TextDecoration.underline, color: Colors.blue)),
+                          TextSpan(text: ').'),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 12),
+                    // Token of appreciation
+                    RichText(
+                      text: TextSpan(
+                        style: TextStyle(fontSize: 16, height: 1.5, color: Colors.black87),
+                        children: [
+                          TextSpan(text: 'Token of appreciation for study participation: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                          TextSpan(text: 'We offer participants a Shoprite | Checkers shopping voucher after every two surveys completed – meaning one voucher per month of completed research activity. The voucher is sent electronically to the cellular phone number that participants register with the study. The value of the vouchers will be R100 (Month 1), R 150 (Month 2), R 200 (Month 3), R 250 (Month 4), R 300 (Month 5) and R 500 (Month 6). These vouchers are not redeemable for cash and cannot be replaced if lost or stolen.'),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 16),
+                    // Further information
+                    RichText(
+                      text: TextSpan(
+                        style: TextStyle(fontSize: 16, height: 1.5, color: Colors.black87),
+                        children: [
+                          TextSpan(text: 'Further information about the project: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                          TextSpan(text: 'If participants have any questions, they are encouraged to contact Mudalo Ndou at (planet4health.research@gmail.com) or +27 64 898 6212)'),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 12),
+                    
+                    RichText(
+                      text: TextSpan(
+                        style: TextStyle(fontSize: 16, height: 1.5, color: Colors.black87),
+                        children: [
+                          TextSpan(text: 'Alternatively, contact the project leader, Professor Linda Theron, at Linda.theron@up.ac.za or phone her on 012 420 6211.'),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 12),
+                    // Ethics contact
+                    RichText(
+                      text: TextSpan(
+                        style: TextStyle(fontSize: 16, height: 1.5, color: Colors.black87),
+                        children: [
+                          TextSpan(text: 'Questions relating to ethics of this project: ', style: TextStyle(fontWeight: FontWeight.bold)),
+                          TextSpan(text: 'If participants have any concerns or complaints regarding the ethical procedures of this study, they are welcome to contact the Chair of the Faculty of Education Research Ethics Committee: Prof Funke Omidire at Funke.omidire@up.ac.za.'),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 16),
+                    // Closing
+                    RichText(
+                      text: TextSpan(
+                        style: TextStyle(fontSize: 16, height: 1.5, color: Colors.black87),
+                        children: [
+                          TextSpan(text: 'Thank you for considering our invitation.'),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 12),
+                    
+                    RichText(
+                      text: TextSpan(
+                        style: TextStyle(fontSize: 16, height: 1.5, color: Colors.black87),
+                        children: [
+                          TextSpan(text: 'Yours sincerely,'),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    
+                    RichText(
+                      text: TextSpan(
+                        style: TextStyle(fontSize: 16, height: 1.5, color: Colors.black87, fontWeight: FontWeight.w500),
+                        children: [
+                          TextSpan(text: 'Linda Theron, Mudalo Ndou and Research Team'),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -214,6 +541,35 @@ class _ConsentFormScreenState extends State<ConsentFormScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Beta Testing Mode Notice for Consent Form
+          if (widget.isTestingMode) ...[
+            Container(
+              width: double.infinity,
+              margin: EdgeInsets.only(bottom: 16),
+              padding: EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.orange.shade50,
+                border: Border.all(color: Colors.orange),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.science, color: Colors.orange),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'TESTING MODE: Practice consent - no real data collection',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.orange.shade800,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           Text(
             widget.researchSite == 'gauteng' 
               ? 'Participant Informed Consent'
@@ -235,30 +591,14 @@ class _ConsentFormScreenState extends State<ConsentFormScreen> {
           SizedBox(height: 24),
           
           _buildConsentSection('I HEREBY CONFIRM that:', [
-            _buildCheckbox(_hasReadInformation, (value) => setState(() => _hasReadInformation = value!),
-              'I have read the information sheet regarding the research project'),
-            _buildCheckbox(_understands, (value) => setState(() => _understands = value!),
-              widget.researchSite == 'gauteng' 
-                ? 'The information sheet is written in a language with which I am fluent enough to understand all content'
-                : 'I have been able to formulate questions and I have received enough information on the project'),
-            if (widget.researchSite == 'gauteng') ...[
-              _buildCheckbox(_generalConsent, (value) => setState(() => _generalConsent = value!),
-                'I have been able to ask questions and I have received enough information on the project'),
-            ],
-            _buildCheckbox(_fulfillsCriteria, (value) => setState(() => _fulfillsCriteria = value!),
-              widget.researchSite == 'gauteng'
-                ? 'I fulfill the inclusion criteria, and I am between at least 18 years old'
-                : 'I fulfill the inclusion criteria, and I am at least 18 years old'),
-            _buildCheckbox(_voluntaryParticipation, (value) => setState(() => _voluntaryParticipation = value!),
-              'I understand that my participation is voluntary and that I can withdraw from or opt out of the study at any time without any need to justify my decision'),
-            if (widget.researchSite == 'gauteng') ...[
-              _buildCheckbox(_dataTransferConsent, (value) => setState(() => _dataTransferConsent = value!),
-                'I understand that once researchers start to analyse the data (e.g., add what I answered to what everybody else answered) and/or the findings of the study are in the process of publication, I cannot withdraw the information that I contributed to the study'),
-              _buildCheckbox(_limeSurveyConsent, (value) => setState(() => _limeSurveyConsent = value!),
-                'I understand that I could be asked to leave the study before it has finished, if the researcher thinks it is in my best interests'),
-              _buildCheckbox(_raceEthnicityConsent, (value) => setState(() => _raceEthnicityConsent = value!),
-                'I understand that I can follow the project\'s progress on the study website (https://planet4health.eu) and that I will be able to access a summary of the findings on that website when the study is complete'),
-            ],
+            _buildBulletPoint('I have read the information sheet regarding the research project,'),
+            _buildBulletPoint('The information sheet is written in a language with which I am fluent enough to understand all content,'),
+            _buildBulletPoint('I have been able to ask questions and I have received enough information on the project,'),
+            _buildBulletPoint('I fulfill the inclusion criteria, and I am between at least 18 years old,'),
+            _buildBulletPoint('I understand that my participation is voluntary and that I can withdraw from or opt out of the study at any time without any need to justify my decision,'),
+            _buildBulletPoint('I understand that once researchers start to analyse the data (e.g., add what I answered to what everybody else answered) and/or the findings of the study are in the process of publication, I cannot withdraw the information that I contributed to the study'),
+            _buildBulletPoint('I understand that I could be asked to leave the study before it has finished, if the researcher thinks it is in my best interests'),
+            _buildBulletPoint('I understand that I can follow the project\'s progress on the study website (https://planet4health.eu) and that I will be able to access a summary of the findings on that website when the study is complete'),
           ]),
 
           if (widget.researchSite == 'gauteng') ...[
@@ -266,7 +606,7 @@ class _ConsentFormScreenState extends State<ConsentFormScreen> {
               _buildCheckbox(_healthConsent, (value) => setState(() => _healthConsent = value!),
                 'to participate in this study'),
               _buildCheckbox(_sexualOrientationConsent, (value) => setState(() => _sexualOrientationConsent = value!),
-                'for my personal data to be processed by Qualtrics, under their terms and conditions (https://www.qualtrics.com/privacy-statement/)'),
+                'for my personal data to be processed by Qualtrics, under their terms and conditions'),
               _buildCheckbox(_locationConsent, (value) => setState(() => _locationConsent = value!),
                 'to being asked about by race/ethnicity'),
               _buildCheckbox(_healthConsent2, (value) => setState(() => _healthConsent2 = value!),
@@ -359,18 +699,49 @@ class _ConsentFormScreenState extends State<ConsentFormScreen> {
 
   Widget _buildCheckbox(bool value, ValueChanged<bool?> onChanged, String text, {bool isRequired = true}) {
     return Padding(
+      padding: EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            margin: EdgeInsets.only(top: 2),
+            child: Checkbox(value: value, onChanged: onChanged),
+          ),
+          Expanded(
+            child: GestureDetector(
+              onTap: () => onChanged(!value),
+              child: Padding(
+                padding: EdgeInsets.only(top: 4),
+                child: Text(
+                  text + (isRequired ? ' *' : ''),
+                  style: TextStyle(fontSize: 15, height: 1.4),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBulletPoint(String text) {
+    return Padding(
       padding: EdgeInsets.symmetric(vertical: 4),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Checkbox(value: value, onChanged: onChanged),
+          Container(
+            margin: EdgeInsets.only(top: 6, right: 8),
+            child: Icon(
+              Icons.circle,
+              size: 6,
+              color: Colors.black87,
+            ),
+          ),
           Expanded(
-            child: GestureDetector(
-              onTap: () => onChanged(!value),
-              child: Text(
-                text + (isRequired ? ' *' : ''),
-                style: TextStyle(fontSize: 15, height: 1.3),
-              ),
+            child: Text(
+              text,
+              style: TextStyle(fontSize: 15, height: 1.4),
             ),
           ),
         ],
@@ -424,14 +795,11 @@ class _ConsentFormScreenState extends State<ConsentFormScreen> {
 
   Widget _buildSubmitButton() {
     final bool allRequired = widget.researchSite == 'gauteng'
-        ? _hasReadInformation && _understands && _generalConsent && _fulfillsCriteria && 
-          _voluntaryParticipation && _dataTransferConsent && _limeSurveyConsent && 
-          _raceEthnicityConsent && _healthConsent && _sexualOrientationConsent && 
-          _locationConsent && _healthConsent2 && _sexualOrientationConsent2 && 
-          _locationConsent2 && _dataTransferConsent2 && _publicReportingConsent && 
-          _dataShareConsent && _futureResearchConsent && _repositoryConsent
-        : _hasReadInformation && _understands && _fulfillsCriteria && 
-          _voluntaryParticipation && _generalConsent && _raceEthnicityConsent && 
+        ? _healthConsent && _sexualOrientationConsent && _locationConsent && 
+          _healthConsent2 && _sexualOrientationConsent2 && _locationConsent2 && 
+          _dataTransferConsent2 && _publicReportingConsent && _dataShareConsent && 
+          _futureResearchConsent && _repositoryConsent
+        : _voluntaryParticipation && _generalConsent && _raceEthnicityConsent && 
           _healthConsent && _sexualOrientationConsent && _locationConsent && 
           _dataTransferConsent;
 
@@ -547,9 +915,26 @@ class _ConsentFormScreenState extends State<ConsentFormScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.of(context).pop(); // Close dialog
-              Navigator.of(context).pop(true); // Return to selection screen with success
+              
+              // Navigate to initial survey for research participants and app testing
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => InitialSurveyScreen(),
+                ),
+              );
+              
+              // If the initial survey was completed successfully, mark it as completed
+              if (result == true) {
+                await InitialSurveyService.markInitialSurveyCompleted();
+              }
+              // Note: If result == false, user skipped the survey, which is fine
+              // They'll be reminded later via the home screen check
+              
+              // After initial survey flow (completed or skipped), return to selection screen
+              Navigator.of(context).pop(true);
             },
             child: Text('Continue to Survey'),
           ),
