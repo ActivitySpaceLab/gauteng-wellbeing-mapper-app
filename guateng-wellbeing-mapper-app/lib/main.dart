@@ -19,6 +19,9 @@ class GlobalData {
   static String userUUID = "";
 }
 
+/// Global navigator key for navigation from services
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 /// Handles BackgroundGeolocation events when the app is in a headless state.
 /// This allows the app to respond to location and geofence events even when terminated or in the background.
 void backgroundGeolocationHeadlessTask(bg.HeadlessEvent headlessEvent) async {
@@ -257,6 +260,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     print('[main.dart] MyApp build() called');
     return MaterialApp(
+      navigatorKey: navigatorKey,
       title: 'Wellbeing Mapper',
       debugShowCheckedModeBanner: false,
       theme: SouthAfricanTheme.materialTheme,
@@ -324,12 +328,26 @@ class InitialRouteDecider extends StatelessWidget {
   
   Future<String> _getInitialRoute() async {
     try {
+      print('[InitialRouteDecider] ===== DETERMINING INITIAL ROUTE =====');
+      
+      // Check if app was launched from a notification
+      final notificationPayload = NotificationService.getPendingNotificationPayload();
+      print('[InitialRouteDecider] Notification payload: $notificationPayload');
+      
+      if (notificationPayload == '/wellbeing_survey') {
+        print('[InitialRouteDecider] App launched from notification, navigating to survey');
+        return '/wellbeing_survey';
+      }
+      
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? participationSettings = prefs.getString('participation_settings');
+      print('[InitialRouteDecider] Participation settings: $participationSettings');
       
       if (participationSettings != null && participationSettings.isNotEmpty) {
+        print('[InitialRouteDecider] Going to home route');
         return '/'; // Go to home
       } else {
+        print('[InitialRouteDecider] Going to participation selection');
         return '/participation_selection'; // Go to participation selection
       }
     } catch (error) {

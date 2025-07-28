@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
 import '../services/notification_service.dart';
 
 /// Screen for managing notification settings and viewing notification statistics
@@ -231,6 +232,35 @@ class _NotificationSettingsViewState extends State<NotificationSettingsView> {
                 ),
               ),
             ),
+            // iOS-specific simple test
+            if (Platform.isIOS) ...[
+              SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  icon: Icon(Icons.phone_iphone),
+                  label: Text('Test Simple iOS Notification'),
+                  onPressed: () => _testSimpleIOSNotification(),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.teal,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ),
+              SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  icon: Icon(Icons.bolt),
+                  label: Text('Test Immediate iOS Notification'),
+                  onPressed: () => _testImmediateIOSNotification(),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orange,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ),
+            ],
             SizedBox(height: 8),
             SizedBox(
               width: double.infinity,
@@ -290,6 +320,75 @@ class _NotificationSettingsViewState extends State<NotificationSettingsView> {
                 ),
               ),
             ),
+            SizedBox(height: 16),
+            
+            // Testing Interval Configuration
+            Text(
+              'Testing Configuration',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 8),
+            if (_notificationStats['isTestingMode'] == true) ...[
+              Container(
+                padding: EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.orange.shade100,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.orange),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.warning, color: Colors.orange, size: 20),
+                        SizedBox(width: 8),
+                        Text(
+                          'TESTING MODE ACTIVE',
+                          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.orange.shade800),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'Notifications set to ${_notificationStats['testingIntervalMinutes']} minute interval',
+                      style: TextStyle(color: Colors.orange.shade700),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: 8),
+            ],
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                icon: Icon(Icons.schedule),
+                label: Text(_notificationStats['isTestingMode'] == true 
+                    ? 'Change Testing Interval' 
+                    : 'Set Testing Interval'),
+                onPressed: () => _showTestingIntervalDialog(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _notificationStats['isTestingMode'] == true 
+                      ? Colors.orange : Colors.blue,
+                  foregroundColor: Colors.white,
+                ),
+              ),
+            ),
+            if (_notificationStats['isTestingMode'] == true) ...[
+              SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  icon: Icon(Icons.restore),
+                  label: Text('Revert to Production (14 days)'),
+                  onPressed: () => _clearTestingInterval(),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -315,10 +414,53 @@ class _NotificationSettingsViewState extends State<NotificationSettingsView> {
 
   Future<void> _testDeviceNotification() async {
     try {
+      print('[UI] Testing device notification...');
       await NotificationService.testDeviceNotification();
-      _showSnackBar('Device notification sent! Check your device notifications.');
+      
+      // Platform-specific success messages
+      if (Platform.isIOS) {
+        _showSnackBar('iOS notification scheduled for 5 seconds! Minimize the app now, then tap the notification to test navigation to survey.');
+      } else {
+        _showSnackBar('Device notification sent! Tap the notification to test navigation to survey.');
+      }
     } catch (error) {
-      _showSnackBar('Error sending device notification: $error');
+      print('[UI] Error testing device notification: $error');
+      
+      // Show detailed error dialog
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Notification Test Failed'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('The device notification test failed with error:'),
+                SizedBox(height: 8),
+                Text(
+                  error.toString(),
+                  style: TextStyle(fontFamily: 'monospace', fontSize: 12),
+                ),
+                SizedBox(height: 12),
+                Text('Troubleshooting steps:'),
+                Text('1. Check notification permissions'),
+                Text('2. Restart the app'),
+                if (Platform.isIOS)
+                  Text('3. Check iOS Settings → Notifications → Wellbeing Mapper'),
+                if (Platform.isAndroid)
+                  Text('3. Check Android Settings → Apps → Wellbeing Mapper → Notifications'),
+              ],
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: Text('OK'),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ],
+          );
+        },
+      );
     }
   }
 
@@ -328,6 +470,86 @@ class _NotificationSettingsViewState extends State<NotificationSettingsView> {
       _showSnackBar('In-app notification shown');
     } catch (error) {
       _showSnackBar('Error showing in-app notification: $error');
+    }
+  }
+
+  Future<void> _testSimpleIOSNotification() async {
+    try {
+      print('[UI] Testing simple iOS notification...');
+      await NotificationService.testSimpleIOSNotification();
+      _showSnackBar('iOS notification scheduled for 5 seconds! Minimize the app now to see it appear.');
+    } catch (error) {
+      print('[UI] Error testing simple iOS notification: $error');
+      
+      // Show detailed error dialog
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Simple iOS Notification Test Failed'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('The simple iOS notification test failed:'),
+                SizedBox(height: 8),
+                Text(
+                  error.toString(),
+                  style: TextStyle(fontFamily: 'monospace', fontSize: 12),
+                ),
+                SizedBox(height: 12),
+                Text('This test schedules a notification and tries immediate fallback.'),
+              ],
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: Text('OK'),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ],
+          );
+        },
+      );
+    }
+  }
+
+  Future<void> _testImmediateIOSNotification() async {
+    try {
+      print('[UI] Testing immediate iOS notification...');
+      await NotificationService.testImmediateIOSNotification();
+      _showSnackBar('Immediate iOS notification sent! It should appear right away for debugging tap handler.');
+    } catch (error) {
+      print('[UI] Error testing immediate iOS notification: $error');
+      
+      // Show detailed error dialog
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Immediate iOS Notification Test Failed'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('The immediate iOS notification test failed:'),
+                SizedBox(height: 8),
+                Text(
+                  error.toString(),
+                  style: TextStyle(fontFamily: 'monospace', fontSize: 12),
+                ),
+                SizedBox(height: 12),
+                Text('This test sends an immediate notification to test tap handling.'),
+              ],
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: Text('OK'),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ],
+          );
+        },
+      );
     }
   }
 
@@ -415,5 +637,130 @@ class _NotificationSettingsViewState extends State<NotificationSettingsView> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
     );
+  }
+
+  /// Show dialog to set testing interval
+  Future<void> _showTestingIntervalDialog() async {
+    final TextEditingController controller = TextEditingController();
+    final currentInterval = _notificationStats['testingIntervalMinutes'];
+    if (currentInterval != null) {
+      controller.text = currentInterval.toString();
+    }
+
+    final result = await showDialog<int>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Set Testing Interval'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Set notification interval for testing purposes:'),
+                  SizedBox(height: 16),
+                  TextField(
+                    controller: controller,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      labelText: 'Minutes',
+                      hintText: 'e.g., 1 for 1 minute',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    'Common testing intervals:',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    children: [
+                      _buildQuickIntervalChip(controller, 1, '1 min'),
+                      _buildQuickIntervalChip(controller, 5, '5 min'),
+                      _buildQuickIntervalChip(controller, 15, '15 min'),
+                      _buildQuickIntervalChip(controller, 60, '1 hour'),
+                    ],
+                  ),
+                  SizedBox(height: 16),
+                  Container(
+                    padding: EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.blue.shade200),
+                    ),
+                    child: Text(
+                      'Production interval is 14 days (20,160 minutes). Testing mode allows you to test notifications much faster.',
+                      style: TextStyle(fontSize: 12, color: Colors.blue.shade700),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final minutes = int.tryParse(controller.text);
+                if (minutes != null && minutes > 0) {
+                  Navigator.of(context).pop(minutes);
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Please enter a valid number of minutes')),
+                  );
+                }
+              },
+              child: Text('Set Interval'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (result != null) {
+      try {
+        await NotificationService.setTestingInterval(result);
+        _showSnackBar('Testing interval set to $result minutes');
+        _loadNotificationStats();
+      } catch (error) {
+        _showSnackBar('Error setting testing interval: $error');
+      }
+    }
+  }
+
+  Widget _buildQuickIntervalChip(TextEditingController controller, int minutes, String label) {
+    return ActionChip(
+      label: Text(label),
+      onPressed: () {
+        controller.text = minutes.toString();
+      },
+      backgroundColor: Colors.blue.shade100,
+    );
+  }
+
+  /// Clear testing interval and revert to production
+  Future<void> _clearTestingInterval() async {
+    final confirmed = await _showConfirmDialog(
+      'Revert to Production Interval',
+      'This will change the notification interval back to 14 days (production setting). Are you sure?',
+    );
+
+    if (confirmed) {
+      try {
+        await NotificationService.clearTestingInterval();
+        _showSnackBar('Reverted to production interval (14 days)');
+        _loadNotificationStats();
+      } catch (error) {
+        _showSnackBar('Error reverting to production interval: $error');
+      }
+    }
   }
 }

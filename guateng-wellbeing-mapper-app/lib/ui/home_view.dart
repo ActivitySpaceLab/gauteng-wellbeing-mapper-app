@@ -510,7 +510,7 @@ class HomeViewState extends State<HomeView>
             value: _enabled,
             onChanged: _onClickEnable,
             activeColor: SouthAfricanTheme.accentYellow,
-            activeTrackColor: SouthAfricanTheme.accentYellow.withOpacity(0.5),
+            activeTrackColor: SouthAfricanTheme.accentYellow.withValues(alpha: 0.5),
             inactiveThumbColor: Colors.grey[300],
             inactiveTrackColor: Colors.grey[400],
           ),

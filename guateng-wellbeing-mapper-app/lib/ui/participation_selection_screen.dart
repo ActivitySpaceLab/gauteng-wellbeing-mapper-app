@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../models/consent_models.dart';
+import '../models/app_mode.dart';
+import '../services/app_mode_service.dart';
 import '../theme/south_african_theme.dart';
 
 class ParticipationSelectionScreen extends StatefulWidget {
@@ -10,8 +12,9 @@ class ParticipationSelectionScreen extends StatefulWidget {
 }
 
 class _ParticipationSelectionScreenState extends State<ParticipationSelectionScreen> {
+  // Note: _participantCodeController kept for future research mode restoration
   final _participantCodeController = TextEditingController();
-  String _selectedMode = 'private'; // 'private', 'research'
+  String _selectedMode = 'private'; // 'private', 'appTesting'
   bool _isLoading = false;
 
   @override
@@ -38,10 +41,8 @@ class _ParticipationSelectionScreenState extends State<ParticipationSelectionScr
             _buildWelcomeSection(),
             SizedBox(height: 32),
             _buildChoiceSection(),
-            if (_selectedMode != 'private') ...[
-              SizedBox(height: 24),
-              _buildParticipantCodeSection(),
-            ],
+            // Note: Participant code section removed for beta testing phase
+            // Research participation will be re-enabled in future release
             SizedBox(height: 32),
             _buildActionButtons(),
           ],
@@ -73,6 +74,24 @@ class _ParticipationSelectionScreenState extends State<ParticipationSelectionScr
               textAlign: TextAlign.center,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
+            ),
+            SizedBox(height: 12),
+            // Beta testing notice
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.orange.shade100,
+                border: Border.all(color: Colors.orange),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Text(
+                '🧪 BETA VERSION',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.orange.shade800,
+                ),
+              ),
             ),
           ],
         ),
@@ -106,22 +125,35 @@ class _ParticipationSelectionScreenState extends State<ParticipationSelectionScr
         SizedBox(height: 8),
         Card(
           child: RadioListTile<String>(
-            value: 'research',
+            value: 'appTesting',
             groupValue: _selectedMode,
             onChanged: (value) {
               setState(() {
                 _selectedMode = value!;
               });
             },
-            title: Text('Gauteng Research Study'),
-            subtitle: Text('Participate in the PLANET4HEALTH research study in Gauteng, South Africa. Requires participant code and consent.'),
-            secondary: Icon(Icons.school, color: Colors.orange),
+            title: Text('App Testing'),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Test all app features safely. No real research data is collected or shared.'),
+                SizedBox(height: 4),
+                Text(
+                  '• Experience all research features\n• Practice with surveys and mapping\n• All data stays local - nothing sent to servers',
+                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                ),
+              ],
+            ),
+            secondary: Icon(Icons.science, color: Colors.orange),
           ),
         ),
       ],
     );
   }
 
+  // BETA TESTING: Research participation section disabled
+  // This will be re-enabled in the full release for actual research participation
+  /*
   Widget _buildParticipantCodeSection() {
     String studySite = 'Gauteng, South Africa';
     String exampleCode = 'GP2024-001';
@@ -178,6 +210,7 @@ class _ParticipationSelectionScreenState extends State<ParticipationSelectionScr
       ),
     );
   }
+  */
 
   Widget _buildActionButtons() {
     return Column(
@@ -194,7 +227,7 @@ class _ParticipationSelectionScreenState extends State<ParticipationSelectionScr
             child: _isLoading
                 ? CircularProgressIndicator(color: Colors.white)
                 : Text(
-                    _selectedMode == 'private' ? 'Start Using App' : 'Continue to Consent Form',
+                    _selectedMode == 'private' ? 'Start Using App' : 'Start App Testing',
                     style: TextStyle(fontSize: 18, color: Colors.white),
                   ),
           ),
@@ -202,48 +235,39 @@ class _ParticipationSelectionScreenState extends State<ParticipationSelectionScr
         SizedBox(height: 12),
         TextButton(
           onPressed: _showContactInfo,
-          child: Text('Contact Research Team'),
+          child: Text('Contact Development Team'),
         ),
       ],
     );
   }
 
   void _handleContinue() async {
-    if (_selectedMode != 'private') {
-      // Research participation flow
-      if (_participantCodeController.text.trim().isEmpty) {
-        _showErrorDialog('Please enter your participant code');
-        return;
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      if (_selectedMode == 'private') {
+        // Private use flow
+        await AppModeService.setCurrentMode(AppMode.private);
+        await _savePrivateUserSettings();
+      } else if (_selectedMode == 'appTesting') {
+        // App testing flow
+        await AppModeService.setCurrentMode(AppMode.appTesting);
+        // No additional setup needed - app mode service handles test participant code generation
       }
-
-      setState(() {
-        _isLoading = true;
-      });
-
-      try {
-        // Navigate to consent form with research site info
-        final result = await Navigator.of(context).pushNamed(
-          '/consent_form',
-          arguments: {
-            'participantCode': _participantCodeController.text.trim().toUpperCase(),
-            'researchSite': 'gauteng',
-          },
-        );
-
-        if (result == true) {
-          // Consent completed, go to main app
-          _navigateToMainApp();
-        }
-      } finally {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    } else {
-      // Private use flow
-      await _savePrivateUserSettings();
+      
       _navigateToMainApp();
+    } catch (error) {
+      _showErrorDialog('Error setting up app mode: $error');
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
+    
+    // Note: Research participation flow disabled during beta testing
+    // Future release will restore research mode with consent flow
   }
 
   Future<void> _savePrivateUserSettings() async {
@@ -260,20 +284,45 @@ class _ParticipationSelectionScreenState extends State<ParticipationSelectionScr
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Contact Research Team'),
+        title: Text('Contact Development Team'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Principal Investigators:', style: TextStyle(fontWeight: FontWeight.bold)),
+            Container(
+              padding: EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.orange.shade50,
+                border: Border.all(color: Colors.orange),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info, color: Colors.orange),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'This is a beta testing version. For questions about the app:',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.orange.shade800,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 16),
+            Text('Development Team:', style: TextStyle(fontWeight: FontWeight.bold)),
             SizedBox(height: 8),
             Text('• John Palmer: john.palmer@upf.edu'),
-            Text('• Linda Theron: linda.theron@up.ac.za'),
-            Text('• Caradee Wright: Caradee.Wright@mrc.ac.za'),
             SizedBox(height: 16),
-            Text('Ethics Committee:', style: TextStyle(fontWeight: FontWeight.bold)),
-            Text('Phone: +34 93 542 21 86'),
-            Text('Email: secretaria.cirep@upf.edu'),
+            Text(
+              'For future research participation information:',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+            ),
+            Text('• Linda Theron: linda.theron@up.ac.za', style: TextStyle(fontSize: 12)),
+            Text('• Caradee Wright: Caradee.Wright@mrc.ac.za', style: TextStyle(fontSize: 12)),
           ],
         ),
         actions: [

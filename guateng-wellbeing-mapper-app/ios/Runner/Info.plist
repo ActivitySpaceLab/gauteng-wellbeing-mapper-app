@@ -49,6 +49,8 @@
 	<string>Wellbeing Mapper access your motion data in order to improve location tracking of your activity spaces. The motion and location data it collects does not leave your phone unless you choose to share it by participating in a survey or by exporting it manually.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Wellbeing Mapper uses your camera to make it possible for you to join new projects by scanning their QR codes.</string>
+	<key>NSUserNotificationsUsageDescription</key>
+	<string>Wellbeing Mapper sends you periodic reminders to participate in research surveys. These notifications help improve research participation and data quality.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UIBackgroundModes</key>
@@ -56,6 +58,7 @@
 		<string>fetch</string>
 		<string>location</string>
 		<string>processing</string>
+		<string>remote-notification</string>
 	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>

@@ -257,7 +257,7 @@ class _ChangeModeScreenState extends State<ChangeModeScreen> {
                   ),
                   SizedBox(height: 16),
                   
-                  ...AppModeExtension.availableModes.map((mode) => _buildModeCard(mode)),
+                  ...AppModeService.getAvailableModes().map((mode) => _buildModeCard(mode)),
                 ],
               ),
             ),

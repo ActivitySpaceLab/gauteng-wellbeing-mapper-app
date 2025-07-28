@@ -2,7 +2,8 @@ import 'dart:convert';
 import 'package:wellbeing_mapper/main.dart';
 import 'package:wellbeing_mapper/models/app_localizations.dart';
 import 'package:wellbeing_mapper/models/custom_locations.dart';
-import 'package:wellbeing_mapper/services/consent_service.dart';
+import 'package:wellbeing_mapper/models/app_mode.dart';
+import 'package:wellbeing_mapper/services/app_mode_service.dart';
 import 'package:wellbeing_mapper/services/wellbeing_survey_service.dart';
 import 'package:wellbeing_mapper/theme/south_african_theme.dart';
 import 'package:flutter/material.dart';
@@ -17,26 +18,26 @@ class WellbeingMapperSideDrawer extends StatefulWidget {
 }
 
 class _WellbeingMapperSideDrawerState extends State<WellbeingMapperSideDrawer> {
-  bool isPrivateUser = true; // Default to private user
+  AppMode currentMode = AppMode.private; // Default to private mode
   bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadParticipationSettings();
+    _loadCurrentMode();
   }
 
-  Future<void> _loadParticipationSettings() async {
+  Future<void> _loadCurrentMode() async {
     try {
-      final settings = await ConsentService.getParticipationSettings();
+      final mode = await AppModeService.getCurrentMode();
       setState(() {
-        isPrivateUser = settings == null || !settings.isResearchParticipant;
+        currentMode = mode;
         isLoading = false;
       });
     } catch (e) {
-      print('Error loading participation settings: $e');
+      print('Error loading current mode: $e');
       setState(() {
-        isPrivateUser = true; // Default to private on error
+        currentMode = AppMode.private; // Default to private on error
         isLoading = false;
       });
     }
@@ -44,8 +45,8 @@ class _WellbeingMapperSideDrawerState extends State<WellbeingMapperSideDrawer> {
 
   void _navigateToChangeMode() async {
     await Navigator.of(context).pushNamed('/change_mode');
-    // Refresh participation settings when returning from change mode
-    _loadParticipationSettings();
+    // Refresh current mode when returning from change mode
+    _loadCurrentMode();
   }
   _exportData() async {
     var now = new DateTime.now();
@@ -172,15 +173,15 @@ class _WellbeingMapperSideDrawerState extends State<WellbeingMapperSideDrawer> {
               child: ListTile(
                 leading: const Icon(Icons.settings),
                 title: Text("App Mode"),
-                subtitle: Text(isPrivateUser ? "Private" : "Research"),
+                subtitle: Text(currentMode.displayName),
                 trailing: Text("Change Mode", style: TextStyle(color: SouthAfricanTheme.primaryBlue)),
                 onTap: () {
                   _navigateToChangeMode();
                 },
               ),
             ),
-            // Research-only menu items
-            if (!isPrivateUser) ...[
+            // Research and App Testing mode menu items
+            if (currentMode != AppMode.private) ...[
               Card(
                 child: ListTile(
                   leading: const Icon(Icons.assignment),

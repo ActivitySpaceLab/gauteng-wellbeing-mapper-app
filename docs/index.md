@@ -1,12 +1,12 @@
 ---
 layout: default
 title: Wellbeing Mapper
-description: A mobile app for studying the relationship between place and mental wellbeing in South Africa
+description: A mobile app for studying mental wellbeing in environmental & climate context
 ---
 
-# Wellbeing Mapper
+Welcome to the **Wellbeing Mapper** documentation website. Wellbeing Mapper is a mobile app for studying mental wellbeing in environmental & climate context. It has been developed as part of the [Planet4Health project](https://planet4health.eu), funded by the European Union. The app will soon be used for research involving volunteers in Guateng, South Africa, and Barcelona, Spain. It is currently in beta testing.
 
-A mobile app for studying mental wellbeing in environmental & climate context
+This site contains information aimed at app users (i.e. research volunteers and anyone who simply wants to use the app for their), , 
 
 ## 📱 For App Users
 
