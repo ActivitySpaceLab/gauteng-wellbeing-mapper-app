@@ -96,6 +96,7 @@ chmod +x build-release.sh
 ### Pre-Release
 - [ ] **Update version** in `pubspec.yaml` (see Version Management section)
 - [ ] **Run version check**: `./check-version.sh` to validate consistency
+- [ ] **Verify iOS entitlements**: `./ios-entitlements-check.sh` to ensure location permissions will work
 - [ ] Update changelog/release notes
 - [ ] Test on both iOS and Android devices
 - [ ] Verify location permissions work correctly
@@ -114,6 +115,7 @@ chmod +x build-release.sh
 ### Post-Release
 - [ ] Upload Android AAB to Google Play Console
 - [ ] Archive and upload iOS app via Xcode
+- [ ] **Test iOS TestFlight build** for location permissions before public release
 - [ ] Update documentation if needed
 - [ ] Monitor for any release-specific issues
 

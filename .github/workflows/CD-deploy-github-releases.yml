@@ -50,6 +50,41 @@ jobs:
       run: flutter pub get
       working-directory: guateng-wellbeing-mapper-app
 
+    - name: Verify iOS entitlements configuration
+      run: |
+        echo "🔍 Verifying iOS entitlements are properly configured..."
+        
+        # Check entitlements file exists
+        if [ ! -f "ios/Runner/Runner.entitlements" ]; then
+          echo "❌ ERROR: Entitlements file missing!"
+          exit 1
+        fi
+        
+        # Check entitlements are linked in Xcode project
+        if ! grep -q "CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements" ios/Runner.xcodeproj/project.pbxproj; then
+          echo "❌ ERROR: Entitlements not linked in Xcode project!"
+          exit 1
+        fi
+        
+        # Count linked configurations
+        ENTITLEMENT_COUNT=$(grep -c "CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements" ios/Runner.xcodeproj/project.pbxproj)
+        if [ "$ENTITLEMENT_COUNT" -lt 3 ]; then
+          echo "❌ ERROR: Entitlements not linked in all build configurations!"
+          exit 1
+        fi
+        
+        # Check location permissions in Info.plist
+        REQUIRED_KEYS=("NSLocationAlwaysAndWhenInUseUsageDescription" "NSLocationAlwaysUsageDescription" "NSLocationWhenInUseUsageDescription" "NSLocationUsageDescription")
+        for key in "${REQUIRED_KEYS[@]}"; do
+          if ! grep -q "$key" ios/Runner/Info.plist; then
+            echo "❌ ERROR: Missing location permission key: $key"
+            exit 1
+          fi
+        done
+        
+        echo "✅ iOS entitlements configuration verified"
+      working-directory: guateng-wellbeing-mapper-app
+
     - name: Statically analyze the Dart code for any errors
       run: flutter analyze
       working-directory: guateng-wellbeing-mapper-app

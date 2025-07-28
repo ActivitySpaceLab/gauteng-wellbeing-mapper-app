@@ -41,6 +41,69 @@ This document contains common issues, their solutions, and lessons learned durin
 
 **Key Lesson:** iOS location permissions require both `Info.plist` permission descriptions AND properly linked entitlements. The entitlements file can be empty but must be linked to the Xcode project.
 
+### Issue: iOS Location Permissions Failing in App Store/TestFlight Builds
+**Problem:** App works correctly in local builds and debug mode, but location permissions fail when distributed through TestFlight or App Store, even though entitlements appear correctly configured.
+
+**Root Cause:** Difference between local development builds and App Store archiving process. Xcode archiving may use different entitlements or provisioning profiles than local builds.
+
+**Potential Causes:**
+1. **App Store provisioning profile** doesn't include location capabilities
+2. **Xcode archiving process** not including entitlements properly  
+3. **Different code signing** between local and archive builds
+4. **Entitlements not embedded** in final IPA file
+
+**Diagnosis Steps:**
+1. **Run entitlements check:**
+   ```bash
+   ./ios-entitlements-check.sh
+   ```
+
+2. **Verify Xcode archive includes entitlements:**
+   - Archive app in Xcode (Product → Archive)
+   - Right-click archive → Show in Finder
+   - Navigate to: `Products/Applications/Runner.app`
+   - Right-click → Show Package Contents
+   - Check if `embedded.mobileprovision` includes location entitlements
+
+3. **Check App Store Connect capabilities:**
+   - Go to App Store Connect → Your App → App Information
+   - Verify "Location" capability is enabled
+   - Check if provisioning profile includes location services
+
+**Solution Steps:**
+1. **Re-link entitlements in Xcode directly:**
+   ```bash
+   # Open in Xcode
+   open ios/Runner.xcworkspace
+   # In Xcode: Target Runner → Signing & Capabilities → Add Capability → Location
+   ```
+
+2. **Regenerate provisioning profiles:**
+   - Go to Apple Developer Console
+   - Delete existing provisioning profiles
+   - Regenerate with location services enabled
+   - Download and install new profiles
+
+3. **Verify archive entitlements:**
+   - Archive again with new provisioning profile
+   - Test with TestFlight internal testing
+   - Verify location permissions work
+
+4. **Alternative: Manual entitlements verification:**
+   ```bash
+   # Extract entitlements from IPA
+   unzip Runner.ipa
+   codesign -d --entitlements :- Payload/Runner.app
+   # Should show location entitlements
+   ```
+
+**Prevention:**
+- Always test location permissions on TestFlight before App Store release
+- Include entitlements verification in release checklist
+- Document Xcode archiving settings that work
+
+**Key Lesson:** Local Flutter builds and Xcode App Store archives can have different entitlements behavior. Always test critical permissions via TestFlight before release.
+
 ---
 
 ## Android Navigation Issues
