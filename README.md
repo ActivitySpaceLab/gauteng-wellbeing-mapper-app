@@ -1,7 +1,19 @@
-# **Wellbeing Mapper** 
+# **Wellbeing Mapper** 🧪 Beta Version
+
 ## What is Wellbeing Mapper?
 
-Wellbeing Mapper is a privacy-focused mobile application that lets you map your mental wellbeing in environmental & climate context. You can use the app to map the routes you take and the places where you spend time while tracking your mental wellbeing using a short survey and/or a digital diary. All of this information stays on your device for your own use and need not be shared with anyone else. If you have been recruited to participate in a study, you can also choose to share this information with researchers who are trying to better understand how environmental and climate factors impact mental wellbeing.
+Wellbeing Mapper is a privacy-focused mobile application that lets you map your mental wellbeing in environmental & climate context. 
+
+### Current Beta Status
+This is currently a **beta testing version** with two available modes:
+
+- **🔒 Private Mode**: Use the app for personal wellbeing tracking - all data stays on your device
+- **🧪 App Testing Mode**: Test all research features safely - no real research data is collected
+
+The full research participation mode will be available in the next release for actual study participants in Gauteng, South Africa.
+
+### About the Research (Coming in Full Release)
+When released, the app will enable participants to map the routes they take and places where they spend time while tracking their mental wellbeing through surveys and digital diary entries. Research participants will be able to securely share this information with researchers studying how environmental and climate factors impact mental wellbeing.
 
 This application is part of a case study in the [Planet4Health project](https://planet4health.eu), a Horizon Europe research initiative focused on translating science into policy for planetary health. The case study specifically addresses "[Mental wellbeing in environmental & climate context](https://planet4health.eu/mental-wellbeing-in-environmental-climate-context/)" - an emerging field that recognizes how environmental and climate changes contribute to rising mental health and psychosocial issues.
 
@@ -65,41 +77,62 @@ If this project is useful for you, please consider starring this repository and 
 - John R.B. Palmer
     - [github.com/johnpalmer](https://github.com/johnpalmer)
 
+## Beta Testing Documentation
+
+### For Beta Testers
+- **[Beta User Guide](docs/BETA_USER_GUIDE.md)** - Complete guide for beta testing the app
+- **[Getting Started](docs/BETA_USER_GUIDE.md#getting-started)** - How to choose modes and test features
+- **[Feedback Guidelines](docs/BETA_USER_GUIDE.md#how-to-provide-feedback)** - How to report issues and suggestions
+
+### For Developers
+- **[Beta Testing Guide](docs/BETA_TESTING_GUIDE.md)** - Release preparation and beta configuration
+- **[Developer Guide](docs/DEVELOPER_GUIDE.md)** - Technical documentation and architecture
+- **[App Mode System](docs/DEVELOPER_GUIDE.md#app-mode-system)** - Understanding beta vs. research modes
+
 ## Features
-* **Mental Health Mapping**: Track your mental wellbeing alongside your location data to understand environmental influences on your psychological health.
-* **Environmental Context**: Correlate your wellbeing data with environmental factors like air quality, green spaces, and climate conditions.
-* **Privacy-First Design**: Your data is only stored on your phone, so only you have access to it.
-* **Enhanced Survey Reminders**: Dual notification system with both device notifications and in-app prompts ensures you never miss survey opportunities, even when the app is closed.
-* **Research-Grade Reliability**: Comprehensive testing tools and diagnostics for research teams to verify notification system functionality.
-* **Multi-Site Research Support**: Participate in research studies in Barcelona, Spain or Gauteng, South Africa with site-specific surveys and consent forms.
-* **End-to-End Encryption**: Research data is encrypted with military-grade RSA+AES encryption before transmission to protect participant privacy.
-* **Secure Data Upload**: Bi-weekly encrypted uploads of survey responses and location data to authorized research servers.
-* **Climate-Health Research**: Optionally contribute anonymized data to advance scientific understanding of climate-related psychological impacts.
-* **Minimally Intrusive**: Designed to conserve battery power and run efficiently in the background.
-* **Complete Control**: Turn tracking on and off whenever you want. Withdraw from research participation at any time.
-* **Open Source**: Free, open source software. You'll never have to pay anything or watch any ads to use it.
 
-## Research Participation
+### Current Beta Features
+* **🔒 Private Mode**: Track your mental wellbeing privately on your device
+* **🧪 App Testing Mode**: Test all research features safely with no real data collection
+* **📍 Location Tracking**: Background GPS tracking with full user control
+* **📝 Wellbeing Surveys**: Quick 2-3 minute mental wellbeing assessments
+* **🔔 Smart Notifications**: Bi-weekly survey reminders with testing intervals available
+* **🎛️ Testing Tools**: Comprehensive testing features for beta validation
+* **🔒 Privacy-First Design**: All beta data stays on your device
+* **🎨 Intuitive Interface**: Easy-to-use design with clear mode explanations
 
-### Three Usage Modes
-1. **Private Mode**: Use the app purely for personal mental health tracking with no data sharing
-2. **Barcelona Research**: Participate in the Barcelona, Spain study with location consent and Spanish research protocols
-3. **Gauteng Research**: Participate in the Gauteng, South Africa study with ethnicity demographics and health questions
+### Future Research Features (Coming in Full Release)
+* **🔬 Research Participation**: Real study participation with participant codes
+* **🔐 End-to-End Encryption**: Military-grade RSA+AES encryption for research data
+* **📊 Research Data Upload**: Secure bi-weekly uploads to research servers
+* **🌍 Multi-Site Support**: Barcelona, Spain and Gauteng, South Africa studies
+* **📋 Consent Management**: Full research consent and information sheets
+* **🎯 Climate-Health Research**: Contribute to understanding climate psychological impacts
 
-### Data Security
-- All research data is encrypted using RSA-4096 public key cryptography before upload
-- Location tracking data is stored locally and only shared with explicit consent
-- Participant identifiers are anonymized UUIDs with no personal information
-- Research teams can only decrypt data with their corresponding private keys
+## Beta Testing vs. Future Research
 
-### For Researchers
-See the [Server Setup Guide](docs/SERVER_SETUP.md) and [Encryption Configuration Guide](docs/ENCRYPTION_SETUP.md) for detailed instructions on:
-- Setting up data collection servers
-- Configuring RSA public/private key pairs
-- Managing participant data securely
-- Database schema and API specifications
+### Current Beta Status
+This version allows you to:
+- ✅ Test all app features safely
+- ✅ Experience research workflows without data collection
+- ✅ Provide feedback on user experience
+- ✅ Use privately for personal wellbeing tracking
 
-## Download the app
+### Future Research Participation (Coming Soon)
+When the research version is released:
+- 🔬 Real study participation in Gauteng, South Africa
+- 📋 Participant codes and consent processes
+- 🔐 Encrypted data sharing with research teams  
+- 📊 Contribute to climate-mental health research
+
+### For Beta Testers
+Your feedback helps us:
+- Improve user experience before research launch
+- Validate technical functionality
+- Ensure privacy and security features work correctly
+- Create better documentation and support
+
+## Download the Beta Version
 For more information about the Planet4Health project, please visit the [Planet4Health website](https://planet4health.eu) and learn about the [Mental wellbeing in environmental & climate context case study](https://planet4health.eu/mental-wellbeing-in-environmental-climate-context/).
 
 - [Google Play (Android)](http://play.google.com/store/apps/details?id=edu.princeton.jrpalmer.asm).

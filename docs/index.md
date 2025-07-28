@@ -4,30 +4,98 @@ title: Wellbeing Mapper
 description: A mobile app for studying mental wellbeing in environmental & climate context
 ---
 
-Welcome to the **Wellbeing Mapper** documentation website. Wellbeing Mapper is a mobile app for studying mental wellbeing in environmental & climate context. It has been developed as part of the [Planet4Health project](https://planet4health.eu), funded by the European Union. The app will soon be used for research involving volunteers in Guateng, South Africa, and Barcelona, Spain. It is currently in beta testing.
+Welcome to the **Wellbeing Mapper** documentation website. Wellbeing Mapper is a mobile app for studying mental wellbeing in environmental & climate context. It has been developed as part of the [Planet4Health project](https://planet4health.eu), funded by the European Union. 
 
-This site contains information aimed at app users (i.e. research volunteers and anyone who simply wants to use the app for their), , 
+## 🧪 Current Status: Beta Testing
 
-## 📱 For App Users
+The app is currently in **beta testing phase** with the following modes available:
+
+- **🔒 Private Mode**: Use the app for personal wellbeing tracking
+- **🧪 App Testing Mode**: Test all research features safely (no real data collection)
+
+Full research participation will be available in the next release for volunteers in Gauteng, South Africa, and Barcelona, Spain.
+
+### Beta Testing Information
+- All features are available for testing
+- No real research data is collected in testing mode
+- Can be used to explore the app's capabilities
+- Feedback welcome via our development team
+
+---
+
+This site contains documentation for beta testers, app users, developers, and researchers.
+
+## 🧪 For Beta Testers
 
 ### Quick Start
-- **[User Guide](USER_GUIDE.md)** - Complete guide to using the app
-- **[Privacy Policy](PRIVACY.md)** - How we protect your data
+- **[Beta User Guide](BETA_USER_GUIDE.md)** - Complete beta testing guide
+- **[Getting Started](BETA_USER_GUIDE.md#getting-started)** - Choose your mode and start testing
+- **[Feedback Guidelines](BETA_USER_GUIDE.md#how-to-provide-feedback)** - How to report issues and suggestions
+
+### Testing Focus Areas
+- **App Functionality**: Location tracking, surveys, notifications
+- **User Experience**: Interface clarity, onboarding flow
+- **Technical Issues**: Performance, battery usage, crashes
+- **Privacy Features**: Data handling, permission controls
+
+## � For Future App Users
+
+### When Research Mode is Available
+- **[User Guide](USER_GUIDE.md)** - Complete guide to using the app for research
+- **[Privacy Policy](PRIVACY.md)** - How we protect your data  
 - **[Download](https://github.com/ActivitySpaceLab/guateng-wellbeing-mapper-app/releases)** - Get the latest version
 
+### Research Participation
+- **Participant Codes**: Required from research team
+- **Consent Process**: Full research consent and information sheets
+- **Data Security**: End-to-end encryption for all research data
+- **Study Locations**: Gauteng, South Africa and Barcelona, Spain
+
+## 💻 For Developers
+
+### Development Resources
+- **[Developer Guide](DEVELOPER_GUIDE.md)** - Technical documentation and architecture
+- **[Beta Testing Guide](BETA_TESTING_GUIDE.md)** - Release preparation instructions
+- **[API Reference](API_REFERENCE.md)** - Complete API documentation
+- **[Architecture Overview](ARCHITECTURE.md)** - System design and data flow
+
+### Recent Updates
+- **[App Mode System](DEVELOPER_GUIDE.md#app-mode-system)** - Beta vs. research configuration
+- **[Notification Features](NOTIFICATION_FEATURE_SUMMARY.md)** - Enhanced survey reminder system
+- **[Testing Tools](DEVELOPER_GUIDE.md#notification-system-features)** - Beta testing capabilities
+
+## 🔬 For Researchers
+
+### Future Research Release
+- **[Server Setup](SERVER_SETUP.md)** - Research server configuration
+- **[Encryption Setup](ENCRYPTION_SETUP.md)** - Security and key management
+- **[Research Features](RESEARCH_FEATURES_SUMMARY.md)** - Available research tools
+- **[Privacy Documentation](PRIVACY.md)** - Data protection measures
+
 ### Key Features
-- **Private Mode**: Track where you spend your time privately on your device
-- **Research Mode**: Contribute anonymously to important wellbeing research
+- **🔒 Private Mode**: Track where you spend your time privately on your device
+- **🧪 App Testing Mode**: Test all research features safely (beta version)
 - **Location Tracking**: Background GPS tracking with full user control
 - **Wellbeing Surveys**: Quick 2-3 minute surveys about your mental wellbeing
 - **Data Export**: Full control over your personal data
+- **Notification System**: Bi-weekly survey reminders (configurable for testing)
 
-### App Modes
-The app offers two distinct modes to meet different user needs:
+### App Modes (Beta Version)
+The beta version offers two modes for different user needs:
 
 **🔒 Private Mode**
 - All data stays on your phone
 - No automatic sharing with researchers
+- Perfect for personal wellbeing tracking
+
+**🧪 App Testing Mode** *(Beta Only)*
+- Experience all research features safely
+- Practice with surveys and location mapping  
+- NO real research data is collected
+- All responses stay local for testing purposes
+- Ideal for familiarizing yourself with research workflows
+
+> **Note**: In the full research release, "App Testing Mode" will be replaced with "Research Mode" for actual study participation.
 - Perfect for personal movement tracking
 - Export your own data anytime
 

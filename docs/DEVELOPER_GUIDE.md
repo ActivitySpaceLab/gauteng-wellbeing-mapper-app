@@ -62,36 +62,98 @@ Wellbeing Mapper follows a modular Flutter architecture with clear separation of
 - **SharedPreferences**: User settings and simple data storage
 - **HTTP**: Encrypted data uploads to research servers
 
-## Research Participation System
+## App Mode System
 
-### Two Usage Modes
+### Current Beta Configuration
 
-1. **Private Mode Users**: 
-   - Users in private mode can track their own mobility patterns and mental wellbeing for their own personal use
-   - The app does not sync their data automatically with any server
-   - All data stays on their device unless they manually export it using the "Export Data" function in the main menu
+The app uses a flexible mode system that allows switching between different operational modes. During beta testing, the following modes are available:
 
-2. **Gauteng Research Users**:
-   - Research subjects who have been recruited by the research team can participate in the Planet4Health study on mental wellbeing in Guateng, South Africa  
-   - These users can only turn on reserch mode if they first enter the research code they have been given, review the study's information sheet, and check all of the boxes on the consent form
-   - Participation in the study is entirely voluntary and the research users have the option to stop participating and delete their data at any time
-   - Research users are given an initial survey and then biweekly surveys
-   - All data is stored on the phone and synced to the research server using end-to-end encryption  
- 
-
-### Participation Flow
-
-```mermaid
-graph TD
-    A[App Launch] --> B[Participation Selection]
-    B --> C{User Choice}
-    C -->|Private| D[Private Mode Setup]
-    C -->|Research| E[Gauteng Consent Form]
-    E --> F[Gauteng Survey Setup]
-    F --> G[Enable Location Tracking]
-    G --> H[Begin Data Collection]
-    H --> I[Bi-weekly Upload Schedule]
+```dart
+enum AppMode {
+  private,      // Personal use only
+  appTesting,   // Beta testing of research features
+  // research,  // Real research participation (disabled in beta)
+}
 ```
+
+### Mode Configuration
+
+**File**: `lib/models/app_mode.dart`
+
+The beta/release status is controlled by a single boolean:
+
+```dart
+static const bool _isBetaPhase = true; // Set to false for research release
+```
+
+This automatically controls:
+- Available modes in UI
+- Feature availability
+- Data collection behavior
+- Upload functionality
+
+### Mode Behaviors
+
+| Feature | Private Mode | App Testing Mode | Research Mode (Future) |
+|---------|-------------|------------------|----------------------|
+| Location Tracking | ✅ Local only | ✅ Local only | ✅ Encrypted upload |
+| Surveys | ✅ Local only | ✅ Local testing | ✅ Encrypted upload |
+| Notifications | ✅ Personal | ✅ Testing intervals | ✅ Research schedule |
+| Data Upload | ❌ Disabled | ❌ Disabled | ✅ Encrypted |
+| Participant Code | ❌ Not needed | ❌ Auto-generated | ✅ Required |
+| Consent Flow | ❌ Skipped | ❌ Skipped | ✅ Required |
+
+### App Mode Service
+
+**File**: `lib/services/app_mode_service.dart`
+
+Provides centralized mode management:
+
+```dart
+// Get current mode
+final mode = await AppModeService.getCurrentMode();
+
+// Change mode
+await AppModeService.setCurrentMode(AppMode.appTesting);
+
+// Check capabilities
+final hasResearchFeatures = await AppModeService.hasResearchFeatures();
+final sendsData = await AppModeService.sendsDataToResearch();
+```
+
+### Mode Switching UI
+
+Users can switch modes through:
+1. **Initial Welcome Screen**: First-time mode selection
+2. **Settings → Change Mode**: Switch between available modes
+3. **App Mode Service**: Programmatic mode changes
+
+### Beta Testing Benefits
+
+App Testing Mode allows users to:
+- Experience complete research workflows
+- Practice with surveys and location tracking
+- Test notification systems with faster intervals
+- Understand data collection without privacy concerns
+- Provide feedback on user experience
+
+### Preparing for Research Release
+
+To enable research mode:
+
+1. **Update configuration**:
+   ```dart
+   static const bool _isBetaPhase = false;
+   ```
+
+2. **This automatically enables**:
+   - Research mode in place of App Testing mode
+   - Participant code requirements
+   - Consent form workflows
+   - Encrypted data uploads
+   - Real research server connections
+
+See [Beta Testing Guide](BETA_TESTING_GUIDE.md) for complete release preparation instructions.
 
 ## Encryption & Security
 
@@ -887,6 +949,89 @@ print('Platform: ${diagnostics['systemInfo']['platform']}');
 print('Device notifications enabled: ${diagnostics['deviceNotificationsEnabled']}');
 print('System initialized: ${diagnostics['notificationSystemInitialized']}');
 ```
+
+## Notification System Features
+
+### Beta Testing Capabilities
+
+The notification system includes comprehensive testing features designed for beta testing and development:
+
+#### Testing Intervals
+- **Production**: 14-day intervals for research participants
+- **Testing Mode**: Configurable intervals (1 minute to hours) for rapid testing
+- **Automatic Reset**: Easy switch between testing and production intervals
+
+#### Testing Tools Available in Beta
+
+**Device Notification Testing**:
+- Send immediate test notifications
+- Platform-specific testing (iOS/Android differences)
+- Tap-to-navigate functionality testing
+
+**In-App Dialog Testing**:
+- Simulate survey prompts
+- Test dialog behavior and navigation
+- User response flow validation
+
+**Permission Diagnostics**:
+- Check device notification permissions
+- Platform capability testing
+- System initialization verification
+
+#### Beta Testing Workflow
+
+1. **Set Testing Interval**: Use notification settings to set 1-5 minute intervals
+2. **Test Notifications**: Verify device notifications appear correctly
+3. **Test Navigation**: Tap notifications to ensure proper survey navigation
+4. **Test Dialogs**: Verify in-app prompts show when expected
+5. **Reset to Production**: Clear testing intervals when done
+
+### Notification Settings Screen
+
+**File**: `lib/ui/notification_settings_view.dart`
+
+Provides comprehensive notification management:
+
+- **Statistics Display**: Count, last notification, next scheduled
+- **Testing Tools**: Device/in-app notification testing
+- **Interval Configuration**: Set custom testing intervals
+- **Permission Checking**: Verify device notification permissions
+- **Reset Options**: Clear schedules and return to defaults
+
+### Research Release Considerations
+
+For the full research release:
+- Testing intervals will be hidden from regular users
+- Production 14-day schedule will be default
+- Testing tools available only in debug/development builds
+- Research team will have access to diagnostic features
+
+## Recent Updates and Changes
+
+### App Mode System (Latest)
+- ✅ Implemented flexible mode switching between Private/App Testing/Research
+- ✅ Beta configuration with automatic feature enablement
+- ✅ Single-flag control for beta vs. research release
+- ✅ Comprehensive mode validation and user experience flows
+
+### Notification System Enhancement
+- ✅ Bi-weekly survey reminder system
+- ✅ Configurable testing intervals for beta testing
+- ✅ Platform-specific notification handling (iOS/Android)
+- ✅ Comprehensive testing and diagnostic tools
+- ✅ In-app and device notification support
+
+### Welcome Screen Updates
+- ✅ Beta version indicator and clear mode selection
+- ✅ App Testing mode explanation and benefits
+- ✅ Simplified onboarding flow for beta users
+- ✅ Research participation code preserved for future release
+
+### Documentation Improvements
+- ✅ Beta testing guide with release preparation instructions
+- ✅ App mode system documentation
+- ✅ Notification testing procedures
+- ✅ Developer workflow updates
 
 #### User Preference Management
 ```dart
