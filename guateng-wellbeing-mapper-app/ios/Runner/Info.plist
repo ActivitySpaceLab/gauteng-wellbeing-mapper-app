@@ -47,8 +47,6 @@
 	<string>Wellbeing Mapper uses your location to track where you spend time so you can map your activity spaces and compare them to your wellbeing responses. This helps you understand how different places affect your mental health.</string>
 	<key>NSLocationUsageDescription</key>
 	<string>Wellbeing Mapper uses your location to track where you spend time so you can map your activity spaces and compare them to your wellbeing responses. This helps you understand how different places affect your mental health.</string>
-	<key>NSLocationUsageDescription</key>
-	<string>Wellbeing Mapper uses your location to track where you spend time so you can map your activity spaces and compare them to your wellbeing responses. This helps you understand how different places affect your mental health.</string>
 	<key>NSMotionUsageDescription</key>
 	<string>Wellbeing Mapper access your motion data in order to improve location tracking of your activity spaces. The motion and location data it collects does not leave your phone unless you choose to share it by participating in a survey or by exporting it manually.</string>
 	<key>NSCameraUsageDescription</key>
