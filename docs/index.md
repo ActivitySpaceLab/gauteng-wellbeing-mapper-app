@@ -112,6 +112,8 @@ The beta version offers two modes for different user needs:
 - **[API Reference](API_REFERENCE.md)** - Complete API documentation
 - **[Architecture](ARCHITECTURE.md)** - App structure and design patterns
 - **[Flow Charts](FLOW_CHARTS.md)** - User flows and system diagrams
+- **[Release Guide](RELEASE_GUIDE.md)** - Complete release and deployment process
+- **[Troubleshooting Guide](TROUBLESHOOTING_GUIDE.md)** - Common issues and solutions
 
 ### Quick Setup
 ```bash
