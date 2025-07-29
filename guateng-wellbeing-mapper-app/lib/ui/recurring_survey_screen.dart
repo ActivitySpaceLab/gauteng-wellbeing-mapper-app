@@ -3,8 +3,6 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:record/record.dart';
-import 'package:audioplayers/audioplayers.dart';
 import 'dart:io';
 import 'dart:convert';
 import '../models/survey_models.dart';
@@ -587,7 +585,7 @@ class _RecurringSurveyScreenState extends State<RecurringSurveyScreen> {
                           child: Container(
                             padding: EdgeInsets.all(4),
                             decoration: BoxDecoration(
-                              color: Colors.red.withOpacity(0.9),
+                              color: Colors.red.withValues(alpha: 0.9),
                               shape: BoxShape.circle,
                             ),
                             child: Icon(Icons.close, color: Colors.white, size: 16),
