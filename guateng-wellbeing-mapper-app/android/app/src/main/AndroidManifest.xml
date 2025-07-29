@@ -24,7 +24,7 @@
         android:label="Wellbeing Mapper"
         android:icon="@mipmap/launcher_icon"
         >
-        <meta-data android:name="com.transistorsoft.locationmanager.license" android:value="0cf9fe39cfbff51b391264cfd2acbe89c19e920944ac2c80747bafac1ffae3f1" />
+        <meta-data android:name="com.transistorsoft.locationmanager.license" android:value="e2cf8f9ed0eb7edddcbd4dde5ebef2f8c47c6b92d3ce7d244c68448f85267aba" />
 
         <activity
             android:name=".MainActivity"
