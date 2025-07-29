@@ -5,6 +5,10 @@ on:
     tags:
       - 'v*' # Trigger on version tags like v1.0.0
 
+permissions:
+  contents: write
+  packages: write
+
 jobs:  
   build:
     runs-on: macos-latest # Use macOS for iOS builds
