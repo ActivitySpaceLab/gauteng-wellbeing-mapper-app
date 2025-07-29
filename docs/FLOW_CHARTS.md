@@ -23,9 +23,9 @@ flowchart TD
     F --> G[Configure Background Fetch]
     G --> H[Load HomeView]
     H --> I[Display Map]
-    I --> J[Check Active Projects]
-    J --> K{Has Active Projects?}
-    K -->|Yes| L[Show Project Indicators]
+    I --> J[Check App Mode]
+    J --> K{Research Mode Active?}
+    K -->|Yes| L[Show Research Indicators]
     K -->|No| M[Show Default State]
     L --> N[Ready for User Interaction]
     M --> N
@@ -50,11 +50,11 @@ flowchart TD
     I --> J[Perform Reverse Geocoding]
     J --> K[Store Location in Database]
     K --> L[Update Map Display]
-    L --> M[Check Active Projects]
+    L --> M[Check App Mode]
     M --> N{Share Location?}
     N -->|Yes| O[Format Location Data]
     N -->|No| P[Continue Monitoring]
-    O --> Q[Send to Project API]
+    O --> Q[Send to Research API]
     Q --> R{API Success?}
     R -->|Yes| S[Mark as Synced]
     R -->|No| T[Store in Retry Queue]
@@ -69,49 +69,40 @@ flowchart TD
     style P fill:#c8e6c9
 ```
 
-## Project Participation Flow
+## App Mode Selection Flow
 
 ```mermaid
 flowchart TD
-    A[User Opens Project Menu] --> B[Load Available Projects]
-    B --> C{Projects Available?}
-    C -->|No| D[Show Add Project Option]
-    C -->|Yes| E[Display Project List]
+    A[User Opens Mode Menu] --> B[Display Available Modes]
+    B --> C{Mode Selection}
+    C -->|Private| D[Private Mode Selected]
+    C -->|App Testing| E[App Testing Mode Selected]
+    C -->|Research| F[Research Mode Selected]
     
-    D --> F[Scan QR Code]
-    F --> G[Parse QR Code URL]
-    G --> H[Fetch Project Data]
-    H --> I{Valid Project?}
-    I -->|No| J[Show Error Message]
-    I -->|Yes| K[Display Project Details]
+    D --> G[Local Storage Only]
+    G --> H[No Data Sharing]
+    H --> I[Set Mode Status]
     
-    E --> L[User Selects Project]
-    L --> K
-    K --> M[Show Consent Form]
-    M --> N[User Reviews Information]
-    N --> O{User Consents?}
-    O -->|No| P[Return to Project List]
-    O -->|Yes| Q[Store Project in Database]
-    Q --> R[Set Project Status to Active]
-    R --> S[Generate Survey URL]
-    S --> T[Open WebView]
-    T --> U[Load Survey Form]
-    U --> V[Auto-fill Location Data]
-    V --> W[User Completes Survey]
-    W --> X[Submit Survey Data]
-    X --> Y{Submission Success?}
-    Y -->|No| Z[Show Retry Option]
-    Y -->|Yes| AA[Update Project Status]
-    AA --> BB[Return to Home]
+    E --> J[Limited Data Sharing]
+    J --> K[Testing Features Enabled]
+    K --> I
     
-    Z --> X
-    J --> D
-    P --> E
+    F --> L[Show Consent Form]
+    L --> M[User Reviews Information]
+    M --> N{User Consents?}
+    N -->|No| O[Return to Mode Selection]
+    N -->|Yes| P[Enable Data Sharing]
+    P --> Q[Research Features Enabled]
+    Q --> I
+    
+    I --> R[Update User Preferences]
+    R --> S[Configure App Features]
+    S --> T[Return to Home Screen]
+    O --> B
     
     style A fill:#e1f5fe
-    style BB fill:#c8e6c9
-    style J fill:#ffcdd2
-    style Z fill:#ffcdd2
+    style T fill:#c8e6c9
+    style O fill:#ffcdd2
 ```
 
 ## Background Processing Flow
@@ -160,10 +151,10 @@ flowchart TD
 ```mermaid
 flowchart TD
     A[Location Data Generated] --> B[Store Locally]
-    B --> C[Check Active Projects]
-    C --> D{Projects Require Data?}
+    B --> C[Check App Mode]
+    C --> D{Research Mode Active?}
     D -->|No| E[Local Storage Only]
-    D -->|Yes| F[Format for Each Project]
+    D -->|Yes| F[Format for Research API]
     F --> G[Attempt Upload]
     G --> H{Upload Success?}
     H -->|Yes| I[Mark as Synced]
@@ -205,36 +196,27 @@ flowchart TD
     B -->|Map Interaction| F[Map View Updates]
     
     C --> G{Menu Selection}
-    G -->|Projects| H[Projects List]
+    G -->|App Mode| H[Mode Selection]
     G -->|History| I[Location History]
     G -->|Share| J[Share Locations]
     G -->|Report Issue| K[Issue Report Form]
     G -->|Website| L[External Website]
     
-    H --> M{Project Action}
-    M -->|New Project| N[QR Scanner]
-    M -->|View Details| O[Project Detail View]
-    M -->|Participate| P[Project Survey]
+    H --> M{Mode Action}
+    M -->|Change Mode| N[Mode Selection Screen]
+    M -->|View Settings| O[App Mode Settings]
     
-    N --> Q[Scan QR Code]
-    Q --> R{Valid QR?}
-    R -->|Yes| S[Fetch Project Data]
-    R -->|No| T[Error Message]
+    N --> Q[Select New Mode]
+    Q --> R{Mode Selected?}
+    R -->|Yes| S[Update App Configuration]
+    R -->|No| T[Return to Menu]
     S --> O
-    T --> N
+    T --> H
     
     O --> U{User Decision}
-    U -->|Participate| V[Show Consent]
+    U -->|Save Changes| V[Update Preferences]
     U -->|Cancel| H
-    V --> W{User Consents?}
-    W -->|Yes| P
-    W -->|No| O
-    
-    P --> X[WebView Survey]
-    X --> Y[Auto-fill Data]
-    Y --> Z[User Completion]
-    Z --> AA[Submit Results]
-    AA --> A
+    V --> AA[Return to Home]
     
     I --> BB[List View]
     BB --> CC{Item Action}
@@ -392,22 +374,22 @@ flowchart TD
     B --> C{State Type}
     C -->|Global| D[Update GlobalData]
     C -->|Route| E[Update GlobalRouteData]
-    C -->|Project| F[Update GlobalProjectData]
+    C -->|Mode| F[Update AppModeData]
     C -->|Local Widget| G[Update Widget State]
     
     D --> H[Notify Global Listeners]
     E --> I[Update Navigation State]
-    F --> J[Update Project UI]
+    F --> J[Update Mode UI]
     G --> K[Trigger Widget Rebuild]
     
     H --> L[Update Dependent Widgets]
     I --> M[Navigate to New Screen]
-    J --> N[Refresh Project Display]
+    J --> N[Refresh Mode Display]
     K --> O[Widget Redrawn]
     
     L --> P[Save to SharedPreferences]
     M --> Q[Screen Transition]
-    N --> R[Update Project Status]
+    N --> R[Update Mode Status]
     O --> S[UI Updated]
     
     P --> T[Persist State]
@@ -417,7 +399,7 @@ flowchart TD
     
     T --> X[State Persisted]
     U --> Y[Screen Ready]
-    V --> Z[Project State Saved]
+    V --> Z[Mode State Saved]
     W --> AA[Interaction Complete]
     
     style A fill:#e1f5fe
@@ -435,23 +417,22 @@ graph TB
         UI1[HomeView]
         UI2[MapView]
         UI3[ListView]
-        UI4[ProjectViews]
+        UI4[ModeViews]
         UI5[WebView]
     end
     
     subgraph "Business Logic"
         BL1[LocationManager]
-        BL2[ProjectManager]
+        BL2[ModeManager]
         BL3[NavigationRouter]
         BL4[StateManager]
     end
     
     subgraph "Data Layer"
         DL1[CustomLocation]
-        DL2[ProjectDatabase]
-        DL3[ContactDatabase]
-        DL4[UnpushedDB]
-        DL5[SharedPreferences]
+        DL2[SurveyDatabase]
+        DL3[UnpushedDB]
+        DL4[SharedPreferences]
     end
     
     subgraph "Platform Layer"
@@ -468,20 +449,19 @@ graph TB
     UI2 --> DL1
     UI3 --> DL1
     UI4 --> BL2
-    UI4 --> DL2
+    UI4 --> DL4
     UI5 --> BL2
     
     BL1 --> DL1
     BL1 --> PL1
     BL2 --> DL2
     BL2 --> PL3
-    BL3 --> DL5
-    BL4 --> DL5
+    BL3 --> DL4
+    BL4 --> DL4
     
     DL1 --> PL1
     DL2 --> PL4
     DL3 --> PL4
-    DL4 --> PL4
     
     PL1 --> PL2
     PL3 --> PL2

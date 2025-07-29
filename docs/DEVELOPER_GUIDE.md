@@ -12,6 +12,11 @@ Gauteng Wellbeing Mapper is a privacy-focused Flutter mobile application that en
 
 This version is specifically configured for the **Gauteng research study** with end-to-end encryption for secure data transmission to research servers in Gauteng, South Africa.
 
+### App Configuration
+- **Bundle ID**: `com.github.activityspacelab.wellbeingmapper.guateng`
+- **Package Name** (Android): `com.github.activityspacelab.wellbeingmapper.guateng`
+- **App Store ID** (iOS): [To be configured upon App Store submission]
+
 ### Planet4Health Integration
 
 This application supports the Planet4Health research initiative "[Mental wellbeing in environmental & climate context](https://planet4health.eu/mental-wellbeing-in-environmental-climate-context/)", which addresses the growing recognition that environmental and climate changes contribute to mental health challenges including climate-related psychological distress.
@@ -58,7 +63,7 @@ Wellbeing Mapper follows a modular Flutter architecture with clear separation of
 - **SQLite**: Local data storage with location tracking
 - **RSA + AES Encryption**: Hybrid encryption for secure data transmission
 - **Background Geolocation**: Location tracking when app is closed
-- **WebView**: For project surveys and external content
+- **WebView**: For surveys and external content
 - **SharedPreferences**: User settings and simple data storage
 - **HTTP**: Encrypted data uploads to research servers
 
@@ -203,6 +208,21 @@ static const Map<String, ServerConfig> _serverConfigs = {
 
 **DO NOT** execute any API method which will require accessing location-services until the `.ready(config)` method has been called. This is a critical requirement for proper initialization of the background geolocation plugin.
 
+### License Key Configuration
+
+The Flutter Background Geolocation plugin requires a license key that is tied to your app's bundle ID. For this app:
+
+- **License Key Location**: `android/app/src/main/AndroidManifest.xml`
+- **Bundle ID**: `com.github.activityspacelab.wellbeingmapper.guateng`
+- **Security Note**: The license key is committed to the repository because it only works with our specific bundle ID and cannot be used by other applications
+
+```xml
+<meta-data android:name="com.transistorsoft.locationmanager.license" 
+           android:value="[LICENSE_KEY_HERE]" />
+```
+
+**Why it's safe to commit**: The license key is cryptographically tied to the bundle ID `com.github.activityspacelab.wellbeingmapper.guateng` and will not function with any other app package name, making it safe to include in version control.
+
 ### Required Import Pattern
 Always import the plugin with the `bg` namespace to avoid class name conflicts:
 
@@ -246,14 +266,14 @@ For more details, see the [official plugin documentation](https://pub.dev/packag
   - `main()`: Initializes the app and global data
   - `backgroundGeolocationHeadlessTask()`: Handles location events when app is terminated
   - `backgroundFetchHeadlessTask()`: Handles background fetch operations
-- **Global Data**: Manages user UUID and project participation status
+- **Global Data**: Manages user UUID and app mode status
 
 ### 2. Home View (`ui/home_view.dart`)
 - **Purpose**: Main application screen with map view
 - **Key Functions**:
   - Location tracking control (start/stop)
   - Background geolocation configuration
-  - Project status management
+  - App mode status management
   - Navigation to other screens
 - **State Management**: Manages enabled state, location permissions
 
@@ -267,15 +287,6 @@ For more details, see the [official plugin documentation](https://pub.dev/packag
 
 ### 4. Database Management
 Multiple SQLite databases handle different data types:
-
-#### Project Database (`db/database_project.dart`)
-- Stores research project information
-- Manages user participation in projects
-- Handles project status updates
-
-#### Contact Database (`db/database_contact.dart`)
-- Stores user contact information
-- Manages form submissions
 
 #### Unpushed Locations Database (`db/database_unpushed_locations.dart`)
 - Stores locations that failed to sync to server
@@ -293,13 +304,7 @@ Multiple SQLite databases handle different data types:
   - `getLocationData()`: Reverse geocoding for addresses
   - `deleteThisLocation()`: Removes location from storage
 
-### 6. Project Management
-- **Project Model** (`models/project.dart`): Defines research project structure
-- **Project Creation** (`ui/project_create.dart`): QR code scanning and project enrollment
-- **Project Detail** (`ui/project_detail.dart`): Project information and participation
-- **Project List** (`ui/projects_list.dart`): Available and active projects
-
-### 7. Data Sharing Consent System (`models/data_sharing_consent.dart`, `ui/data_sharing_consent_dialog.dart`)
+### 6. Data Sharing Consent System (`models/data_sharing_consent.dart`, `ui/data_sharing_consent_dialog.dart`)
 - **Purpose**: Advanced user consent management for research data sharing
 - **Key Classes**:
   - `DataSharingConsent`: Consent preferences with granular location control
@@ -312,7 +317,7 @@ Multiple SQLite databases handle different data types:
   - Persistent consent tracking with history
   - Consent-aware data filtering during uploads
 
-### 8. Consent-Aware Upload Service (`services/consent_aware_upload_service.dart`)
+### 7. Consent-Aware Upload Service (`services/consent_aware_upload_service.dart`)
 - **Purpose**: Data upload service that respects user consent preferences
 - **Key Functions**:
   - `uploadWithConsent()`: Shows consent dialog and uploads according to preferences
@@ -320,7 +325,7 @@ Multiple SQLite databases handle different data types:
   - Location clustering and distance calculation for geographic filtering
 - **Integration**: Works with existing `DataUploadService` while adding consent layer
 
-### 9. Data Sharing Preferences Management (`ui/data_sharing_preferences_screen.dart`)
+### 8. Data Sharing Preferences Management (`ui/data_sharing_preferences_screen.dart`)
 - **Purpose**: Ongoing management interface for user consent preferences
 - **Key Functions**:
   - View current consent settings and history
@@ -328,8 +333,8 @@ Multiple SQLite databases handle different data types:
   - Privacy information and transparency features
 - **Navigation**: Accessible through side drawer menu in research mode
 
-### 10. Web Integration (`ui/web_view.dart`)
-- **Purpose**: Displays project surveys and external content
+### 9. Web Integration (`ui/web_view.dart`)
+- **Purpose**: Displays surveys and external content for research participation
 - **Key Functions**:
   - Load survey URLs with location data
   - Handle form auto-filling with location history
@@ -348,26 +353,35 @@ graph TD
     F --> G[Update Map View]
     G --> H[Display on Map]
     
-    C --> I[Send to Project API]
+    C --> I[Send to Research API]
     I --> J{API Success?}
     J -->|Yes| K[Mark as Synced]
     J -->|No| L[Store in UnpushedLocations DB]
     L --> M[Retry Later]
 ```
 
-### Project Participation Flow
+### App Mode Usage Flow
 ```mermaid
 graph TD
-    A[Scan QR Code] --> B[Fetch Project Data]
-    B --> C[Display Project Details]
-    C --> D[User Agrees to Participate]
-    D --> E[Store Project in Database]
-    E --> F[Start Location Sharing]
-    F --> G[Generate Survey URL]
-    G --> H[Open WebView with Survey]
-    H --> I[Auto-fill Location Data]
-    I --> J[User Completes Survey]
-    J --> K[Mark Project as Complete]
+    A[App Launch] --> B[Check Participation Settings]
+    B -->|None Set| C[Participation Selection Screen]
+    B -->|Settings Found| D[Load App Mode]
+    
+    C --> E{User Selects Mode}
+    E -->|Private Mode| F[Private Use]
+    E -->|App Testing Mode| G[Beta Testing]
+    E -->|Research Mode| H[Research Participation]
+    
+    F --> I[Local Location Tracking Only]
+    I --> J[Personal Data Analysis]
+    
+    G --> K[Full Feature Testing]
+    K --> L[Mock Research Workflows]
+    K --> M[Feedback Collection]
+    
+    H --> N[Consent Process]
+    N --> O[Real Research Participation]
+    O --> P[Encrypted Data Upload]
 ```
 
 ### Data Sharing Consent Flow
@@ -414,45 +428,61 @@ graph TD
 ```
 guateng-wellbeing-mapper-app/lib/
 ├── main.dart                    # App entry point
+├── main_debug.dart              # Debug configuration
+├── main_original.dart           # Original entry point
+├── main_simple.dart             # Simplified entry point  
 ├── shared_events.dart           # Event management system
 ├── styles.dart                  # Global styling
 ├── components/                  # Reusable UI components
-│   ├── banner_image.dart       # Project banner images
-│   └── project_tile.dart       # Project list items
 ├── db/                         # Database management
-│   ├── database_project.dart   # Project data storage
-│   ├── database_contact.dart   # Contact form storage
 │   ├── database_unpushed_locations.dart # Failed sync storage
-│   └── database_tiger_in_car.dart # Specific project storage
-├── external_projects/          # Project-specific implementations
-│   └── tiger_in_car/          # Example research project
+│   └── survey_database.dart       # Survey response storage
+├── debug/                      # Debug utilities
+├── external_projects/          # External project integrations
 ├── models/                     # Data models
 │   ├── app_localizations.dart  # Internationalization
+│   ├── app_mode.dart           # App mode definitions
+│   ├── consent_models.dart     # Consent management models
 │   ├── custom_locations.dart   # Location data models
-│   ├── project.dart           # Project data model
-│   ├── contacts.dart          # Contact form model
+│   ├── data_sharing_consent.dart # Data sharing models
 │   ├── locations_to_push.dart # Sync queue model
-│   └── route_generator.dart    # Navigation routing
+│   ├── route_generator.dart    # Navigation routing
+│   ├── survey_models.dart      # Survey data models
+│   ├── wellbeing_survey_models.dart # Wellbeing survey models
+│   └── statistics/             # Statistics models
+├── mocks/                      # Test data and mocking
 ├── services/                   # Business logic services
 │   └── notification_service.dart # Survey reminder system
+├── theme/                      # App theming
 ├── ui/                        # User interface screens
+│   ├── change_mode_screen.dart # App mode selection
+│   ├── change_mode_screen_new.dart # New mode selection UI
+│   ├── consent_form_screen.dart # Consent management
+│   ├── data_sharing_consent_dialog.dart # Data sharing dialogs
+│   ├── data_sharing_preferences_screen.dart # Privacy settings
+│   ├── data_upload_screen.dart # Data upload interface
+│   ├── help_screen.dart        # In-app help system
 │   ├── home_view.dart         # Main screen
-│   ├── map_view.dart          # Interactive map
+│   ├── initial_survey_screen.dart # Initial user survey
 │   ├── list_view.dart         # Location history list
+│   ├── map_view.dart          # Interactive map
 │   ├── notification_settings_view.dart # Notification preferences
-│   ├── project_create.dart    # QR scanning & enrollment
-│   ├── project_detail.dart    # Project information
-│   ├── projects_list.dart     # Available projects
+│   ├── participation_selection_screen.dart # Research participation
+│   ├── recurring_survey_screen.dart # Recurring surveys
+│   ├── report_issues.dart     # Bug reporting
 │   ├── side_drawer.dart       # Navigation menu
+│   ├── survey_list_screen.dart # Survey management
 │   ├── web_view.dart          # Survey web view
-│   ├── form_view.dart         # Contact forms
-│   └── report_issues.dart     # Bug reporting
-├── util/                      # Utility functions
-│   ├── env.dart              # Environment configuration
-│   ├── dialog.dart           # Dialog utilities
-│   └── spacemapper_auth.dart # Authentication services
-└── mocks/                     # Test data and mocking
-    └── mock_project.dart      # Mock project data
+│   ├── wellbeing_map_view.dart # Wellbeing mapping interface
+│   ├── wellbeing_survey_screen.dart # Wellbeing surveys
+│   ├── wellbeing_timeline_view.dart # Timeline visualization
+│   ├── consent/               # Consent management UI
+│   └── statistics/            # Statistics and analytics UI
+├── ui_style/                  # UI styling components
+└── util/                      # Utility functions
+    ├── env.dart              # Environment configuration
+    ├── dialog.dart           # Dialog utilities
+    └── spacemapper_auth.dart # Authentication services
 ```
 
 ## Key Features
@@ -463,11 +493,11 @@ guateng-wellbeing-mapper-app/lib/
 - **Offline storage**: All data stored locally first
 - **Privacy-focused**: No data shared without explicit consent
 
-### 2. Project Participation
-- **QR code enrollment**: Easy project joining via QR codes
+### 2. Research Participation
+- **App Mode Selection**: Choose between Private, App Testing, or Research modes
 - **Data sharing control**: Users choose what and when to share
 - **Survey integration**: Seamless connection to research surveys
-- **Multiple projects**: Support for simultaneous project participation
+- **Consent management**: Granular control over data sharing preferences
 
 ### 3. Data Management
 - **Local-first**: All data stored on device
@@ -478,7 +508,7 @@ guateng-wellbeing-mapper-app/lib/
 ### 4. User Interface
 - **Interactive map**: Real-time location visualization
 - **Location history**: Chronological list of visits
-- **Project management**: Easy enrollment and status tracking
+- **App mode management**: Easy switching between usage modes
 - **Multi-language**: Support for multiple languages
 
 ### 5. Notification System
@@ -792,11 +822,6 @@ Wellbeing Mapper is designed with privacy as a core principle:
 - Check location permissions
 - Verify background app refresh is enabled
 - Check battery optimization settings
-
-**Project QR Code Not Working**:
-- Ensure camera permissions are granted
-- Verify QR code contains valid project URL
-- Check network connectivity
 
 **Data Not Syncing**:
 - Check internet connectivity

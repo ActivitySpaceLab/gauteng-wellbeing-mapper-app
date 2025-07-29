@@ -144,11 +144,10 @@ graph TB
     end
     
     subgraph "Data Layer"
-        K[ProjectDatabase]
-        L[ContactDatabase]
-        M[UnpushedLocationsDB]
-        N[SharedPreferences]
-        O[FileStorage]
+        K[SurveyDatabase]
+        L[UnpushedLocationsDB]
+        M[SharedPreferences]
+        N[FileStorage]
     end
     
     subgraph "Platform Layer"
@@ -206,27 +205,26 @@ sequenceDiagram
     MV->>U: Visual Update
 ```
 
-### Project Participation Flow
+### App Mode Selection Flow
 
 ```mermaid
 sequenceDiagram
     participant U as User
-    participant PC as ProjectCreate
-    participant QR as QRScanner
-    participant API as External API
-    participant DB as ProjectDatabase
+    participant MS as ModeSelection
+    participant Config as AppConfig
+    participant Prefs as SharedPreferences
     participant WV as WebView
     
-    U->>PC: Scan QR Code
-    PC->>QR: Open Scanner
-    QR->>PC: Return URL
-    PC->>API: Fetch Project Data
-    API->>PC: Project Information
-    PC->>U: Display Project Details
-    U->>PC: Agree to Participate
-    PC->>DB: Store Project
-    PC->>WV: Open Survey
-    WV->>API: Submit Data
+    U->>MS: Select App Mode
+    MS->>U: Display Mode Options
+    U->>MS: Choose Research Mode
+    MS->>WV: Show Consent Form
+    WV->>U: Display Consent
+    U->>WV: Accept Consent
+    WV->>Config: Update Mode Configuration
+    Config->>Prefs: Save Mode Settings
+    Prefs->>MS: Confirm Update
+    MS->>U: Mode Activated
 ```
 
 ## Core Classes and Their Relationships
@@ -281,16 +279,6 @@ class Project {
     String surveyElementCode;
     
     void participate(BuildContext context, String locationHistoryJSON);
-}
-
-// Database storage for projects
-class ProjectDatabase {
-    static final ProjectDatabase instance;
-    
-    Future<Database> get database;
-    Future<int> createProject(Particpating_Project project);
-    Future<List<Particpating_Project>> getOngoingProjects();
-    Future<void> updateProjectStatus(int projectId, String status);
 }
 ```
 

@@ -144,10 +144,10 @@ fvm flutter run
 - Background geolocation integration
 - Database storage patterns
 
-#### Project Participation
-- `ui/project_*.dart` files - Project management interfaces
-- `models/project.dart` - Project data structures
-- QR code scanning and survey integration
+#### Research Participation
+- `ui/change_mode_*.dart` files - App mode management interfaces
+- `models/app_mode.dart` - App mode data structures
+- Survey integration and data collection
 
 ## Architecture at a Glance
 
@@ -184,11 +184,11 @@ fvm flutter run
 - **Background operation**: Continues tracking when app is closed
 - **User control**: Easy enable/disable with clear status indicators
 
-### 🔬 Citizen Science Participation
-- **QR code enrollment**: Easy project joining
+### 🔬 Research Participation
+- **App mode selection**: Choose between Private, App Testing, or Research modes
 - **Selective sharing**: Users choose what data to share
 - **Survey integration**: Seamless connection to research surveys
-- **Multiple projects**: Support for simultaneous participation
+- **Consent management**: Granular control over data sharing preferences
 
 ### 📱 User Experience
 - **Interactive map**: Real-time location visualization
@@ -227,22 +227,26 @@ class LocationService {
 }
 ```
 
-### Working with Projects
+### Working with App Modes
 ```dart
-// Example: Adding new project integration
-class ProjectIntegration {
-  static Future<void> participateInProject(Project project) async {
-    // 1. Store project information
-    await ProjectDatabase.instance.createProject(project);
+// Example: Changing app mode
+class AppModeManager {
+  static Future<void> setAppMode(AppMode mode) async {
+    // 1. Store mode configuration
+    await SharedPreferences.getInstance().setString('app_mode', mode.toString());
     
-    // 2. Generate survey URL with user data
-    String surveyUrl = project.generateSurveyUrl(userUUID);
+    // 2. Update app features based on mode
+    if (mode == AppMode.Research) {
+      String surveyUrl = generateSurveyUrl(userUUID);
+    }
     
-    // 3. Launch WebView for survey
-    Navigator.pushNamed(context, '/webview', arguments: {
-      'url': surveyUrl,
-      'project': project
-    });
+    // 3. Launch WebView for survey if in research mode
+    if (mode == AppMode.Research) {
+      Navigator.pushNamed(context, '/webview', arguments: {
+        'url': surveyUrl,
+        'mode': mode
+      });
+    }
   }
 }
 ```
