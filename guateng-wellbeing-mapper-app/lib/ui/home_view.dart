@@ -8,6 +8,7 @@ import 'package:wellbeing_mapper/theme/south_african_theme.dart';
 import 'package:wellbeing_mapper/util/onboarding_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:async';
 import 'dart:convert';
 
@@ -269,15 +270,21 @@ class HomeViewState extends State<HomeView>
         // Only configure once to prevent multiple initializations
         if (!_backgroundGeoConfigured) {
           try {
-            // Request location permissions before configuring background geolocation
-            bool hasLocationPermission = await LocationService.initializeLocationServices(context: context);
-            if (hasLocationPermission) {
-              _configureBackgroundGeolocation(userUUID, sampleId);
-              _backgroundGeoConfigured = true;
-              print('[home_view.dart] Background geolocation configured successfully');
+            // Skip background geolocation configuration on web platform
+            if (kIsWeb) {
+              print('[home_view.dart] Web platform detected - skipping background geolocation configuration');
+              _backgroundGeoConfigured = true; // Mark as configured to prevent retries
             } else {
-              print('[home_view.dart] Location permission denied, skipping background geolocation configuration');
-              // Don't set _backgroundGeoConfigured to true, so it can be tried again later
+              // Request location permissions before configuring background geolocation
+              bool hasLocationPermission = await LocationService.initializeLocationServices(context: context);
+              if (hasLocationPermission) {
+                _configureBackgroundGeolocation(userUUID, sampleId);
+                _backgroundGeoConfigured = true;
+                print('[home_view.dart] Background geolocation configured successfully');
+              } else {
+                print('[home_view.dart] Location permission denied, skipping background geolocation configuration');
+                // Don't set _backgroundGeoConfigured to true, so it can be tried again later
+              }
             }
           } catch (error) {
             print('[home_view.dart] Error during location initialization: $error');
@@ -443,6 +450,15 @@ class HomeViewState extends State<HomeView>
   }
 
   void _onClickEnable(enabled) async {
+    // Skip background geolocation operations on web platform
+    if (kIsWeb) {
+      print('[_onClickEnable] Web platform detected - skipping background geolocation operations');
+      setState(() {
+        _enabled = enabled; // Update UI state only
+      });
+      return;
+    }
+    
     if (enabled) {
       dynamic callback = (bg.State state) {
         print('[start] success: $state');
@@ -487,6 +503,14 @@ class HomeViewState extends State<HomeView>
 
   // Manually fetch the current position.
   void _onClickGetCurrentPosition() async {
+    // Skip background geolocation operations on web platform
+    if (kIsWeb) {
+      print('[_onClickGetCurrentPosition] Web platform detected - skipping background geolocation getCurrentPosition');
+      // On web, we could use browser geolocation here if needed
+      // navigator.geolocation.getCurrentPosition() would be the web equivalent
+      return;
+    }
+    
     bg.BackgroundGeolocation.getCurrentPosition(
         persist: true,
         // <-- do not persist this location

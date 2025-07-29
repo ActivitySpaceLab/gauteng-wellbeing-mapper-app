@@ -33,7 +33,7 @@ echo ""
 
 # Build web version
 echo -e "${BLUE}🔨 Building Flutter web app...${NC}"
-$FLUTTER_CMD build web --release
+$FLUTTER_CMD build web --release --no-tree-shake-icons
 
 if [ ! -d "build/web" ]; then
     echo -e "${RED}❌ Web build failed. Please check for errors.${NC}"

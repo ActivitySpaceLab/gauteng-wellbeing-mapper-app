@@ -1,9 +1,16 @@
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_background_geolocation/flutter_background_geolocation.dart'
     as bg;
 import 'env.dart';
 
 void _onHttp(bg.HttpEvent event) async {
+  // Skip background geolocation operations on web platform
+  if (kIsWeb) {
+    print('[TransistorAuth] Web platform detected - skipping HTTP event handling');
+    return;
+  }
+  
   switch (event.status) {
     case 403:
     case 406:
@@ -30,6 +37,12 @@ class TransistorAuth {
 
   static Future<bool> register() async {
     try {
+      // Skip background geolocation operations on web platform
+      if (kIsWeb) {
+        print('[TransistorAuth] Web platform detected - skipping registration');
+        return true; // Return success to allow app to continue
+      }
+      
       SharedPreferences prefs = await _prefs;
       // Request a JWT from server
       String? sampleId = prefs.getString("sample_id");
@@ -54,6 +67,12 @@ class TransistorAuth {
   }
 
   static Future<void> registerErrorHandler() async {
+    // Skip background geolocation operations on web platform
+    if (kIsWeb) {
+      print('[TransistorAuth] Web platform detected - skipping error handler registration');
+      return;
+    }
+    
     bg.State state = await bg.BackgroundGeolocation.state;
     if ((state.params != null) && (state.params!['device'] != null)) {
       _migrateConfig();
@@ -63,6 +82,12 @@ class TransistorAuth {
   }
 
   static void _migrateConfig() async {
+    // Skip background geolocation operations on web platform
+    if (kIsWeb) {
+      print('[TransistorAuth] Web platform detected - skipping config migration');
+      return;
+    }
+    
     print("[TransistorAuth] migrateConfig");
     await bg.TransistorAuthorizationToken.destroy(ENV.TRACKER_HOST);
     bg.BackgroundGeolocation.reset(bg.Config(

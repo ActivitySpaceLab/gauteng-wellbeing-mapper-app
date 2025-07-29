@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:permission_handler/permission_handler.dart';
 
 /// Service for handling location permissions
@@ -141,6 +142,13 @@ class LocationService {
   static Future<bool> initializeLocationServices({BuildContext? context}) async {
     try {
       print('[LocationService] Initializing location services...');
+      
+      // Handle web platform - location services work differently on web
+      if (kIsWeb) {
+        print('[LocationService] Web platform detected - skipping mobile location permissions');
+        print('[LocationService] Web geolocation will be handled by browser permissions');
+        return true; // Allow web app to proceed without mobile location permissions
+      }
       
       // Request basic location permission using the original method
       bool hasLocationPermission = await requestLocationPermissions(context: context);

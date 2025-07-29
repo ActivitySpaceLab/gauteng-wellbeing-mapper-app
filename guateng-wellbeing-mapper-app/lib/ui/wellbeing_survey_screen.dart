@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_background_geolocation/flutter_background_geolocation.dart' as bg;
 import '../models/wellbeing_survey_models.dart';
 import '../services/wellbeing_survey_service.dart';
@@ -37,6 +38,16 @@ class _WellbeingSurveyScreenState extends State<WellbeingSurveyScreen> {
     });
 
     try {
+      // Skip background geolocation on web platform
+      if (kIsWeb) {
+        print('[WellbeingSurveyScreen] Web platform detected - skipping location capture');
+        setState(() {
+          _locationError = 'Location capture not available on web platform';
+          _isCaptingLocation = false;
+        });
+        return;
+      }
+      
       final location = await bg.BackgroundGeolocation.getCurrentPosition(
         persist: false,
         desiredAccuracy: 40,

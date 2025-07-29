@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_background_geolocation/flutter_background_geolocation.dart'
     as bg;
 import 'package:flutter_map/flutter_map.dart';
@@ -41,9 +42,14 @@ class MapViewState extends State<MapView>
     );
     _mapController = new MapController();
 
-    bg.BackgroundGeolocation.onLocation(_onLocation);
-    bg.BackgroundGeolocation.onMotionChange(_onMotionChange);
-    bg.BackgroundGeolocation.onEnabledChange(_onEnabledChange);
+    // Skip background geolocation setup on web platform
+    if (!kIsWeb) {
+      bg.BackgroundGeolocation.onLocation(_onLocation);
+      bg.BackgroundGeolocation.onMotionChange(_onMotionChange);
+      bg.BackgroundGeolocation.onEnabledChange(_onEnabledChange);
+    } else {
+      print('[map_view] Web platform detected - skipping background geolocation listeners');
+    }
 
     // Replace onReady with a different initialization approach
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -52,6 +58,12 @@ class MapViewState extends State<MapView>
   }
 
   void _displayStoredLocations() async {
+    // Skip background geolocation operations on web platform
+    if (kIsWeb) {
+      print('[map_view] Web platform detected - skipping stored locations display');
+      return;
+    }
+    
     List allLocations = await bg.BackgroundGeolocation.locations;
     for (var thisLocation in allLocations) {
       _onLocation(bg.Location(thisLocation));

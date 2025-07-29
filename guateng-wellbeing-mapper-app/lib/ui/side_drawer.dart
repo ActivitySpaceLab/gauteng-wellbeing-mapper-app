@@ -9,6 +9,7 @@ import 'package:wellbeing_mapper/services/initial_survey_service.dart';
 import 'package:wellbeing_mapper/theme/south_african_theme.dart';
 import 'package:wellbeing_mapper/debug/ios_location_debug.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter_background_geolocation/flutter_background_geolocation.dart'
@@ -67,19 +68,27 @@ class _WellbeingMapperSideDrawerState extends State<WellbeingMapperSideDrawer> {
   _exportData() async {
     var now = new DateTime.now();
     
-    // Get location data
-    List allLocations = await bg.BackgroundGeolocation.locations;
+    // Get location data - skip background geolocation on web platform
+    List allLocations = [];
     List<ShareLocation> customLocation = [];
-
-    // We get only timestamp and coordinates into our custom class
-    for (var thisLocation in allLocations) {
-      ShareLocation _loc = new ShareLocation(
-          bg.Location(thisLocation).timestamp,
-          bg.Location(thisLocation).coords.latitude,
-          bg.Location(thisLocation).coords.longitude,
-          bg.Location(thisLocation).coords.accuracy,
-          GlobalData.userUUID);
-      customLocation.add(_loc);
+    
+    if (kIsWeb) {
+      print('[side_drawer] Web platform detected - skipping background geolocation data export');
+      // On web, we could potentially get location data from other sources
+      // For now, export empty location list
+    } else {
+      allLocations = await bg.BackgroundGeolocation.locations;
+      
+      // We get only timestamp and coordinates into our custom class
+      for (var thisLocation in allLocations) {
+        ShareLocation _loc = new ShareLocation(
+            bg.Location(thisLocation).timestamp,
+            bg.Location(thisLocation).coords.latitude,
+            bg.Location(thisLocation).coords.longitude,
+            bg.Location(thisLocation).coords.accuracy,
+            GlobalData.userUUID);
+        customLocation.add(_loc);
+      }
     }
 
     // Get wellbeing survey data
