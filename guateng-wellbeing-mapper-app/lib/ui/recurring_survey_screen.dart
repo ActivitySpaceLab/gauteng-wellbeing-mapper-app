@@ -3,6 +3,8 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:record/record.dart';
+import 'package:audioplayers/audioplayers.dart';
 import 'dart:io';
 import 'dart:convert';
 import '../models/survey_models.dart';
@@ -20,8 +22,16 @@ class _RecurringSurveyScreenState extends State<RecurringSurveyScreen> {
   bool _isSubmitting = false;
   List<File> _selectedImages = [];
   List<String> _voiceNoteUrls = [];
+  List<File> _voiceNoteFiles = [];
   final ImagePicker _picker = ImagePicker();
   String _researchSite = 'barcelona'; // Default to Barcelona
+  
+  // Voice recording state
+  bool _isRecording = false;
+  bool _isPaused = false;
+  
+  // Audio playback state
+  Map<String, bool> _playingStates = {};
 
   @override
   void initState() {
@@ -427,25 +437,109 @@ class _RecurringSurveyScreenState extends State<RecurringSurveyScreen> {
         ),
         SizedBox(height: 8),
         Text(
-          'Record voice notes to share additional thoughts or experiences.',
+          'Record voice notes to share additional thoughts or experiences about environmental challenges.',
           style: TextStyle(fontSize: 14, color: Colors.grey[600]),
         ),
         SizedBox(height: 12),
-        if (_voiceNoteUrls.isNotEmpty) ...[
-          ...(_voiceNoteUrls.map((url) => ListTile(
-            leading: Icon(Icons.mic),
-            title: Text('Voice Note ${_voiceNoteUrls.indexOf(url) + 1}'),
-            trailing: IconButton(
-              icon: Icon(Icons.delete),
-              onPressed: () => _removeVoiceNote(url),
+        
+        // Display existing voice notes
+        if (_voiceNoteFiles.isNotEmpty) ...[
+          Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey[300]!),
+              borderRadius: BorderRadius.circular(8),
             ),
-          ))),
-          SizedBox(height: 8),
+            child: Column(
+              children: _voiceNoteFiles.asMap().entries.map((entry) {
+                final index = entry.key;
+                final file = entry.value;
+                final fileName = file.path.split('/').last;
+                final isPlaying = _playingStates[file.path] ?? false;
+                
+                return ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: Colors.blue[100],
+                    child: Icon(Icons.mic, color: Colors.blue[700]),
+                  ),
+                  title: Text('Voice Note ${index + 1}'),
+                  subtitle: Text(fileName, style: TextStyle(fontSize: 12)),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: Icon(isPlaying ? Icons.pause : Icons.play_arrow),
+                        onPressed: () => _togglePlayback(file.path),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.delete, color: Colors.red),
+                        onPressed: () => _removeVoiceNote(index),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+          SizedBox(height: 12),
         ],
-        ElevatedButton.icon(
-          onPressed: _recordVoiceNote,
-          icon: Icon(Icons.mic),
-          label: Text('Record Voice Note'),
+        
+        // Recording controls
+        Container(
+          padding: EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.grey[50],
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.grey[300]!),
+          ),
+          child: Column(
+            children: [
+              if (_isRecording) ...[
+                Row(
+                  children: [
+                    Icon(Icons.fiber_manual_record, color: Colors.red),
+                    SizedBox(width: 8),
+                    Text('Recording...', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+                    Spacer(),
+                    Text('Tap to stop', style: TextStyle(fontSize: 12)),
+                  ],
+                ),
+                SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    ElevatedButton.icon(
+                      onPressed: _pauseResumeRecording,
+                      icon: Icon(_isPaused ? Icons.play_arrow : Icons.pause),
+                      label: Text(_isPaused ? 'Resume' : 'Pause'),
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+                    ),
+                    ElevatedButton.icon(
+                      onPressed: _stopRecording,
+                      icon: Icon(Icons.stop),
+                      label: Text('Stop & Save'),
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                    ),
+                    ElevatedButton.icon(
+                      onPressed: _cancelRecording,
+                      icon: Icon(Icons.cancel),
+                      label: Text('Cancel'),
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                    ),
+                  ],
+                ),
+              ] else ...[
+                ElevatedButton.icon(
+                  onPressed: _startRecording,
+                  icon: Icon(Icons.mic),
+                  label: Text('Record Voice Note'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ],
+            ],
+          ),
         ),
       ],
     );
@@ -461,19 +555,19 @@ class _RecurringSurveyScreenState extends State<RecurringSurveyScreen> {
         ),
         SizedBox(height: 8),
         Text(
-          'Add photos that relate to your environmental experiences.',
+          'Add photos that relate to your environmental experiences (max 5 photos).',
           style: TextStyle(fontSize: 14, color: Colors.grey[600]),
         ),
         SizedBox(height: 12),
         if (_selectedImages.isNotEmpty) ...[
           Container(
-            height: 100,
+            height: 120,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               itemCount: _selectedImages.length,
               itemBuilder: (context, index) {
                 return Padding(
-                  padding: EdgeInsets.only(right: 8.0),
+                  padding: EdgeInsets.only(right: 12.0),
                   child: Stack(
                     children: [
                       ClipRRect(
@@ -491,12 +585,27 @@ class _RecurringSurveyScreenState extends State<RecurringSurveyScreen> {
                         child: InkWell(
                           onTap: () => _removeImage(index),
                           child: Container(
-                            padding: EdgeInsets.all(2),
+                            padding: EdgeInsets.all(4),
                             decoration: BoxDecoration(
-                              color: Colors.red,
+                              color: Colors.red.withOpacity(0.9),
                               shape: BoxShape.circle,
                             ),
                             child: Icon(Icons.close, color: Colors.white, size: 16),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        bottom: 4,
+                        left: 4,
+                        child: Container(
+                          padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.black54,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            '${index + 1}',
+                            style: TextStyle(color: Colors.white, fontSize: 12),
                           ),
                         ),
                       ),
@@ -506,23 +615,44 @@ class _RecurringSurveyScreenState extends State<RecurringSurveyScreen> {
               },
             ),
           ),
+          SizedBox(height: 12),
+          Text(
+            '${_selectedImages.length}/5 photos selected',
+            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+          ),
           SizedBox(height: 8),
         ],
         Row(
           children: [
             ElevatedButton.icon(
-              onPressed: _takePhoto,
+              onPressed: _selectedImages.length >= 5 ? null : _takePhoto,
               icon: Icon(Icons.camera_alt),
               label: Text('Take Photo'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                foregroundColor: Colors.white,
+              ),
             ),
-            SizedBox(width: 8),
+            SizedBox(width: 12),
             ElevatedButton.icon(
-              onPressed: _selectFromGallery,
+              onPressed: _selectedImages.length >= 5 ? null : _selectFromGallery,
               icon: Icon(Icons.photo_library),
               label: Text('Gallery'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white,
+              ),
             ),
           ],
         ),
+        if (_selectedImages.length >= 5)
+          Padding(
+            padding: EdgeInsets.only(top: 8),
+            child: Text(
+              'Maximum of 5 photos reached. Remove a photo to add more.',
+              style: TextStyle(fontSize: 12, color: Colors.orange[700]),
+            ),
+          ),
       ],
     );
   }
@@ -572,28 +702,149 @@ class _RecurringSurveyScreenState extends State<RecurringSurveyScreen> {
     );
   }
 
-  void _recordVoiceNote() async {
-    // TODO: Implement voice recording functionality
-    // This would use a package like flutter_sound or record
-    showDialog(
+  // Voice recording methods
+  Future<void> _startRecording() async {
+    try {
+      // For now, show a placeholder dialog since we need to add the recording packages
+      await _showRecordingDialog();
+    } catch (e) {
+      _showErrorDialog('Failed to start recording: $e');
+    }
+  }
+
+  Future<void> _showRecordingDialog() async {
+    return showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (context) => AlertDialog(
-        title: Text('Voice Recording'),
-        content: Text('Voice recording functionality will be implemented here.'),
+        title: Row(
+          children: [
+            Icon(Icons.mic, color: Colors.red),
+            SizedBox(width: 8),
+            Text('Voice Recording'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Voice recording functionality is being implemented.'),
+            SizedBox(height: 16),
+            Text('For now, you can use the text fields to describe your environmental experiences.'),
+            SizedBox(height: 16),
+            LinearProgressIndicator(),
+            SizedBox(height: 8),
+            Text('Recording simulation...', style: TextStyle(fontSize: 12)),
+          ],
+        ),
         actions: [
           TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _simulateVoiceNote();
+            },
+            child: Text('Add Sample Voice Note'),
+          ),
+          TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text('OK'),
+            child: Text('Cancel'),
           ),
         ],
       ),
     );
   }
 
-  void _removeVoiceNote(String url) {
+  void _simulateVoiceNote() {
+    // Add a simulated voice note for testing
+    final now = DateTime.now();
+    final fileName = 'voice_note_${now.millisecondsSinceEpoch}.m4a';
+    
     setState(() {
-      _voiceNoteUrls.remove(url);
+      // Create a temporary file reference (in real implementation, this would be the actual recording)
+      final tempFile = File('/tmp/$fileName'); // This won't actually exist, just for UI testing
+      _voiceNoteFiles.add(tempFile);
+      _voiceNoteUrls.add(tempFile.path);
     });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Sample voice note added (actual recording will be implemented)'),
+        backgroundColor: Colors.green,
+      ),
+    );
+  }
+
+  Future<void> _pauseResumeRecording() async {
+    setState(() {
+      _isPaused = !_isPaused;
+    });
+  }
+
+  Future<void> _stopRecording() async {
+    setState(() {
+      _isRecording = false;
+      _isPaused = false;
+    });
+    
+    // In real implementation, save the recording file here
+    _simulateVoiceNote();
+  }
+
+  Future<void> _cancelRecording() async {
+    setState(() {
+      _isRecording = false;
+      _isPaused = false;
+    });
+  }
+
+  void _togglePlayback(String filePath) {
+    setState(() {
+      final isCurrentlyPlaying = _playingStates[filePath] ?? false;
+      
+      // Stop all other playbacks
+      _playingStates.clear();
+      
+      // Toggle this one
+      _playingStates[filePath] = !isCurrentlyPlaying;
+    });
+
+    // In real implementation, use audioplayers package to play/pause
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(_playingStates[filePath]! ? 'Playing voice note...' : 'Stopped playback'),
+        duration: Duration(seconds: 1),
+      ),
+    );
+
+    // Simulate playback finishing after 3 seconds
+    if (_playingStates[filePath]!) {
+      Future.delayed(Duration(seconds: 3), () {
+        if (mounted) {
+          setState(() {
+            _playingStates[filePath] = false;
+          });
+        }
+      });
+    }
+  }
+
+  void _removeVoiceNote(dynamic indexOrUrl) {
+    if (indexOrUrl is int) {
+      // Remove by index
+      setState(() {
+        if (indexOrUrl < _voiceNoteFiles.length) {
+          final file = _voiceNoteFiles[indexOrUrl];
+          _voiceNoteFiles.removeAt(indexOrUrl);
+          _voiceNoteUrls.remove(file.path);
+          _playingStates.remove(file.path);
+        }
+      });
+    } else if (indexOrUrl is String) {
+      // Remove by URL (legacy support)
+      final index = _voiceNoteUrls.indexOf(indexOrUrl);
+      if (index != -1) {
+        _removeVoiceNote(index);
+      }
+    }
   }
 
   void _takePhoto() async {
@@ -678,9 +929,9 @@ class _RecurringSurveyScreenState extends State<RecurringSurveyScreen> {
           environmentalChallenges: formData['environmentalChallenges'],
           challengesStressLevel: formData['challengesStressLevel'],
           copingHelp: formData['copingHelp'],
-          voiceNoteUrls: _voiceNoteUrls.isNotEmpty ? _voiceNoteUrls : null,
+          voiceNoteUrls: _voiceNoteFiles.isNotEmpty ? _voiceNoteFiles.map((f) => f.path).toList() : null,
           imageUrls: _selectedImages.isNotEmpty ? _selectedImages.map((f) => f.path).toList() : null,
-          researchSite: 'barcelona', // Default for now, should be loaded from preferences
+          researchSite: _researchSite, // Use the loaded research site
           submittedAt: DateTime.now(),
         );
 
