@@ -3,7 +3,7 @@ buildscript {
     ext {
         compileSdkVersion   = 35               // Updated to support latest plugins
         targetSdkVersion    = 35               // Updated to support latest plugins
-        minSdkVersion       = 21
+        minSdkVersion       = 23               // Updated for record_android compatibility
         appCompatVersion    = "1.4.2"           // or higher
         playServicesLocationVersion = "21.0.1"  // or higher
     }

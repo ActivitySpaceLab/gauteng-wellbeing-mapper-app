@@ -1,7 +1,7 @@
 name: wellbeing_mapper
 description: A privacy-focused app for mapping your mental wellbeing.
 
-version: 0.1.4+0
+version: 0.1.5+0
 publish_to: none
 
 environment:
@@ -29,7 +29,7 @@ dependencies:
   
   # Media and UI Utilities (Testing next batch)
   image_picker: ^1.1.2
-  record: ^5.1.2
+  record: ^6.0.0
   audioplayers: ^6.1.0
   url_launcher: ^6.3.1
   mailto: ^2.0.0
