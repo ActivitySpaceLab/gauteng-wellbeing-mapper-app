@@ -14,6 +14,69 @@ This is a **beta testing version** of Wellbeing Mapper, which means:
 - ❌ Nothing is sent to research servers
 - ✅ Perfect for learning how the app works
 
+## How to Install the App
+
+### Android Installation from GitHub Releases
+
+The easiest way to get the latest version is through our GitHub releases:
+
+#### Step 1: Download the APK
+1. Go to the **[Releases page](https://github.com/ActivitySpaceLab/guateng-wellbeing-mapper-app/releases)**
+2. Find the latest release (should be at the top)
+3. Look for the **Assets** section
+4. Download the `.apk` file (usually named like `wellbeing-mapper-v1.0.0.apk`)
+
+#### Step 2: Install on Your Android Device
+1. **Transfer the APK** to your Android device (via USB, email, cloud storage, etc.)
+2. **Enable Unknown Sources**:
+   - Go to **Settings → Security** (or **Privacy & Security**)
+   - Enable **"Install unknown apps"** or **"Unknown sources"**
+   - Select your file manager and allow it to install apps
+3. **Install the APK**:
+   - Open your file manager and find the downloaded APK
+   - Tap the APK file
+   - Tap **"Install"**
+   - Wait for installation to complete
+   - Tap **"Open"** to launch the app
+
+#### Alternative: Direct Download on Device
+1. Open your Android browser and go to the [Releases page](https://github.com/ActivitySpaceLab/guateng-wellbeing-mapper-app/releases)
+2. Download the `.apk` file directly to your device
+3. Follow steps 2-3 above to install
+
+### iOS Installation (TestFlight)
+
+For iOS users, the app is available through TestFlight:
+
+1. **Install TestFlight** from the App Store (if not already installed)
+2. **Get the beta invitation** from the research team
+3. **Tap the TestFlight link** in your invitation email
+4. **Install** Wellbeing Mapper through TestFlight
+
+### Installation Troubleshooting
+
+#### Android Issues
+- **"App not installed" error**: Make sure you have enough storage space
+- **"Parse error"**: Re-download the APK file, it may be corrupted
+- **Can't find "Unknown sources"**: Look for "Install unknown apps" in newer Android versions
+- **Installation blocked**: Some antivirus apps block APK installation - temporarily disable them
+
+#### General Issues
+- **App won't open**: Restart your device and try again
+- **Permissions not working**: Go to app settings and manually grant location and notification permissions
+- **Need help?**: Contact john.palmer@upf.edu with your device model and Android/iOS version
+
+### Keeping Your App Updated
+
+#### Android (GitHub Releases)
+- **Check for updates**: Visit the releases page periodically
+- **Notification**: We'll announce new releases via email to beta testers
+- **Install over existing**: You can install new versions over the old one (your settings will be preserved)
+
+#### iOS (TestFlight)
+- **Automatic updates**: TestFlight will notify you of new beta versions
+- **Manual check**: Open TestFlight and check for Wellbeing Mapper updates
+
 ## Getting Started
 
 ### 1. Choose Your Mode
