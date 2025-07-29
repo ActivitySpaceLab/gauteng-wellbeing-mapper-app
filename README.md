@@ -1,5 +1,17 @@
 # **Wellbeing Mapper** 🧪 Beta Version
 
+## 🧪 Beta Testing
+
+**Join the Beta Test Program!**
+
+Help us test the latest version of Wellbeing Mapper by joining our TestFlight beta program:
+
+**[Join TestFlight Beta Testing →](https://testflight.apple.com/join/32WkKXs6)**
+
+*Beta testing helps us identify issues and improve the app before general release. Your feedback is invaluable!*
+
+---
+
 ## What is Wellbeing Mapper?
 
 Wellbeing Mapper is a privacy-focused mobile application that lets you map your mental wellbeing in environmental & climate context. 

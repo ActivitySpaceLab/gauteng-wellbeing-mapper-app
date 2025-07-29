@@ -1,4 +1,19 @@
-# Developers' Guid to Beta Testing and Release
+# Beta Testing Guide
+
+## 🧪 Join the Beta Program
+
+**[Join TestFlight Beta Testing →](https://testflight.apple.com/join/32WkKXs6)**
+
+*Help us test the latest version of Wellbeing Mapper and provide valuable feedback before general release!*
+
+### Requirements for Beta Testers
+- iOS device (iPhone or iPad)
+- iOS 12.0 or later
+- TestFlight app installed from the App Store
+
+---
+
+## Developers' Guide to Beta Testing and Release
 
 ## Overview
 

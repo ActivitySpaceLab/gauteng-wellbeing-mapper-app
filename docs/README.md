@@ -8,6 +8,18 @@ nav_order: 1
 
 Welcome to the Wellbeing Mapper developer documentation. This documentation is designed to help new developers quickly understand and start working with the Wellbeing Mapper codebase.
 
+## 🧪 Beta Testing
+
+**Join the Beta Test Program!**
+
+You can help test the latest version of Wellbeing Mapper by joining our TestFlight beta program:
+
+**[Join TestFlight Beta Testing →](https://testflight.apple.com/join/32WkKXs6)**
+
+*Beta testing helps us identify issues and improve the app before general release. Your feedback is invaluable!*
+
+---
+
 ## What is Wellbeing Mapper?
 
 Wellbeing Mapper is a privacy-focused mobile application built with Flutter that allows users to map their mental wellbeing in environmental & climate context. The app enables correlation of location data with mental health indicators to better understand how environmental and climate factors impact psychological wellbeing.
