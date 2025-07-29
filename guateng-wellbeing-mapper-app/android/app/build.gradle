@@ -81,7 +81,8 @@ android {
 
     buildTypes {
         release {
-            signingConfig signingConfigs.release
+            // Use debug signing for CI/CD builds when keystore is not available
+            signingConfig keystoreProperties['storeFile'] ? signingConfigs.release : signingConfigs.debug
             shrinkResources false
             proguardFiles "${background_geolocation.projectDir}/proguard-rules.pro"
         }

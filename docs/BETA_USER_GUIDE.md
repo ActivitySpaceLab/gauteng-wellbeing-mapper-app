@@ -20,11 +20,16 @@ This is a **beta testing version** of Wellbeing Mapper, which means:
 
 The easiest way to get the latest version is through our GitHub releases:
 
+> **Note**: The first release is currently being processed by our automated build system and should be available shortly at the releases page.
+
 #### Step 1: Download the APK
 1. Go to the **[Releases page](https://github.com/ActivitySpaceLab/guateng-wellbeing-mapper-app/releases)**
 2. Find the latest release (should be at the top)
 3. Look for the **Assets** section
-4. Download the `.apk` file (usually named like `wellbeing-mapper-v1.0.0.apk`)
+4. Download one of the APK files:
+   - `app-arm64-v8a-release.apk` (most modern Android devices)
+   - `app-armeabi-v7a-release.apk` (older Android devices)
+   - `app-x86_64-release.apk` (emulators/tablets)
 
 #### Step 2: Install on Your Android Device
 1. **Transfer the APK** to your Android device (via USB, email, cloud storage, etc.)
