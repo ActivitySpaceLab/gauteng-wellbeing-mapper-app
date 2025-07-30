@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:permission_handler/permission_handler.dart';
+import 'ios_location_fix_service.dart';
 
 /// Service for handling location permissions
 class LocationService {
@@ -10,7 +11,26 @@ class LocationService {
     try {
       print('[LocationService] Requesting location permissions...');
       
-      // Check current permission status
+      // For iOS, try the comprehensive fix first
+      if (!kIsWeb && context != null) {
+        try {
+          final platform = Theme.of(context).platform;
+          if (platform == TargetPlatform.iOS) {
+            print('[LocationService] Using iOS-specific location fix...');
+            final iosFixResult = await IosLocationFixService.performComprehensiveFix(context: context);
+            if (iosFixResult) {
+              print('[LocationService] iOS fix successful');
+              return true;
+            } else {
+              print('[LocationService] iOS fix failed, falling back to standard approach');
+            }
+          }
+        } catch (e) {
+          print('[LocationService] iOS fix error, falling back: $e');
+        }
+      }
+      
+      // Standard permission request (fallback or non-iOS)
       final status = await Permission.locationWhenInUse.status;
       print('[LocationService] Current permission status: $status');
       

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter_background_geolocation/flutter_background_geolocation.dart' as bg;
 import '../services/location_service.dart';
+import '../services/ios_location_fix_service.dart';
 
 /// Debug screen to help diagnose iOS location permission issues
 class IosLocationDebugScreen extends StatefulWidget {
@@ -251,6 +252,34 @@ class _IosLocationDebugScreenState extends State<IosLocationDebugScreen> {
               onPressed: _isLoading ? null : _requestAlwaysPermission,
               child: Text('Request Always Permission'),
               style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+            ),
+            
+            SizedBox(height: 8),
+            
+            ElevatedButton(
+              onPressed: _isLoading ? null : () async {
+                setState(() {
+                  _isLoading = true;
+                });
+                _log('=== Running Comprehensive iOS Location Fix ===');
+                try {
+                  bool result = await IosLocationFixService.performComprehensiveFix(context: context);
+                  _log('Comprehensive iOS fix result: $result');
+                  if (result) {
+                    _log('✅ iOS location fix completed successfully!');
+                    await _checkCurrentPermissions(); // Refresh status
+                  } else {
+                    _log('❌ iOS location fix failed');
+                  }
+                } catch (e) {
+                  _log('iOS location fix error: $e');
+                }
+                setState(() {
+                  _isLoading = false;
+                });
+              },
+              child: Text('🔧 Run Comprehensive iOS Fix'),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             ),
             
             SizedBox(height: 8),
