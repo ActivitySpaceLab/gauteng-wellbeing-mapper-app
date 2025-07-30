@@ -127,21 +127,68 @@ jobs:
         tag: ${{ steps.version.outputs.content }}
         name: "Wellbeing Mapper ${{ steps.version.outputs.content }}"
         body: |
-          ## Wellbeing Mapper Release ${{ steps.version.outputs.content }}
+          # Wellbeing Mapper Release ${{ steps.version.outputs.content }}
           
-          ### 📱 Downloads
-          - **Android App Bundle (Recommended)**: `app-release.aab` - Upload to Google Play Console
-          - **Android APKs**: Individual APK files for direct installation
-          - **iOS Build**: Requires archiving in Xcode for App Store Connect
+          Welcome to the Wellbeing Mapper beta release! Thank you for helping us test and improve this privacy-focused app for mapping your mental wellbeing.
           
-          ### 🔧 What's Included
-          - ✅ Android release builds (APK + AAB)
-          - ✅ iOS release build (requires Xcode archiving for distribution)
+          ## 📱 What is Wellbeing Mapper?
+          Wellbeing Mapper helps you track your mental wellbeing and movement patterns. It can be used in private mode without sharing any data. One we release the final production version, it will also be possible for volunteers to use it in research mode, in which case their data will be synced with a research server. In this beta release, all features are available for private testing: no data is transmitted from your phone in this version other than feedback that you choose to send the developement team or data that you manually export. Any feedback you can provide will help us create a better experience for future users and research participants.
+          
+          ## � How to Download and Install
+          
+          ### Android Users
+          **You should install one of the APK files below:**
+          - `app-arm64-v8a-release.apk` (most modern Android devices)
+          - `app-armeabi-v7a-release.apk` (older Android devices)
+          - `app-x86_64-release.apk` (emulators/tablets)
+          
+          **Step-by-step installation:**
+          1. Download the appropriate APK file from the Assets section below.
+          2. Transfer it to your Android device (or download directly on your device).
+          3. Enable "Install unknown apps" in your device's security settings.
+          4. Tap the APK file and follow the prompts to install.
+          5. Open Wellbeing Mapper and choose your mode to get started!
+          
+          **Troubleshooting:**
+          - If you see "App not installed" or "Parse error", re-download the APK and ensure you have enough storage.
+          - If you can't find "Unknown sources", look for "Install unknown apps" in your settings.
+          - For help, email john.palmer@upf.edu with your device model and Android version.
+          
+          ### Android App Bundle (`app-release.aab`)
+          This file is for uploading to the Google Play Console (not for direct installation). Most users should use the APK files above.
+          
+          ### iOS Users
+          **The iOS build provided here (`Runner.app`) is NOT directly installable on your device.**
+          - iOS apps must be distributed via TestFlight or the App Store due to Apple restrictions.
+          - If you want to test on iOS, please contact the research team for a TestFlight invitation.
+          - The iOS file here is for archiving in Xcode and App Store Connect submission only.
+          
+          ## � Privacy and Beta Disclaimer
+          - All data stays on your device during beta testing—nothing is uploaded or shared unless you manually export it yourself
+          - No personal information is required. No accounts or login needed.
+          - You can use Private Mode for personal tracking, or App Testing Mode to try all research features (but without any real data being collected).
+          - You can delete all data that has been recorded on your phone at any time from the app settings.
+          
+          ## 💡 About Beta Testing
+          - Explore both Private and App Testing modes
+          - Try surveys, location tracking, and notifications
+          - Use the Settings screen to test notification intervals and permissions
+          - Your feedback is invaluable—please report bugs or suggestions to john.palmer@upf.edu
+          
+          ## 📝 Need Help?
+          - See the [Beta User Guide](https://github.com/ActivitySpaceLab/guateng-wellbeing-mapper-app/blob/main/docs/BETA_USER_GUIDE.md) for full instructions and troubleshooting
+          - Contact the development team via email or the in-app contact option
+          
+          ## What's Included
+          - ✅ Android APKs for direct installation
+          - ✅ Android App Bundle (AAB) for Play Store upload
+          - ✅ iOS build for archiving (not for direct install)
           - ✅ Fully tested and analyzed code
           - ✅ Updated Android minSdkVersion to 23 for record package compatibility
           
-          ### 📋 Next Steps
-          1. **Android**: Upload `app-release.aab` to Google Play Console
-          2. **iOS**: Archive the built app in Xcode and upload to App Store Connect
+          ## Next Steps
+          1. **Android**: Download and install the APK for your device
+          2. **iOS**: Request a TestFlight invite from the research team
+          3. **Feedback**: Share your experience to help us improve Wellbeing Mapper!
         draft: false
         prerelease: false
