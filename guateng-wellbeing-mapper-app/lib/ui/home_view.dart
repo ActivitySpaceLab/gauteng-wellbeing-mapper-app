@@ -312,15 +312,8 @@ class HomeViewState extends State<HomeView>
           _configureBackgroundServicesAsync(userUUID, sampleId, false);
         }
       } else {
-        print('[home_view.dart] Participation settings not found, but still requesting location permissions for basic app functionality');
-        // Even without participation settings, we should request location permissions
-        // so the app can function properly when the user does make a choice
-        try {
-          await LocationService.initializeLocationServices(context: context);
-        } catch (error) {
-          print('[home_view.dart] Error requesting location permissions: $error');
-          // Continue with app initialization even if location setup fails
-        }
+        print('[home_view.dart] Participation settings not found, background services will be configured when user makes choice');
+        // Location permissions are already requested above, no need to call again
       }
       print('[home_view.dart] initPlatformState completed successfully');
     } catch (error) {

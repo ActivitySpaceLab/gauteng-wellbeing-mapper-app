@@ -110,21 +110,22 @@ class LocationService {
     try {
       print('[LocationService] Requesting background location permissions...');
       
-      // Show rationale dialog first if context is provided
+      // Check current permission status first
+      final status = await Permission.locationAlways.status;
+      print('[LocationService] Current background location status: $status');
+      
+      if (status == PermissionStatus.granted) {
+        print('[LocationService] Background location already granted');
+        return true;
+      }
+      
+      // Show rationale dialog only if context is provided AND permission is not already granted
       if (context != null) {
         bool userAccepted = await showBackgroundLocationRationale(context);
         if (!userAccepted) {
           print('[LocationService] User declined background location rationale');
           return false;
         }
-      }
-      
-      // Check current permission status
-      final status = await Permission.locationAlways.status;
-      print('[LocationService] Current background location status: $status');
-      
-      if (status == PermissionStatus.granted) {
-        return true;
       }
       
       // Request permission
@@ -150,11 +151,18 @@ class LocationService {
         return true; // Allow web app to proceed without mobile location permissions
       }
       
-      // Request basic location permission using the original method
+      // Check if we already have background location permission (the highest level)
+      final backgroundStatus = await Permission.locationAlways.status;
+      if (backgroundStatus == PermissionStatus.granted) {
+        print('[LocationService] Background location already granted - all location services available');
+        return true;
+      }
+      
+      // Request basic location permission first
       bool hasLocationPermission = await requestLocationPermissions(context: context);
       
       if (hasLocationPermission) {
-        // Request precise location for better accuracy
+        // Request precise location for better accuracy (Android only)
         await requestPreciseLocationPermission();
         
         // Request background location for continuous tracking
