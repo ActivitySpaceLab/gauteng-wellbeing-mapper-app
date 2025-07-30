@@ -11,16 +11,62 @@ class LocationService {
     try {
       print('[LocationService] Requesting location permissions...');
       
+      // Check current permission status first
+      final whenInUseStatus = await Permission.locationWhenInUse.status;
+      final alwaysStatus = await Permission.locationAlways.status;
+      print('[LocationService] Current when-in-use status: $whenInUseStatus');
+      print('[LocationService] Current always status: $alwaysStatus');
+      
+      // If we already have either when-in-use or always permission, we're good
+      if (whenInUseStatus == PermissionStatus.granted || alwaysStatus == PermissionStatus.granted) {
+        print('[LocationService] Location permission already granted');
+        return true;
+      }
+      
       // For iOS, try the comprehensive fix first
       if (!kIsWeb && context != null) {
         try {
           final platform = Theme.of(context).platform;
           if (platform == TargetPlatform.iOS) {
-            print('[LocationService] Using iOS-specific location fix...');
+            print('[LocationService] Checking iOS native permission status first...');
+            
+            // First, quickly check if native iOS permissions are already working
+            final nativePermission = await IosLocationFixService.checkNativeLocationPermission();
+            final isRegistered = await IosLocationFixService.isAppRegisteredInSettings();
+            
+            if (nativePermission || isRegistered) {
+              print('[LocationService] iOS native permissions already working, skipping comprehensive fix');
+              return true;
+            }
+            
+            print('[LocationService] iOS permissions not working, running comprehensive fix...');
             final iosFixResult = await IosLocationFixService.performComprehensiveFix(context: context);
             if (iosFixResult) {
               print('[LocationService] iOS fix successful');
-              return true;
+              
+              // Double-check with native iOS permission status
+              final newNativePermission = await IosLocationFixService.checkNativeLocationPermission();
+              print('[LocationService] Native iOS permission check: $newNativePermission');
+              
+              if (newNativePermission) {
+                print('[LocationService] Native iOS permissions confirmed - bypassing permission_handler');
+                return true;
+              }
+              
+              // Check if app is registered even if permission_handler reports denied
+              final newIsRegistered = await IosLocationFixService.isAppRegisteredInSettings();
+              if (newIsRegistered) {
+                print('[LocationService] App registered in iOS settings - assuming permissions are working');
+                return true;
+              }
+              
+              // Double-check permissions after iOS fix
+              final newWhenInUseStatus = await Permission.locationWhenInUse.status;
+              final newAlwaysStatus = await Permission.locationAlways.status;
+              print('[LocationService] After iOS fix - when-in-use: $newWhenInUseStatus, always: $newAlwaysStatus');
+              if (newWhenInUseStatus == PermissionStatus.granted || newAlwaysStatus == PermissionStatus.granted) {
+                return true;
+              }
             } else {
               print('[LocationService] iOS fix failed, falling back to standard approach');
             }
@@ -31,18 +77,16 @@ class LocationService {
       }
       
       // Standard permission request (fallback or non-iOS)
-      final status = await Permission.locationWhenInUse.status;
-      print('[LocationService] Current permission status: $status');
-      
-      if (status == PermissionStatus.granted) {
-        return true;
-      }
-      
-      // Request permission
+      print('[LocationService] Attempting standard permission request...');
       final result = await Permission.locationWhenInUse.request();
       print('[LocationService] Permission request result: $result');
       
-      return result == PermissionStatus.granted;
+      // Final check - accept both when-in-use and always permissions
+      final finalWhenInUseStatus = await Permission.locationWhenInUse.status;
+      final finalAlwaysStatus = await Permission.locationAlways.status;
+      print('[LocationService] Final status check - when-in-use: $finalWhenInUseStatus, always: $finalAlwaysStatus');
+      
+      return finalWhenInUseStatus == PermissionStatus.granted || finalAlwaysStatus == PermissionStatus.granted;
     } catch (error) {
       print('[LocationService] Error requesting location permissions: $error');
       return false;
@@ -171,17 +215,57 @@ class LocationService {
         return true; // Allow web app to proceed without mobile location permissions
       }
       
-      // Check if we already have background location permission (the highest level)
-      final backgroundStatus = await Permission.locationAlways.status;
-      if (backgroundStatus == PermissionStatus.granted) {
-        print('[LocationService] Background location already granted - all location services available');
+      // Check if we already have any location permission (when-in-use or always)
+      final whenInUseStatus = await Permission.locationWhenInUse.status;
+      final alwaysStatus = await Permission.locationAlways.status;
+      print('[LocationService] Current permissions - when-in-use: $whenInUseStatus, always: $alwaysStatus');
+      
+      if (whenInUseStatus == PermissionStatus.granted || alwaysStatus == PermissionStatus.granted) {
+        print('[LocationService] Location permission already available - all location services available');
         return true;
+      }
+      
+      // For iOS, also check native permission status (sometimes permission_handler is out of sync)
+      if (context != null) {
+        try {
+          final platform = Theme.of(context).platform;
+          if (platform == TargetPlatform.iOS) {
+            final nativePermission = await IosLocationFixService.checkNativeLocationPermission();
+            final isRegistered = await IosLocationFixService.isAppRegisteredInSettings();
+            
+            if (nativePermission || isRegistered) {
+              print('[LocationService] iOS native permissions already working, skipping permission requests');
+              return true;
+            }
+          }
+        } catch (e) {
+          print('[LocationService] Error checking iOS native permissions: $e');
+        }
       }
       
       // Request basic location permission first
       bool hasLocationPermission = await requestLocationPermissions(context: context);
       
+      // For iOS, double-check with native permission status if permission_handler failed
+      if (!hasLocationPermission && !kIsWeb && context != null) {
+        try {
+          final platform = Theme.of(context).platform;
+          if (platform == TargetPlatform.iOS) {
+            print('[LocationService] Permission handler failed, checking native iOS status...');
+            final nativePermission = await IosLocationFixService.checkNativeLocationPermission();
+            if (nativePermission) {
+              print('[LocationService] Native iOS permissions available despite permission_handler failure');
+              hasLocationPermission = true;
+            }
+          }
+        } catch (e) {
+          print('[LocationService] Error checking native iOS permissions: $e');
+        }
+      }
+      
       if (hasLocationPermission) {
+        print('[LocationService] Location permission granted');
+        
         // Request precise location for better accuracy (Android only)
         await requestPreciseLocationPermission();
         

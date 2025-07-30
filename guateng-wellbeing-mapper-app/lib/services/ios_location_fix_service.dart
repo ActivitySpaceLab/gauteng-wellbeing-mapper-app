@@ -9,6 +9,9 @@ import '../main.dart'; // Import to access existing navigatorKey
 class IosLocationFixService {
   static const _channel = MethodChannel('com.github.activityspacelab.wellbeingmapper.guateng/ios_location');
   
+  // Flag to track if comprehensive fix has already been completed successfully
+  static bool _comprehensiveFixCompleted = false;
+  
   /// Initialize native iOS location manager to ensure app appears in settings
   static Future<bool> initializeNativeLocationManager() async {
     try {
@@ -56,6 +59,25 @@ class IosLocationFixService {
     }
   }
   
+  /// Check if native iOS location permissions are actually working
+  /// This bypasses permission_handler and checks native status directly
+  static Future<bool> checkNativeLocationPermission() async {
+    try {
+      final result = await _channel.invokeMethod('checkNativeLocationPermission');
+      print('[IosLocationFixService] Native location permission status: $result');
+      return result == true;
+    } catch (e) {
+      print('[IosLocationFixService] Failed to check native permission: $e');
+      return false;
+    }
+  }
+  
+  /// Reset the comprehensive fix flag - call this if permissions are revoked
+  static void resetComprehensiveFixFlag() {
+    _comprehensiveFixCompleted = false;
+    print('[IosLocationFixService] Comprehensive fix flag reset');
+  }
+  
   /// Force app to appear in iOS location settings
   static Future<bool> forceRegisterInSettings() async {
     try {
@@ -64,10 +86,20 @@ class IosLocationFixService {
       // Step 1: Initialize native location manager
       await initializeNativeLocationManager();
       
-      // Step 2: Request location permission
-      await requestLocationPermissionNative();
+      // Step 2: Request location permission through native iOS (this is the key step)
+      final nativeResult = await requestLocationPermissionNative();
+      print('[IosLocationFixService] Native permission result: $nativeResult');
       
-      // Step 3: Initialize background geolocation to trigger additional registration
+      // Check if now registered after native request
+      final isRegistered = await isAppRegisteredInSettings();
+      print('[IosLocationFixService] App registered after native request: $isRegistered');
+      
+      if (isRegistered || nativeResult) {
+        print('[IosLocationFixService] Registration successful, skipping additional requests');
+        return true;
+      }
+      
+      // Step 3: Initialize background geolocation only if native request didn't work
       try {
         await bg.BackgroundGeolocation.ready(bg.Config(
           desiredAccuracy: bg.Config.DESIRED_ACCURACY_HIGH,
@@ -78,19 +110,27 @@ class IosLocationFixService {
           logLevel: bg.Config.LOG_LEVEL_OFF,
         ));
         print('[IosLocationFixService] Background geolocation ready');
+        
+        // Check again after background geolocation
+        final isRegisteredAfterBg = await isAppRegisteredInSettings();
+        if (isRegisteredAfterBg) {
+          print('[IosLocationFixService] Registration successful after background geolocation');
+          return true;
+        }
       } catch (bgError) {
         print('[IosLocationFixService] Background geolocation error (non-critical): $bgError');
       }
       
-      // Step 4: Use permission_handler as backup
+      // Step 4: Use permission_handler only as final fallback
+      print('[IosLocationFixService] Using permission_handler as final fallback');
       final permissionResult = await Permission.locationWhenInUse.request();
       print('[IosLocationFixService] Permission handler result: $permissionResult');
       
-      // Step 5: Check if now registered
-      final isRegistered = await isAppRegisteredInSettings();
-      print('[IosLocationFixService] Force registration result: $isRegistered');
+      // Final check
+      final finalIsRegistered = await isAppRegisteredInSettings();
+      print('[IosLocationFixService] Final registration result: $finalIsRegistered');
       
-      return isRegistered;
+      return finalIsRegistered;
     } catch (e) {
       print('[IosLocationFixService] Failed to force register in settings: $e');
       return false;
@@ -101,6 +141,23 @@ class IosLocationFixService {
   static Future<bool> performComprehensiveFix({BuildContext? context}) async {
     try {
       print('[IosLocationFixService] Starting comprehensive iOS location fix...');
+      
+      // Check if we've already successfully completed the fix
+      if (_comprehensiveFixCompleted) {
+        print('[IosLocationFixService] Comprehensive fix already completed successfully, skipping redundant calls');
+        
+        // Still check current status to return accurate result
+        final isRegistered = await isAppRegisteredInSettings();
+        final nativePermission = await checkNativeLocationPermission();
+        
+        if (isRegistered || nativePermission) {
+          print('[IosLocationFixService] Previous fix still valid - permissions working');
+          return true;
+        } else {
+          print('[IosLocationFixService] Previous fix no longer valid, will re-run');
+          _comprehensiveFixCompleted = false; // Reset flag to allow re-run
+        }
+      }
       
       // Skip on non-iOS platforms
       if (kIsWeb) {
@@ -121,39 +178,56 @@ class IosLocationFixService {
         return true;
       }
       
-      // Step 1: Check current status
-      final currentStatus = await Permission.locationWhenInUse.status;
-      print('[IosLocationFixService] Current permission status: $currentStatus');
+      // Step 1: Initialize native location manager first
+      print('[IosLocationFixService] Initializing native location manager...');
+      final initResult = await initializeNativeLocationManager();
+      if (!initResult) {
+        print('[IosLocationFixService] Failed to initialize native location manager');
+        return false;
+      }
       
-      // Step 2: Check if already registered in settings
+      // Step 2: Request permission through native iOS
+      print('[IosLocationFixService] Requesting native iOS permission...');
+      final nativePermissionResult = await requestLocationPermissionNative();
+      print('[IosLocationFixService] Native permission result: $nativePermissionResult');
+      
+      // Step 3: Check if app is now registered in settings
       final isRegistered = await isAppRegisteredInSettings();
-      print('[IosLocationFixService] Currently registered in settings: $isRegistered');
+      print('[IosLocationFixService] App registered in settings: $isRegistered');
       
-      if (isRegistered && currentStatus == PermissionStatus.granted) {
-        print('[IosLocationFixService] Already properly configured');
+      // If native permission was granted or app is registered, we consider this successful
+      // even if permission_handler reports differently (known Flutter plugin issue)
+      if (nativePermissionResult || isRegistered) {
+        print('[IosLocationFixService] Native iOS permissions working - bypassing permission_handler');
+        _comprehensiveFixCompleted = true; // Mark as completed successfully
         return true;
       }
       
-      // Step 3: Force registration if needed
+      // Step 4: Force registration if still needed
       if (!isRegistered) {
         print('[IosLocationFixService] App not in settings, forcing registration...');
         final registrationResult = await forceRegisterInSettings();
         
-        if (!registrationResult) {
+        if (registrationResult) {
+          print('[IosLocationFixService] Force registration successful');
+          _comprehensiveFixCompleted = true; // Mark as completed successfully
+          return true;
+        } else {
           print('[IosLocationFixService] Failed to register app in settings');
-          return false;
         }
       }
       
-      // Step 4: Final permission request if needed
-      if (currentStatus != PermissionStatus.granted) {
-        print('[IosLocationFixService] Requesting final permission...');
-        final finalResult = await Permission.locationWhenInUse.request();
-        print('[IosLocationFixService] Final permission result: $finalResult');
-        return finalResult == PermissionStatus.granted;
-      }
+      // Step 5: Final fallback to permission_handler (may still fail but we tried native)
+      print('[IosLocationFixService] Trying permission_handler as final fallback...');
+      final finalResult = await Permission.locationWhenInUse.request();
+      print('[IosLocationFixService] Final permission result: $finalResult');
       
-      return true;
+      // Return true if either native permissions work OR permission_handler works
+      final success = nativePermissionResult || isRegistered || finalResult == PermissionStatus.granted;
+      if (success) {
+        _comprehensiveFixCompleted = true; // Mark as completed successfully
+      }
+      return success;
     } catch (e) {
       print('[IosLocationFixService] Comprehensive fix failed: $e');
       return false;

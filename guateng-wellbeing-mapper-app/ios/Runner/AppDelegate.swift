@@ -40,6 +40,8 @@ import CoreLocation
       requestLocationPermission(result: result)
     case "isAppRegisteredInSettings":
       isAppRegisteredInSettings(result: result)
+    case "checkNativeLocationPermission":
+      checkNativeLocationPermission(result: result)
     default:
       result(FlutterMethodNotImplemented)
     }
@@ -62,7 +64,7 @@ import CoreLocation
       return
     }
     
-    let status = locationManager.authorizationStatus
+    let status = CLLocationManager.authorizationStatus()
     print("[iOS] Current authorization status: \(status.rawValue)")
     
     switch status {
@@ -71,7 +73,7 @@ import CoreLocation
       locationManager.requestWhenInUseAuthorization()
       // Wait a moment for the authorization to process
       DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-        let newStatus = locationManager.authorizationStatus
+        let newStatus = CLLocationManager.authorizationStatus()
         print("[iOS] New authorization status: \(newStatus.rawValue)")
         result(newStatus == .authorizedWhenInUse || newStatus == .authorizedAlways)
       }
@@ -96,13 +98,25 @@ import CoreLocation
       return
     }
     
-    let status = locationManager.authorizationStatus
+    let status = CLLocationManager.authorizationStatus()
     print("[iOS] Authorization status for settings check: \(status.rawValue)")
     
     // App is considered "registered" if it has any status other than notDetermined
     let isRegistered = status != .notDetermined
     print("[iOS] App registered in settings: \(isRegistered)")
     result(isRegistered)
+  }
+  
+  private func checkNativeLocationPermission(result: @escaping FlutterResult) {
+    print("[iOS] Checking native location permission status...")
+    
+    let status = CLLocationManager.authorizationStatus()
+    print("[iOS] Native authorization status: \(status.rawValue)")
+    
+    // Check if we have either when-in-use or always permission
+    let hasPermission = (status == .authorizedWhenInUse || status == .authorizedAlways)
+    print("[iOS] Native permission granted: \(hasPermission)")
+    result(hasPermission)
   }
   
   // CLLocationManagerDelegate methods
