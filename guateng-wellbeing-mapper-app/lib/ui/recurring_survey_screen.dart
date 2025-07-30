@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
-import 'package:form_builder_validators/form_builder_validators.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
 import 'dart:convert';
 import '../models/survey_models.dart';
 import '../models/consent_models.dart';
+import '../models/app_mode.dart';
 import '../db/survey_database.dart';
 import '../services/consent_aware_upload_service.dart';
+import '../services/app_mode_service.dart';
 
 class RecurringSurveyScreen extends StatefulWidget {
   @override
@@ -220,7 +221,7 @@ class _RecurringSurveyScreenState extends State<RecurringSurveyScreen> {
         options: _activityOptions.map((option) => 
           FormBuilderFieldOption(value: option, child: Text(option))
         ).toList(),
-        validator: FormBuilderValidators.required(errorText: 'Please select at least one activity'),
+        // validator: FormBuilderValidators.required(errorText: 'Please select at least one activity'), // Removed - now optional
       ),
     );
   }
@@ -236,7 +237,7 @@ class _RecurringSurveyScreenState extends State<RecurringSurveyScreen> {
         options: _livingArrangementOptions.map((option) => 
           FormBuilderFieldOption(value: option, child: Text(option))
         ).toList(),
-        validator: FormBuilderValidators.required(errorText: 'Please select an option'),
+        // validator: FormBuilderValidators.required(errorText: 'Please select an option'), // Removed - now optional
       ),
     );
   }
@@ -252,7 +253,7 @@ class _RecurringSurveyScreenState extends State<RecurringSurveyScreen> {
         options: _relationshipOptions.map((option) => 
           FormBuilderFieldOption(value: option, child: Text(option))
         ).toList(),
-        validator: FormBuilderValidators.required(errorText: 'Please select an option'),
+        // validator: FormBuilderValidators.required(errorText: 'Please select an option'), // Removed - now optional
       ),
     );
   }
@@ -270,7 +271,7 @@ class _RecurringSurveyScreenState extends State<RecurringSurveyScreen> {
           FormBuilderFieldOption(value: 'Fair', child: Text('Fair')),
           FormBuilderFieldOption(value: 'Poor', child: Text('Poor')),
         ],
-        validator: FormBuilderValidators.required(errorText: 'Please select an option'),
+        // validator: FormBuilderValidators.required(errorText: 'Please select an option'), // Removed - now optional
       ),
     );
   }
@@ -406,13 +407,40 @@ class _RecurringSurveyScreenState extends State<RecurringSurveyScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(question, style: TextStyle(fontSize: 16)),
+          Row(
+            children: [
+              Expanded(
+                child: Text(question, style: TextStyle(fontSize: 16)),
+              ),
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.orange[50],
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.orange[200]!),
+                ),
+                child: Text(
+                  'Optional',
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: Colors.orange[700],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 4),
+          Text(
+            'Current position is just a placeholder - move the slider if you want to provide a rating',
+            style: TextStyle(fontSize: 11, color: Colors.grey[600], fontStyle: FontStyle.italic),
+          ),
           SizedBox(height: 8),
           FormBuilderSlider(
             name: name,
             min: min.toDouble(),
             max: max.toDouble(),
-            initialValue: min.toDouble(),
+            initialValue: ((min + max) / 2).toDouble(), // Start at middle, but user knows it's just placeholder
             divisions: max - min,
             decoration: InputDecoration(
               border: InputBorder.none,
@@ -889,61 +917,68 @@ class _RecurringSurveyScreenState extends State<RecurringSurveyScreen> {
   }
 
   void _submitSurvey() async {
-    if (_formKey.currentState?.saveAndValidate() ?? false) {
-      setState(() {
-        _isSubmitting = true;
-      });
+    // Always save and allow submission - no validation required
+    _formKey.currentState?.save();
+    
+    setState(() {
+      _isSubmitting = true;
+    });
 
-      try {
-        final formData = _formKey.currentState!.value;
-        
-        final surveyResponse = RecurringSurveyResponse(
-          activities: List<String>.from(formData['activities'] ?? []),
-          livingArrangement: formData['livingArrangement'],
-          relationshipStatus: formData['relationshipStatus'],
-          generalHealth: formData['generalHealth'],
-          cheerfulSpirits: formData['cheerfulSpirits']?.round(),
-          calmRelaxed: formData['calmRelaxed']?.round(),
-          activeVigorous: formData['activeVigorous']?.round(),
-          wokeUpFresh: formData['wokeUpFresh']?.round(),
-          dailyLifeInteresting: formData['dailyLifeInteresting']?.round(),
-          cooperateWithPeople: formData['cooperateWithPeople']?.round(),
-          improvingSkills: formData['improvingSkills']?.round(),
-          socialSituations: formData['socialSituations']?.round(),
-          familySupport: formData['familySupport']?.round(),
-          familyKnowsMe: formData['familyKnowsMe']?.round(),
-          accessToFood: formData['accessToFood']?.round(),
-          peopleEnjoyTime: formData['peopleEnjoyTime']?.round(),
-          talkToFamily: formData['talkToFamily']?.round(),
-          friendsSupport: formData['friendsSupport']?.round(),
-          belongInCommunity: formData['belongInCommunity']?.round(),
-          familyStandsByMe: formData['familyStandsByMe']?.round(),
-          friendsStandByMe: formData['friendsStandByMe']?.round(),
-          treatedFairly: formData['treatedFairly']?.round(),
-          opportunitiesResponsibility: formData['opportunitiesResponsibility']?.round(),
-          secureWithFamily: formData['secureWithFamily']?.round(),
-          opportunitiesAbilities: formData['opportunitiesAbilities']?.round(),
-          enjoyCulturalTraditions: formData['enjoyCulturalTraditions']?.round(),
-          environmentalChallenges: formData['environmentalChallenges'],
-          challengesStressLevel: formData['challengesStressLevel'],
-          copingHelp: formData['copingHelp'],
-          voiceNoteUrls: _voiceNoteFiles.isNotEmpty ? _voiceNoteFiles.map((f) => f.path).toList() : null,
-          imageUrls: _selectedImages.isNotEmpty ? _selectedImages.map((f) => f.path).toList() : null,
-          researchSite: _researchSite, // Use the loaded research site
-          submittedAt: DateTime.now(),
-        );
+    try {
+      final formData = _formKey.currentState!.value;
+      
+      final surveyResponse = RecurringSurveyResponse(
+        activities: List<String>.from(formData['activities'] ?? []),
+        livingArrangement: formData['livingArrangement'],
+        relationshipStatus: formData['relationshipStatus'],
+        generalHealth: formData['generalHealth'],
+        cheerfulSpirits: formData['cheerfulSpirits']?.round(),
+        calmRelaxed: formData['calmRelaxed']?.round(),
+        activeVigorous: formData['activeVigorous']?.round(),
+        wokeUpFresh: formData['wokeUpFresh']?.round(),
+        dailyLifeInteresting: formData['dailyLifeInteresting']?.round(),
+        cooperateWithPeople: formData['cooperateWithPeople']?.round(),
+        improvingSkills: formData['improvingSkills']?.round(),
+        socialSituations: formData['socialSituations']?.round(),
+        familySupport: formData['familySupport']?.round(),
+        familyKnowsMe: formData['familyKnowsMe']?.round(),
+        accessToFood: formData['accessToFood']?.round(),
+        peopleEnjoyTime: formData['peopleEnjoyTime']?.round(),
+        talkToFamily: formData['talkToFamily']?.round(),
+        friendsSupport: formData['friendsSupport']?.round(),
+        belongInCommunity: formData['belongInCommunity']?.round(),
+        familyStandsByMe: formData['familyStandsByMe']?.round(),
+        friendsStandByMe: formData['friendsStandByMe']?.round(),
+        treatedFairly: formData['treatedFairly']?.round(),
+        opportunitiesResponsibility: formData['opportunitiesResponsibility']?.round(),
+        secureWithFamily: formData['secureWithFamily']?.round(),
+        opportunitiesAbilities: formData['opportunitiesAbilities']?.round(),
+        enjoyCulturalTraditions: formData['enjoyCulturalTraditions']?.round(),
+        environmentalChallenges: formData['environmentalChallenges'],
+        challengesStressLevel: formData['challengesStressLevel'],
+        copingHelp: formData['copingHelp'],
+        voiceNoteUrls: _voiceNoteFiles.isNotEmpty ? _voiceNoteFiles.map((f) => f.path).toList() : null,
+        imageUrls: _selectedImages.isNotEmpty ? _selectedImages.map((f) => f.path).toList() : null,
+        researchSite: _researchSite, // Use the loaded research site
+        submittedAt: DateTime.now(),
+      );
 
-        // TODO: Save to local database and sync when online
-        await _saveSurveyResponse(surveyResponse);
+      // Save to local database
+      await _saveSurveyResponse(surveyResponse);
 
+      // Check if we're in app testing mode and show appropriate message
+      final currentMode = await AppModeService.getCurrentMode();
+      if (currentMode == AppMode.appTesting) {
+        _showBetaTestingSuccessDialog();
+      } else {
         _showSuccessDialog();
-      } catch (e) {
-        _showErrorDialog(e.toString());
-      } finally {
-        setState(() {
-          _isSubmitting = false;
-        });
       }
+    } catch (e) {
+      _showErrorDialog(e.toString());
+    } finally {
+      setState(() {
+        _isSubmitting = false;
+      });
     }
   }
 
@@ -1063,6 +1098,73 @@ class _RecurringSurveyScreenState extends State<RecurringSurveyScreen> {
               child: Text('OK'),
             ),
           ],
+        ],
+      ),
+    );
+  }
+
+  void _showBetaTestingSuccessDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Text('🧪 '),
+            Text('Beta Testing Mode'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Your survey responses have been saved locally for testing purposes.',
+              style: TextStyle(fontSize: 16),
+            ),
+            SizedBox(height: 16),
+            Container(
+              padding: EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.orange[50],
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.orange[200]!),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Beta Testing Info',
+                    style: TextStyle(fontWeight: FontWeight.bold, color: Colors.orange[700]),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'If this had been research mode, your data would have been submitted to researchers. Since this is beta testing, no data was transmitted.',
+                    style: TextStyle(fontSize: 13),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 16),
+            Text(
+              '💙 Thank you for beta testing the Wellbeing Mapper!',
+              style: TextStyle(
+                fontWeight: FontWeight.w500,
+                color: Colors.blue[600],
+                fontSize: 16,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop(); // Close dialog
+              Navigator.of(context).pop(); // Go back to previous screen
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+            child: Text('Got it!', style: TextStyle(color: Colors.white)),
+          ),
         ],
       ),
     );

@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 class WellbeingSurveyResponse {
   final String id;
   final DateTime timestamp;
-  final int cheerfulSpirits;
-  final int calmRelaxed;
-  final int activeVigorous;
-  final int wokeRested;
-  final int interestingLife;
+  final int? cheerfulSpirits; // null means user didn't answer this question
+  final int? calmRelaxed; // null means user didn't answer this question
+  final int? activeVigorous; // null means user didn't answer this question
+  final int? wokeRested; // null means user didn't answer this question
+  final int? interestingLife; // null means user didn't answer this question
   final double? latitude;
   final double? longitude;
   final double? accuracy;
@@ -17,11 +17,11 @@ class WellbeingSurveyResponse {
   WellbeingSurveyResponse({
     required this.id,
     required this.timestamp,
-    required this.cheerfulSpirits,
-    required this.calmRelaxed,
-    required this.activeVigorous,
-    required this.wokeRested,
-    required this.interestingLife,
+    this.cheerfulSpirits, // Now optional - null means not answered
+    this.calmRelaxed, // Now optional - null means not answered
+    this.activeVigorous, // Now optional - null means not answered
+    this.wokeRested, // Now optional - null means not answered
+    this.interestingLife, // Now optional - null means not answered
     this.latitude,
     this.longitude,
     this.accuracy,
@@ -63,15 +63,32 @@ class WellbeingSurveyResponse {
     );
   }
 
-  /// Calculate wellbeing score (0-5) based on 5 survey responses
+  /// Calculate wellbeing score (0-5) based on answered survey responses
   /// Each "Yes" answer = 1 point, "No" answer = 0 points
+  /// Null values (unanswered questions) are ignored in calculation
   int get wellbeingScore {
-    return cheerfulSpirits + calmRelaxed + activeVigorous + wokeRested + interestingLife;
+    final responses = [cheerfulSpirits, calmRelaxed, activeVigorous, wokeRested, interestingLife];
+    final answeredResponses = responses.where((response) => response != null).cast<int>();
+    return answeredResponses.isEmpty ? 0 : answeredResponses.reduce((a, b) => a + b);
   }
 
+  /// Get number of questions answered (for calculating completion percentage)
+  int get answeredQuestionCount {
+    final responses = [cheerfulSpirits, calmRelaxed, activeVigorous, wokeRested, interestingLife];
+    return responses.where((response) => response != null).length;
+  }
+
+  /// Get total number of questions
+  int get totalQuestionCount => 5;
+
+  /// Check if all questions were answered
+  bool get isComplete => answeredQuestionCount == totalQuestionCount;
+
   /// Get wellbeing score as a normalized value (0.0 - 1.0) for color mapping
+  /// Based on answered questions only
   double get normalizedWellbeingScore {
-    return wellbeingScore / 5.0;
+    if (answeredQuestionCount == 0) return 0.0;
+    return wellbeingScore / answeredQuestionCount.toDouble();
   }
 
   /// Get wellbeing category based on score

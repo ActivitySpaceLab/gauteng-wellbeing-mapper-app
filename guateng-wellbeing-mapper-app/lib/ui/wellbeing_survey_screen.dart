@@ -3,6 +3,8 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_background_geolocation/flutter_background_geolocation.dart' as bg;
 import '../models/wellbeing_survey_models.dart';
 import '../services/wellbeing_survey_service.dart';
+import '../services/app_mode_service.dart';
+import '../models/app_mode.dart';
 import '../theme/south_african_theme.dart';
 
 class WellbeingSurveyScreen extends StatefulWidget {
@@ -20,15 +22,11 @@ class _WellbeingSurveyScreenState extends State<WellbeingSurveyScreen> {
   @override
   void initState() {
     super.initState();
-    // Initialize responses map
+    // Initialize responses map with null values (no default selection)
     for (final question in WellbeingSurveyQuestion.questions) {
       _responses[question.id] = null;
     }
     _captureLocation();
-  }
-
-  bool get _allQuestionsAnswered {
-    return _responses.values.every((response) => response != null);
   }
 
   Future<void> _captureLocation() async {
@@ -74,27 +72,17 @@ class _WellbeingSurveyScreenState extends State<WellbeingSurveyScreen> {
   }
 
   Future<void> _submitSurvey() async {
-    if (!_allQuestionsAnswered) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Please answer all questions before submitting.'),
-        backgroundColor: SouthAfricanTheme.warning,
-        ),
-      );
-      return;
-    }
-
     setState(() {
       _isSubmitting = true;
     });
 
     try {
       final response = WellbeingSurveyService.createResponse(
-        cheerfulSpirits: _responses['cheerful_spirits']!,
-        calmRelaxed: _responses['calm_relaxed']!,
-        activeVigorous: _responses['active_vigorous']!,
-        wokeRested: _responses['woke_rested']!,
-        interestingLife: _responses['interesting_life']!,
+        cheerfulSpirits: _responses['cheerful_spirits'],
+        calmRelaxed: _responses['calm_relaxed'],
+        activeVigorous: _responses['active_vigorous'],
+        wokeRested: _responses['woke_rested'],
+        interestingLife: _responses['interesting_life'],
         latitude: _currentLocation?.coords.latitude,
         longitude: _currentLocation?.coords.longitude,
         accuracy: _currentLocation?.coords.accuracy,
@@ -103,13 +91,52 @@ class _WellbeingSurveyScreenState extends State<WellbeingSurveyScreen> {
 
       await WellbeingSurveyService().insertWellbeingSurvey(response);
 
-      // Show success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Wellbeing survey submitted successfully!'),
-          backgroundColor: SouthAfricanTheme.success,
-        ),
-      );
+      // Check if we're in app testing mode
+      final currentMode = await AppModeService.getCurrentMode();
+      final answeredCount = _responses.values.where((v) => v != null).length;
+      
+      if (currentMode == AppMode.appTesting) {
+        // Show beta testing message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '🧪 Beta Testing Mode',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  answeredCount > 0 
+                    ? 'Your $answeredCount response(s) would have been submitted if this was research mode, but no data was transmitted since this is beta testing.'
+                    : 'Your survey would have been submitted if this was research mode, but no data was transmitted since this is beta testing.',
+                ),
+                SizedBox(height: 8),
+                Text(
+                  '💙 Thank you for beta testing the Wellbeing Mapper!',
+                  style: TextStyle(fontWeight: FontWeight.w500),
+                ),
+              ],
+            ),
+            backgroundColor: SouthAfricanTheme.primaryBlue,
+            duration: Duration(seconds: 6),
+          ),
+        );
+      } else {
+        // Show regular success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              answeredCount > 0 
+                ? 'Wellbeing survey submitted successfully with $answeredCount response(s)!'
+                : 'Wellbeing survey submitted successfully!',
+            ),
+            backgroundColor: SouthAfricanTheme.success,
+          ),
+        );
+      }
 
       // Close the screen
       Navigator.of(context).pop();
@@ -203,7 +230,7 @@ class _WellbeingSurveyScreenState extends State<WellbeingSurveyScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Question ${index + 1}',
+              'Question ${index + 1} (Optional)',
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
@@ -282,7 +309,7 @@ class _WellbeingSurveyScreenState extends State<WellbeingSurveyScreen> {
                 ),
                 SizedBox(height: 8),
                 Text(
-                  'Please answer all questions about how you feel right now.',
+                  'Please answer any questions you feel comfortable answering.',
                   style: TextStyle(
                     fontSize: 14,
                     color: SouthAfricanTheme.darkGrey,
@@ -313,7 +340,7 @@ class _WellbeingSurveyScreenState extends State<WellbeingSurveyScreen> {
               child: ElevatedButton(
                 onPressed: _isSubmitting ? null : _submitSurvey,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: _allQuestionsAnswered ? Colors.blue : Colors.grey,
+                  backgroundColor: Colors.blue,
                   foregroundColor: Colors.white,
                   padding: EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
