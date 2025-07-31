@@ -6,7 +6,7 @@
 
 ## Latest Bug Fixes Applied - July 31, 2025
 
-### 🔧 CRITICAL FIX: Background Geolocation Initialization Issue  
+### 🔧 CRITICAL FIX: Background Geolocation Initialization Issue - July 31, 2025 (LATEST)
 **Problem Identified**: The tracking switch was moving back to "off" position after user toggled it, indicating background geolocation was failing to start.
 
 **Root Cause Discovered**: Background geolocation plugin (`bg.BackgroundGeolocation.ready()`) was only being configured if the user already had location permissions during app startup. When users didn't have initial permissions, the plugin was never initialized, so when they later granted permissions via the tracking switch, the `start()` method failed silently.
@@ -17,8 +17,25 @@
 - Enhanced debugging with verbose logging to track plugin initialization and state changes
 - Enabled debug mode in background geolocation config for better error visibility
 
+**Implementation Details**:
+- Moved `_configureBackgroundGeolocation(userUUID, sampleId)` call outside the permission check conditional
+- Added `!_backgroundGeoConfigured` safety check in `_onClickEnable` method
+- Enhanced error handling with detailed logging in background geolocation ready callback
+- Set debug: true in BackgroundGeolocation.Config for better troubleshooting
+
 **Files Modified**:
-- `lib/ui/home_view.dart` - Moved `_configureBackgroundGeolocation` call outside permission check, added initialization verification, enhanced logging
+- `lib/ui/home_view.dart` - Moved plugin initialization outside permission check, added verification, enhanced logging
+
+**Current Status**: 
+- ✅ Code changes implemented and compiled successfully
+- 🔄 Testing needed to verify tracking switch now works properly
+- ⏳ Session paused to address urgent Android testing issues
+
+**Next Steps When Resuming iOS Testing**:
+1. Test tracking switch functionality with the initialization fix
+2. Monitor background geolocation debug logs for plugin state
+3. Verify permissions flow and plugin startup sequence
+4. Test edge cases (app restart, permission changes, etc.)
 
 ### ✅ Fixed Permission Timing Issues
 **Problem**: Error dialog appeared immediately after granting iOS location permission before system could process the grant.
