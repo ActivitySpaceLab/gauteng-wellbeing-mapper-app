@@ -48,6 +48,37 @@ class _ChangeModeScreenState extends State<ChangeModeScreen> {
         // Navigate to participation selection for real research
         Navigator.of(context).pushNamed('/participation_selection');
         return;
+      } else if (newMode == AppMode.appTesting) {
+        // App testing mode - require consent form reading like research participants
+        final result = await Navigator.of(context).pushNamed(
+          '/consent_form',
+          arguments: {
+            'participantCode': 'TESTING_MODE', // Special code for testing
+            'researchSite': 'gauteng', // Use Gauteng site for testing
+            'isTestingMode': true, // Flag to indicate this is testing
+          },
+        );
+
+        if (result == true) {
+          // Consent completed in testing mode
+          setState(() {
+            currentMode = newMode;
+          });
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Successfully switched to ${newMode.displayName} Mode'),
+              backgroundColor: newMode.themeColor,
+            ),
+          );
+          
+          // Go back to main screen
+          Navigator.of(context).pop();
+        } else {
+          // Consent was cancelled - revert mode change
+          await AppModeService.setCurrentMode(currentMode);
+        }
+        return;
       } else {
         // Clear any existing research participation for other modes
         await ConsentService.clearConsentData();

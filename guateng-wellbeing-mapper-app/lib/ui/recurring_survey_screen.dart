@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
 import 'dart:convert';
@@ -875,6 +876,27 @@ class _RecurringSurveyScreenState extends State<RecurringSurveyScreen> {
 
   void _takePhoto() async {
     try {
+      // Request camera permission first
+      PermissionStatus cameraStatus = await Permission.camera.request();
+      
+      if (cameraStatus != PermissionStatus.granted) {
+        _showErrorDialog(
+          'Camera permission is required to take photos. Please grant camera permission in your device settings and try again.'
+        );
+        return;
+      }
+
+      // If we're on Android, also check storage permissions
+      if (Platform.isAndroid) {
+        PermissionStatus storageStatus = await Permission.storage.request();
+        if (storageStatus != PermissionStatus.granted) {
+          _showErrorDialog(
+            'Storage permission is required to save photos. Please grant storage permission in your device settings and try again.'
+          );
+          return;
+        }
+      }
+
       final XFile? photo = await _picker.pickImage(
         source: ImageSource.camera,
         maxWidth: 1920,
@@ -1103,7 +1125,17 @@ class _RecurringSurveyScreenState extends State<RecurringSurveyScreen> {
     );
   }
 
-  void _showBetaTestingSuccessDialog() {
+  void _showBetaTestingSuccessDialog() async {
+    // Get participant UUID for testing consent dialog
+    String? participantUuid;
+    try {
+      final db = SurveyDatabase();
+      final consent = await db.getConsent();
+      participantUuid = consent?.participantUuid;
+    } catch (e) {
+      print('Error getting participant UUID: $e');
+    }
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -1157,6 +1189,41 @@ class _RecurringSurveyScreenState extends State<RecurringSurveyScreen> {
           ],
         ),
         actions: [
+          if (participantUuid != null) ...[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close dialog first
+                
+                // Show the consent dialog for testing
+                ConsentAwareDataUploadService.uploadWithConsent(
+                  context: context,
+                  participantUuid: participantUuid!,
+                  researchSite: _researchSite,
+                  onSuccess: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('🧪 Beta Testing: Location sharing consent dialog tested successfully! (No actual data was uploaded)'),
+                        backgroundColor: Colors.orange,
+                        duration: Duration(seconds: 4),
+                      ),
+                    );
+                    Navigator.of(context).pop(); // Go back to previous screen
+                  },
+                  onError: (error) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('🧪 Beta Testing: Consent dialog test completed. (Error: $error)'),
+                        backgroundColor: Colors.orange,
+                        duration: Duration(seconds: 4),
+                      ),
+                    );
+                    Navigator.of(context).pop(); // Go back to previous screen
+                  },
+                );
+              },
+              child: Text('Test Location Sharing Dialog'),
+            ),
+          ],
           ElevatedButton(
             onPressed: () {
               Navigator.of(context).pop(); // Close dialog
