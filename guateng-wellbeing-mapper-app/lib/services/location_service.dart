@@ -80,13 +80,47 @@ class LocationService {
       print('[LocationService] Attempting standard permission request...');
       final result = await Permission.locationWhenInUse.request();
       print('[LocationService] Permission request result: $result');
-      
+
+      // For iOS, add a small delay to allow permission status to propagate
+      if (!kIsWeb && context != null) {
+        try {
+          final platform = Theme.of(context).platform;
+          if (platform == TargetPlatform.iOS && result == PermissionStatus.granted) {
+            print('[LocationService] iOS permission granted, waiting for system propagation...');
+            await Future.delayed(Duration(milliseconds: 500)); // Give iOS time to propagate permission
+          }
+        } catch (e) {
+          print('[LocationService] Error during iOS delay: $e');
+        }
+      }
+
       // Final check - accept both when-in-use and always permissions
       final finalWhenInUseStatus = await Permission.locationWhenInUse.status;
       final finalAlwaysStatus = await Permission.locationAlways.status;
       print('[LocationService] Final status check - when-in-use: $finalWhenInUseStatus, always: $finalAlwaysStatus');
-      
-      return finalWhenInUseStatus == PermissionStatus.granted || finalAlwaysStatus == PermissionStatus.granted;
+
+      bool permissionGranted = finalWhenInUseStatus == PermissionStatus.granted || finalAlwaysStatus == PermissionStatus.granted;
+
+      // For iOS, also check native status as final validation
+      if (!permissionGranted && !kIsWeb && context != null) {
+        try {
+          final platform = Theme.of(context).platform;
+          if (platform == TargetPlatform.iOS) {
+            print('[LocationService] Standard permissions show denied, checking iOS native status...');
+            final nativePermission = await IosLocationFixService.checkNativeLocationPermission();
+            final isRegistered = await IosLocationFixService.isAppRegisteredInSettings();
+            
+            if (nativePermission || isRegistered) {
+              print('[LocationService] iOS native permissions available despite permission_handler reporting denied');
+              permissionGranted = true;
+            }
+          }
+        } catch (e) {
+          print('[LocationService] Error checking native iOS permissions: $e');
+        }
+      }
+
+      return permissionGranted;
     } catch (error) {
       print('[LocationService] Error requesting location permissions: $error');
       return false;
@@ -175,15 +209,28 @@ class LocationService {
       print('[LocationService] Requesting background location permissions...');
       
       // Check current permission status first
-      final status = await Permission.locationAlways.status;
-      print('[LocationService] Current background location status: $status');
+      final whenInUseStatus = await Permission.locationWhenInUse.status;
+      final alwaysStatus = await Permission.locationAlways.status;
+      print('[LocationService] Current location status - when-in-use: $whenInUseStatus, always: $alwaysStatus');
       
-      if (status == PermissionStatus.granted) {
+      if (alwaysStatus == PermissionStatus.granted) {
         print('[LocationService] Background location already granted');
         return true;
       }
       
-      // Show rationale dialog only if context is provided AND permission is not already granted
+      // Ensure we have when-in-use permission first (required for iOS Always permission flow)
+      if (whenInUseStatus != PermissionStatus.granted) {
+        print('[LocationService] Need when-in-use permission first for iOS Always permission flow');
+        final whenInUseResult = await Permission.locationWhenInUse.request();
+        if (whenInUseResult != PermissionStatus.granted) {
+          print('[LocationService] When-in-use permission denied, cannot request always permission');
+          return false;
+        }
+        // Give iOS time to process the when-in-use permission
+        await Future.delayed(Duration(milliseconds: 1000));
+      }
+      
+      // Show rationale dialog only if context is provided
       if (context != null) {
         bool userAccepted = await showBackgroundLocationRationale(context);
         if (!userAccepted) {
@@ -192,9 +239,15 @@ class LocationService {
         }
       }
       
-      // Request permission
+      // Now request always permission (iOS should show the proper "Always" dialog)
+      print('[LocationService] Requesting always permission after when-in-use is granted...');
       final result = await Permission.locationAlways.request();
       print('[LocationService] Background location request result: $result');
+      
+      // Give iOS time to process the always permission
+      if (result == PermissionStatus.granted) {
+        await Future.delayed(Duration(milliseconds: 500));
+      }
       
       return result == PermissionStatus.granted;
     } catch (error) {

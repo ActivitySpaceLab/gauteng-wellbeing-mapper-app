@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'dart:convert';
 import '../models/consent_models.dart';
 import '../models/app_mode.dart';
 import '../services/app_mode_service.dart';
 import '../services/location_service.dart';
+import '../services/ios_location_fix_service.dart';
 import '../theme/south_african_theme.dart';
 
 class ParticipationSelectionScreen extends StatefulWidget {
@@ -251,6 +254,39 @@ class _ParticipationSelectionScreenState extends State<ParticipationSelectionScr
       // Request location permissions first for both modes
       print('[ParticipationSelection] Requesting location permissions...');
       bool hasLocationPermission = await LocationService.initializeLocationServices(context: context);
+      
+      // For iOS, add extra validation with retry logic
+      if (!hasLocationPermission && !kIsWeb) {
+        try {
+          final platform = Theme.of(context).platform;
+          if (platform == TargetPlatform.iOS) {
+            print('[ParticipationSelection] iOS permission check failed, adding delay and retry...');
+            
+            // Wait a bit longer for iOS to propagate permission changes
+            await Future.delayed(Duration(milliseconds: 1000));
+            
+            // Check native iOS permissions as fallback
+            final nativePermission = await IosLocationFixService.checkNativeLocationPermission();
+            final isRegistered = await IosLocationFixService.isAppRegisteredInSettings();
+            
+            if (nativePermission || isRegistered) {
+              print('[ParticipationSelection] iOS native permissions available, proceeding...');
+              hasLocationPermission = true;
+            } else {
+              // Final check with permission_handler after longer delay
+              final whenInUseStatus = await Permission.locationWhenInUse.status;
+              final alwaysStatus = await Permission.locationAlways.status;
+              
+              if (whenInUseStatus == PermissionStatus.granted || alwaysStatus == PermissionStatus.granted) {
+                print('[ParticipationSelection] Permission handler now shows granted after delay');
+                hasLocationPermission = true;
+              }
+            }
+          }
+        } catch (e) {
+          print('[ParticipationSelection] Error during iOS permission retry: $e');
+        }
+      }
       
       if (!hasLocationPermission) {
         _showErrorDialog('Location permission is required for this app to function properly. Please grant location permission and try again.');
