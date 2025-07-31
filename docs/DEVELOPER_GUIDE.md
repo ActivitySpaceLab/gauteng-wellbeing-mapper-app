@@ -13,8 +13,8 @@ Gauteng Wellbeing Mapper is a privacy-focused Flutter mobile application that en
 This version is specifically configured for the **Gauteng research study** with end-to-end encryption for secure data transmission to research servers in Gauteng, South Africa.
 
 ### App Configuration
-- **Bundle ID**: `com.github.activityspacelab.wellbeingmapper.guateng`
-- **Package Name** (Android): `com.github.activityspacelab.wellbeingmapper.guateng`
+- **Bundle ID**: `com.github.activityspacelab.wellbeingmapper.gauteng`
+- **Package Name** (Android): `com.github.activityspacelab.wellbeingmapper.gauteng`
 - **App Store ID** (iOS): [To be configured upon App Store submission]
 
 ### Planet4Health Integration
@@ -213,7 +213,7 @@ static const Map<String, ServerConfig> _serverConfigs = {
 The Flutter Background Geolocation plugin requires a license key that is tied to your app's bundle ID. For this app:
 
 - **License Key Location**: `android/app/src/main/AndroidManifest.xml`
-- **Bundle ID**: `com.github.activityspacelab.wellbeingmapper.guateng`
+- **Bundle ID**: `com.github.activityspacelab.wellbeingmapper.gauteng`
 - **Security Note**: The license key is committed to the repository because it only works with our specific bundle ID and cannot be used by other applications
 
 ```xml
@@ -221,7 +221,7 @@ The Flutter Background Geolocation plugin requires a license key that is tied to
            android:value="[LICENSE_KEY_HERE]" />
 ```
 
-**Why it's safe to commit**: The license key is cryptographically tied to the bundle ID `com.github.activityspacelab.wellbeingmapper.guateng` and will not function with any other app package name, making it safe to include in version control.
+**Why it's safe to commit**: The license key is cryptographically tied to the bundle ID `com.github.activityspacelab.wellbeingmapper.gauteng` and will not function with any other app package name, making it safe to include in version control.
 
 ### Required Import Pattern
 Always import the plugin with the `bg` namespace to avoid class name conflicts:
@@ -426,7 +426,7 @@ graph TD
 
 
 ```
-guateng-wellbeing-mapper-app/lib/
+gauteng-wellbeing-mapper-app/lib/
 ├── main.dart                    # App entry point
 ├── main_debug.dart              # Debug configuration
 ├── main_original.dart           # Original entry point
@@ -534,7 +534,7 @@ dart pub global activate fvm
 
 # Clone the repository
 git clone [repository-url]
-cd guateng-wellbeing-mapper-app/guateng-wellbeing-mapper-app
+cd gauteng-wellbeing-mapper-app/gauteng-wellbeing-mapper-app
 
 # Use correct Flutter version
 fvm use 3.27.1

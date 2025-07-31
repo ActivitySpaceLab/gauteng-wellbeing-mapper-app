@@ -65,7 +65,7 @@ Enhanced `IosLocationDebugScreen` accessible from the side drawer menu:
 6. **Test location functionality** after granting permissions through iOS UI
 
 ## Technical Implementation Details
-- **Method Channel**: `com.github.activityspacelab.wellbeingmapper.guateng/ios_location`
+- **Method Channel**: `com.github.activityspacelab.wellbeingmapper.gauteng/ios_location`
 - **Native iOS Integration**: CLLocationManager initialization and delegate implementation
 - **Permission Flow**: Native iOS authorization request → System settings registration → User permission grant
 - **Fallback Support**: Standard permission_handler methods as backup if native approach fails

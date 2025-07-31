@@ -40,11 +40,11 @@ This case study aims to:
 - Map environmental hotspots affecting mental health
 - Provide solutions for better preparedness and response capacity
 
-[![CI tests](https://github.com/ActivitySpaceLab/guateng-wellbeing-mapper-app/actions/workflows/CI.yml/badge.svg)](https://github.com/ActivitySpaceLab/guateng-wellbeing-mapper-app/actions/workflows/CI.yml)
-[![drive_test iOS](https://github.com/ActivitySpaceLab/guateng-wellbeing-mapper-app/actions/workflows/drive-ios.yml/badge.svg)](https://github.com/ActivitySpaceLab/guateng-wellbeing-mapper-app/actions/workflows/drive-ios.yml)
-[![drive_test Android](https://github.com/ActivitySpaceLab/guateng-wellbeing-mapper-app/actions/workflows/drive-android.yml/badge.svg)](https://github.com/ActivitySpaceLab/guateng-wellbeing-mapper-app/actions/workflows/drive-android.yml)
-[![codecov](https://codecov.io/gh/ActivitySpaceLab/guateng-wellbeing-mapper-app/graph/badge.svg?token=CK8N6GEWKR)](https://codecov.io/gh/ActivitySpaceLab/guateng-wellbeing-mapper-app)
-[![Documentation](https://img.shields.io/badge/docs-available-brightgreen.svg)](https://github.com/ActivitySpaceLab/guateng-wellbeing-mapper-app/tree/main/docs)
+[![CI tests](https://github.com/ActivitySpaceLab/gauteng-wellbeing-mapper-app/actions/workflows/CI.yml/badge.svg)](https://github.com/ActivitySpaceLab/gauteng-wellbeing-mapper-app/actions/workflows/CI.yml)
+[![drive_test iOS](https://github.com/ActivitySpaceLab/gauteng-wellbeing-mapper-app/actions/workflows/drive-ios.yml/badge.svg)](https://github.com/ActivitySpaceLab/gauteng-wellbeing-mapper-app/actions/workflows/drive-ios.yml)
+[![drive_test Android](https://github.com/ActivitySpaceLab/gauteng-wellbeing-mapper-app/actions/workflows/drive-android.yml/badge.svg)](https://github.com/ActivitySpaceLab/gauteng-wellbeing-mapper-app/actions/workflows/drive-android.yml)
+[![codecov](https://codecov.io/gh/ActivitySpaceLab/gauteng-wellbeing-mapper-app/graph/badge.svg?token=CK8N6GEWKR)](https://codecov.io/gh/ActivitySpaceLab/gauteng-wellbeing-mapper-app)
+[![Documentation](https://img.shields.io/badge/docs-available-brightgreen.svg)](https://github.com/ActivitySpaceLab/gauteng-wellbeing-mapper-app/tree/main/docs)
 
 ## Prerequisites
 
@@ -76,7 +76,7 @@ Feel free to fork our repository, create a new branch, make your changes and sub
 
 (*)Before opening the pull request, please run the commands `fvm flutter analyze` and `fvm flutter test` locally (or `flutter analyze` and `flutter test` if not using FVM) to ensure that your PR passes all the tests successfully in our continuous integration (CI) workflow.
 
-It would be awesome if you assign yourself to an existing task or you open a new issue in [Github Issues](https://github.com/ActivitySpaceLab/guateng-wellbeing-mapper-app/issues), to keep other contributors informed on what you're working on.
+It would be awesome if you assign yourself to an existing task or you open a new issue in [Github Issues](https://github.com/ActivitySpaceLab/gauteng-wellbeing-mapper-app/issues), to keep other contributors informed on what you're working on.
 
 If this project is useful for you, please consider starring this repository and giving us 5 stars on the app stores to give us more visibility.
 
@@ -149,7 +149,7 @@ For more information about the Planet4Health project, please visit the [Planet4H
 
 - [Google Play (Android)](http://play.google.com/store/apps/details?id=edu.princeton.jrpalmer.asm).
 - Apple Store (iOS) (Coming soon)
-- [Github Releases (Android)](https://github.com/ActivitySpaceLab/guateng-wellbeing-mapper-app/releases).
+- [Github Releases (Android)](https://github.com/ActivitySpaceLab/gauteng-wellbeing-mapper-app/releases).
 
 ## About Planet4Health
 
@@ -160,7 +160,7 @@ Planet4Health is a Horizon Europe research project focused on "Translating Scien
 ## License
 This repository contains the source code development version of Wellbeing Mapper, developed as part of the Planet4Health project case study on mental wellbeing in environmental & climate context.
 
-This project is licensed under the [GNU GENERAL PUBLIC LICENSE](https://github.com/ActivitySpaceLab/guateng-wellbeing-mapper-app/blob/master/LICENSE)
+This project is licensed under the [GNU GENERAL PUBLIC LICENSE](https://github.com/ActivitySpaceLab/gauteng-wellbeing-mapper-app/blob/master/LICENSE)
 
 Copyright 2011-2020 John R.B. Palmer 
 Copyright 2021-2023 John R.B. Palmer and Pablo Galve Millán

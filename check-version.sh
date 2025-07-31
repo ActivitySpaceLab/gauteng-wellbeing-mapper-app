@@ -6,7 +6,7 @@ set -e  # Exit on any error
 echo "🔍 Checking version consistency..."
 
 # Navigate to the Flutter project directory
-cd guateng-wellbeing-mapper-app
+cd gauteng-wellbeing-mapper-app
 
 # Get version from pubspec.yaml (remove build number)
 PUBSPEC_VERSION=$(grep "version:" pubspec.yaml | sed 's/version: //' | sed 's/+.*//' | tr -d ' ')

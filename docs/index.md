@@ -43,7 +43,7 @@ This site contains documentation for beta testers, app users, developers, and re
 ### When Research Mode is Available
 - **[User Guide](USER_GUIDE.md)** - Complete guide to using the app for research
 - **[Privacy Policy](PRIVACY.md)** - How we protect your data  
-- **[Download](https://github.com/ActivitySpaceLab/guateng-wellbeing-mapper-app/releases)** - Get the latest version
+- **[Download](https://github.com/ActivitySpaceLab/gauteng-wellbeing-mapper-app/releases)** - Get the latest version
 
 ### Research Participation
 - **Participant Codes**: Required from research team
@@ -118,10 +118,10 @@ The beta version offers two modes for different user needs:
 ### Quick Setup
 ```bash
 # Clone the repository
-git clone https://github.com/ActivitySpaceLab/guateng-wellbeing-mapper-app.git
+git clone https://github.com/ActivitySpaceLab/gauteng-wellbeing-mapper-app.git
 
 # Navigate to the project
-cd guateng-wellbeing-mapper-app/wellbeing-mapper-app
+cd gauteng-wellbeing-mapper-app/wellbeing-mapper-app
 
 # Install dependencies
 flutter pub get
@@ -185,8 +185,8 @@ We take your privacy seriously:
 - **Website**: Visit the [Planet4Health website](https://planet4health.eu)
 
 ### For Developers
-- **Issues**: [GitHub Issues](https://github.com/ActivitySpaceLab/guateng-wellbeing-mapper-app/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/ActivitySpaceLab/guateng-wellbeing-mapper-app/discussions)
+- **Issues**: [GitHub Issues](https://github.com/ActivitySpaceLab/gauteng-wellbeing-mapper-app/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/ActivitySpaceLab/gauteng-wellbeing-mapper-app/discussions)
 - **Pull Requests**: [Contributing Guidelines](DEVELOPER_GUIDE.md#contributing)
 
 ## 📄 License

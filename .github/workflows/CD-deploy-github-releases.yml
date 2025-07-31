@@ -34,7 +34,7 @@ jobs:
     - name: Validate version consistency
       run: |
         # Get version from pubspec.yaml (remove build number)
-        PUBSPEC_VERSION=$(grep "version:" guateng-wellbeing-mapper-app/pubspec.yaml | sed 's/version: //' | sed 's/+.*//' | tr -d ' ')
+        PUBSPEC_VERSION=$(grep "version:" gauteng-wellbeing-mapper-app/pubspec.yaml | sed 's/version: //' | sed 's/+.*//' | tr -d ' ')
         
         # Get version from git tag (remove 'v' prefix)
         TAG_VERSION=${GITHUB_REF#refs/tags/v}
@@ -52,7 +52,7 @@ jobs:
 
     - name: Get flutter dependencies
       run: flutter pub get
-      working-directory: guateng-wellbeing-mapper-app
+      working-directory: gauteng-wellbeing-mapper-app
 
     - name: Verify iOS entitlements configuration
       run: |
@@ -87,42 +87,42 @@ jobs:
         done
         
         echo "✅ iOS entitlements configuration verified"
-      working-directory: guateng-wellbeing-mapper-app
+      working-directory: gauteng-wellbeing-mapper-app
 
     - name: Statically analyze the Dart code for any errors
       run: flutter analyze
-      working-directory: guateng-wellbeing-mapper-app
+      working-directory: gauteng-wellbeing-mapper-app
     
     - name: Run tests for our flutter project
       run: flutter test
-      working-directory: guateng-wellbeing-mapper-app
+      working-directory: gauteng-wellbeing-mapper-app
 
     # Android Builds
     - name: Build Android APK (Release)
       run: flutter build apk --release --split-per-abi
-      working-directory: guateng-wellbeing-mapper-app
+      working-directory: gauteng-wellbeing-mapper-app
 
     - name: Build Android App Bundle (Release)
       run: flutter build appbundle --release
-      working-directory: guateng-wellbeing-mapper-app
+      working-directory: gauteng-wellbeing-mapper-app
 
     # iOS Builds
     - name: Install iOS dependencies
       run: cd ios && pod install && cd ..
-      working-directory: guateng-wellbeing-mapper-app
+      working-directory: gauteng-wellbeing-mapper-app
       
     - name: Build iOS (Release)
       run: flutter build ios --release --no-codesign
-      working-directory: guateng-wellbeing-mapper-app
+      working-directory: gauteng-wellbeing-mapper-app
     
     - name: Create a Release in GitHub
       uses: ncipollo/release-action@v1
       with:
         artifacts: |
-          guateng-wellbeing-mapper-app/build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
-          guateng-wellbeing-mapper-app/build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
-          guateng-wellbeing-mapper-app/build/app/outputs/flutter-apk/app-x86_64-release.apk
-          guateng-wellbeing-mapper-app/build/app/outputs/bundle/release/app-release.aab
+          gauteng-wellbeing-mapper-app/build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
+          gauteng-wellbeing-mapper-app/build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
+          gauteng-wellbeing-mapper-app/build/app/outputs/flutter-apk/app-x86_64-release.apk
+          gauteng-wellbeing-mapper-app/build/app/outputs/bundle/release/app-release.aab
         token: ${{ secrets.GITHUB_TOKEN }}
         tag: ${{ steps.version.outputs.content }}
         name: "Wellbeing Mapper ${{ steps.version.outputs.content }}"
@@ -176,7 +176,7 @@ jobs:
           - Your feedback is invaluable—please report bugs or suggestions to john.palmer@upf.edu
           
           ## 📝 Need Help?
-          - See the [Beta User Guide](https://github.com/ActivitySpaceLab/guateng-wellbeing-mapper-app/blob/main/docs/BETA_USER_GUIDE.md) for full instructions and troubleshooting
+          - See the [Beta User Guide](https://github.com/ActivitySpaceLab/gauteng-wellbeing-mapper-app/blob/main/docs/BETA_USER_GUIDE.md) for full instructions and troubleshooting
           - Contact the development team via email or the in-app contact option
           
           ## What's Included

@@ -29,7 +29,7 @@ ignore:
 flags:
   flutter:
     paths:
-      - guateng-wellbeing-mapper-app/lib/
+      - gauteng-wellbeing-mapper-app/lib/
     carryforward: true
 
 # Adjust paths if your coverage file is not in the default location

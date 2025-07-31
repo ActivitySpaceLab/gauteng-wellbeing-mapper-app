@@ -145,7 +145,7 @@ The iOS version of Wellbeing Mapper was **not appearing in iOS Settings > Privac
 ```dart
 // Flutter side - ios_location_fix_service.dart
 static const MethodChannel _channel = MethodChannel(
-  'com.github.activityspacelab.wellbeingmapper.guateng/ios_location'
+  'com.github.activityspacelab.wellbeingmapper.gauteng/ios_location'
 );
 ```
 

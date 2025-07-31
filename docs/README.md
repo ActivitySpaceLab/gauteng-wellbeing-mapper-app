@@ -113,7 +113,7 @@ fvm flutter --version
 
 # Clone the repository
 git clone [repository-url]
-cd guateng-wellbeing-mapper-app/guateng-wellbeing-mapper-app
+cd gauteng-wellbeing-mapper-app/gauteng-wellbeing-mapper-app
 
 # Install dependencies (use fvm if you're using FVM)
 fvm flutter pub get
@@ -348,7 +348,7 @@ fvm flutter test integration_test/
 ## Project Structure Quick Reference
 
 ```
-guateng-wellbeing-mapper-app/
+gauteng-wellbeing-mapper-app/
 ├── lib/
 │   ├── main.dart              # App entry point
 │   ├── models/                # Data models and structures

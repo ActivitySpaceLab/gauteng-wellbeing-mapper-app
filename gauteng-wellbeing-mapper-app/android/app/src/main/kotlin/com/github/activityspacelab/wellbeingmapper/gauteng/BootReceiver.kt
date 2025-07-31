@@ -1,4 +1,4 @@
-package com.github.activityspacelab.wellbeingmapper.guateng
+package com.github.activityspacelab.wellbeingmapper.gauteng
 
 import android.content.BroadcastReceiver
 import android.content.Context

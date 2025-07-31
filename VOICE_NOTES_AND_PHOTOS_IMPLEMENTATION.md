@@ -36,7 +36,7 @@
 ### 📦 **Install Audio Packages**
 Run this command to install the required audio dependencies:
 ```bash
-cd guateng-wellbeing-mapper-app
+cd gauteng-wellbeing-mapper-app
 flutter pub get
 ```
 

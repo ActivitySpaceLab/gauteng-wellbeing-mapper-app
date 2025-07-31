@@ -17,7 +17,7 @@
 
 ### ✅ Version Information
 - **App Version**: 0.1.0+1
-- **Bundle ID**: com.github.activityspacelab.wellbeingmapper.guateng
+- **Bundle ID**: com.github.activityspacelab.wellbeingmapper.gauteng
 - **Min SDK**: Android API 21 / iOS 12.0
 - **Target SDK**: Android API 35 / iOS Latest
 
@@ -60,7 +60,7 @@
 - [ ] Create app in App Store Connect
 - [ ] App name: "Wellbeing Mapper"
 - [ ] Primary language: English (South Africa) or English
-- [ ] Bundle ID: com.github.activityspacelab.wellbeingmapper.guateng
+- [ ] Bundle ID: com.github.activityspacelab.wellbeingmapper.gauteng
 - [ ] Category: Health & Fitness
 
 ### App Information
