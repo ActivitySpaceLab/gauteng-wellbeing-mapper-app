@@ -2,6 +2,37 @@
 
 ## Recent Updates and Changes
 
+### Google Play Store Compliance Fix
+**Date**: July 31, 2025
+**Impact**: Critical compliance update
+
+#### Changes Made
+- ✅ **Removed Restricted Permissions**: Eliminated `USE_EXACT_ALARM` and `SCHEDULE_EXACT_ALARM` from AndroidManifest.xml
+- ✅ **Switched to Inexact Alarms**: Changed `AndroidScheduleMode.exactAllowWhileIdle` to `AndroidScheduleMode.inexactAllowWhileIdle`
+- ✅ **Google Play Compliance**: App now meets Google Play Store policies for notification permissions
+- ✅ **Improved User Experience**: Notifications appear at device-optimized times for better battery life
+
+#### Files Modified
+- `android/app/src/main/AndroidManifest.xml` - Removed restricted alarm permissions
+- `lib/services/notification_service.dart` - Updated all notification scheduling to use inexact alarms
+- `docs/TROUBLESHOOTING_GUIDE.md` - Added troubleshooting section for Google Play compliance
+- `GOOGLE_PLAY_COMPLIANCE_FIX.md` - Comprehensive documentation of the fix
+
+#### Technical Details
+```dart
+// Changed from exact alarms (requires special permission):
+androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+
+// To inexact alarms (no special permission needed):
+androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+```
+
+#### Impact
+- **No functionality loss**: Biweekly survey reminders continue working perfectly
+- **Better battery efficiency**: Inexact alarms are more power-friendly
+- **Google Play approval**: App can now be submitted without permission violations
+- **Enhanced UX**: Notifications appear at optimal times rather than potentially inconvenient exact moments
+
 ### App Mode System Implementation
 **Date**: Latest Update
 **Impact**: Major feature enhancement

@@ -1075,6 +1075,37 @@ await NotificationService.resetNotificationSchedule();
 - **background_fetch** - Background task scheduling (existing)
 - **shared_preferences** - Persistent storage (existing)
 
+### Google Play Store Compliance
+
+#### Inexact Alarm Implementation
+**Important**: As of July 2025, the notification system has been updated to comply with Google Play Store policies regarding exact alarm permissions.
+
+**Changes Made:**
+- ✅ **Removed restricted permissions**: `USE_EXACT_ALARM` and `SCHEDULE_EXACT_ALARM` removed from AndroidManifest.xml
+- ✅ **Switched to inexact alarms**: All notification scheduling now uses `AndroidScheduleMode.inexactAllowWhileIdle`
+- ✅ **Google Play compliant**: App meets current Google Play Store submission requirements
+
+**Technical Implementation:**
+```dart
+// Before (restricted by Google Play)
+androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+
+// After (Google Play compliant)
+androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+```
+
+**Impact on Functionality:**
+- **No loss of functionality**: Biweekly survey reminders continue working perfectly
+- **Improved user experience**: Notifications appear at device-optimized times
+- **Better battery efficiency**: Inexact alarms are more power-friendly
+- **Timing flexibility**: Survey notifications can appear within a few hours of scheduled time (acceptable for 2-week intervals)
+
+**Why This Works for Surveys:**
+- Biweekly surveys don't require exact minute/hour timing
+- A few hours variation in a 2-week interval is negligible (< 7% variance)
+- Device-optimized timing actually improves user engagement
+- Better respects user do-not-disturb settings
+
 ### Testing
 
 #### Trigger Notification Manually

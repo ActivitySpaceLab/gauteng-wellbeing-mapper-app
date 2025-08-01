@@ -570,7 +570,7 @@ class NotificationService {
             ),
             payload: '/wellbeing_survey', // Add the payload for proper navigation
             uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
-            androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+            androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
           );
           
           print('[NotificationService] Scheduled testing notification #$i for: $nextNotificationTime');
@@ -600,7 +600,7 @@ class NotificationService {
           ),
           payload: '/wellbeing_survey', // Add the payload for proper navigation
           uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
-          androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+          androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
           matchDateTimeComponents: DateTimeComponents.time,
         );
         
@@ -788,7 +788,7 @@ class NotificationService {
           platformChannelSpecifics,
           payload: '/wellbeing_survey',
           uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
-          androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+          androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
         );
         
         print('[NotificationService] iOS notification scheduled for $scheduledDate with ID: $notificationId');
@@ -873,7 +873,7 @@ class NotificationService {
         platformChannelSpecifics,
         payload: '/wellbeing_survey',
         uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
       );
       
       print('[NotificationService] Scheduled iOS notification for 3 seconds with ID: $notificationId');
@@ -973,7 +973,7 @@ class NotificationService {
         notificationDetails,
         payload: '/wellbeing_survey',
         uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
       );
       
       print('[NotificationService] Scheduled iOS notification with ID: $notificationId for $scheduledDate');

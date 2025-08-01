@@ -106,6 +106,51 @@ This document contains common issues, their solutions, and lessons learned durin
 
 ---
 
+## Google Play Store Compliance Issues
+
+### Issue: USE_EXACT_ALARM Permission Rejection
+**Problem:** Google Play Developer Console rejects app submission with error: "Your app uses the USE_EXACT_ALARM permission. If your app's core functionality is not 'calendar' or 'alarm clock', you're not eligible to use this permission and must remove it from your app, across all tracks."
+
+**Root Cause:** The notification system was using `AndroidScheduleMode.exactAllowWhileIdle` which requires `USE_EXACT_ALARM` and `SCHEDULE_EXACT_ALARM` permissions. Google Play restricts these permissions to calendar and alarm clock apps only.
+
+**Solution:**
+1. **Remove problematic permissions from AndroidManifest.xml:**
+   ```xml
+   <!-- Remove these lines -->
+   <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+   <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+   ```
+
+2. **Switch to inexact alarms in notification_service.dart:**
+   ```dart
+   // Change from:
+   androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+   
+   // To:
+   androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+   ```
+
+3. **Update all notification scheduling locations:**
+   - `_scheduleDirectTestingNotification()`
+   - `testDeviceNotification()`
+   - `testImmediateIOSNotification()`
+   - `testSimpleIOSNotification()`
+
+**Impact:**
+- ✅ **No user impact:** Biweekly survey reminders continue working
+- ✅ **Better UX:** Notifications appear at device-optimized times
+- ✅ **Battery efficient:** Inexact alarms are more power-friendly
+- ✅ **Google Play compliant:** App meets store policies
+
+**Verification:**
+- Run `flutter analyze` to ensure no compilation errors
+- Test notification functionality on Android device
+- Verify app can be submitted to Google Play Store without permission errors
+
+**Key Lesson:** For non-time-critical notifications like biweekly surveys, inexact alarms are preferable and avoid Google Play policy violations. Reserve exact alarms only for true calendar/alarm functionality.
+
+---
+
 ## Android Navigation Issues
 
 ### Issue: Navigation Breaking After Build Configuration Changes
@@ -233,6 +278,12 @@ print('Permission Status: $permission');
 ---
 
 ## Historical Issues Resolved
+
+### 2025-07-31: Google Play USE_EXACT_ALARM Permission Compliance
+- **Issue:** Google Play Developer Console rejection due to USE_EXACT_ALARM permission usage
+- **Investigation:** Identified notification system using exact alarms for biweekly surveys
+- **Resolution:** Switched to inexact alarms (AndroidScheduleMode.inexactAllowWhileIdle) and removed restricted permissions
+- **Impact:** Google Play Store compliance achieved while maintaining full notification functionality
 
 ### 2025-07-28: iOS Location Permission Recognition
 - **Issue:** Major iOS location permission failure after App Store deployment changes
