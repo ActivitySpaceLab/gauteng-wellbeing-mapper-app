@@ -55,6 +55,8 @@ def main():
         print("Files created:")
         print("- Biweekly_Wellbeing_Survey_XLSForm.xlsx")
         print("- Initial_Survey_XLSForm.xlsx")
+        print("\n💡 To also generate QSF files for Qualtrics import, run:")
+        print("   python create_qsf_surveys.py")
     else:
         print("\n❌ Some workbooks failed to create")
         sys.exit(1)
