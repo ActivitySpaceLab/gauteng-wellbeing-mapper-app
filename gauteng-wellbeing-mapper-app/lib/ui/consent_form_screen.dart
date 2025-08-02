@@ -884,11 +884,19 @@ class _ConsentFormScreenState extends State<ConsentFormScreen> {
         final settings = ParticipationSettings.researchParticipant(widget.participantCode, widget.researchSite);
         await prefs.setString('participation_settings', jsonEncode(settings.toJson()));
         print('[ConsentForm] Saved research participant settings for testing mode (data stays local)');
+        
+        // CRITICAL FIX: Set the app mode to appTesting after consent completion
+        await AppModeService.setCurrentMode(AppMode.appTesting);
+        print('[ConsentForm] Set app mode to appTesting after consent completion');
       } else {
         // For research participation, use research participant settings
         final settings = ParticipationSettings.researchParticipant(widget.participantCode, widget.researchSite);
         await prefs.setString('participation_settings', jsonEncode(settings.toJson()));
         print('[ConsentForm] Saved research participant settings');
+        
+        // Set the app mode to research for real research participation
+        await AppModeService.setCurrentMode(AppMode.research);
+        print('[ConsentForm] Set app mode to research after consent completion');
       }
       
       // Set flag to indicate fresh consent completion for initial survey prompt

@@ -37,7 +37,7 @@ jobs:
     - name: Get flutter dependencies
       run: |
         cd gauteng-wellbeing-mapper-app
-        flutter pub get --enforce-lockfile
+        flutter pub get
     
     - name: Pre-compile tests for faster execution
       run: |
