@@ -6,6 +6,8 @@ import 'package:url_launcher/url_launcher.dart';
 import 'dart:convert';
 import '../models/consent_models.dart';
 import '../db/survey_database.dart';
+import '../services/app_mode_service.dart';
+import '../models/app_mode.dart';
 
 class ConsentFormScreen extends StatefulWidget {
   final String participantCode;
@@ -940,14 +942,24 @@ class _ConsentFormScreenState extends State<ConsentFormScreen> {
               try {
                 Navigator.of(context).pop(); // Close dialog
                 
-                // Go directly to main app - let the main screen handle initial survey prompts
-                print('[ConsentForm] Consent completed - navigating directly to main app');
-                Navigator.of(context).pushReplacementNamed('/');
+                if (widget.isTestingMode) {
+                  // For testing mode, return true to the change mode screen to indicate success
+                  print('[ConsentForm] Testing mode consent completed - returning to change mode screen');
+                  Navigator.of(context).pop(true);
+                } else {
+                  // For research participation, go directly to main app
+                  print('[ConsentForm] Research consent completed - navigating directly to main app');
+                  Navigator.of(context).pushReplacementNamed('/');
+                }
                 
               } catch (e) {
                 print('[ConsentForm] Error in navigation: $e');
                 // Fallback navigation
-                Navigator.of(context).pushReplacementNamed('/');
+                if (widget.isTestingMode) {
+                  Navigator.of(context).pop(true);
+                } else {
+                  Navigator.of(context).pushReplacementNamed('/');
+                }
               }
             },
             child: Text('Continue to App'),
