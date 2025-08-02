@@ -39,11 +39,6 @@ jobs:
         cd gauteng-wellbeing-mapper-app
         flutter pub get
     
-    - name: Pre-compile tests for faster execution
-      run: |
-        cd gauteng-wellbeing-mapper-app  
-        flutter test --dry-run
-    
     - name: Statically analyze the Dart code for any errors.
       run: |
         cd gauteng-wellbeing-mapper-app
