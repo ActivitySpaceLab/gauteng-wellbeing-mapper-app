@@ -100,8 +100,8 @@ chmod +x build-release.sh
 - [ ] Update changelog/release notes
 - [ ] Test on both iOS and Android devices
 - [ ] Verify location permissions work correctly
-- [ ] Run all tests locally: `flutter test`
-- [ ] Verify no lint issues: `flutter analyze`
+- [ ] Run all tests locally: `fvm flutter test`
+- [ ] Verify no lint issues: `fvm flutter analyze`
 
 ### Release Process
 - [ ] Choose release method (automated vs manual)
