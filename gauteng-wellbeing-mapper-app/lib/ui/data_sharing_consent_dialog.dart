@@ -102,9 +102,10 @@ class _DataSharingConsentDialogState extends State<DataSharingConsentDialog> {
   List<LocationCluster> _createLocationClusters(List<LocationTrack> tracks) {
     if (tracks.isEmpty) return [];
     
-    // Simple clustering by proximity (this could be enhanced with proper clustering algorithms)
+    // Create individual clusters for each location point to give users granular control
+    // This allows users to exclude specific locations even if they only have one point there
     final clusters = <LocationCluster>[];
-    const double clusterRadius = 0.01; // Roughly 1km
+    const double clusterRadius = 0.005; // Reduced radius (roughly 500m) for finer granularity
     
     for (final track in tracks) {
       bool addedToCluster = false;
@@ -117,12 +118,16 @@ class _DataSharingConsentDialogState extends State<DataSharingConsentDialog> {
         );
         
         if (distance <= clusterRadius) {
-          // Add to existing cluster (simplified - would need proper centroid calculation)
+          // Add to existing cluster and update centroid
+          final newTrackCount = cluster.trackCount + 1;
+          final newCenterLat = (cluster.centerLatitude * cluster.trackCount + track.latitude) / newTrackCount;
+          final newCenterLon = (cluster.centerLongitude * cluster.trackCount + track.longitude) / newTrackCount;
+          
           clusters[i] = LocationCluster(
             areaName: cluster.areaName,
-            trackCount: cluster.trackCount + 1,
-            centerLatitude: cluster.centerLatitude,
-            centerLongitude: cluster.centerLongitude,
+            trackCount: newTrackCount,
+            centerLatitude: newCenterLat,
+            centerLongitude: newCenterLon,
             firstVisit: track.timestamp.isBefore(cluster.firstVisit) ? track.timestamp : cluster.firstVisit,
             lastVisit: track.timestamp.isAfter(cluster.lastVisit) ? track.timestamp : cluster.lastVisit,
           );
@@ -132,6 +137,7 @@ class _DataSharingConsentDialogState extends State<DataSharingConsentDialog> {
       }
       
       if (!addedToCluster) {
+        // Create a new cluster for this location - even single points get their own cluster
         clusters.add(LocationCluster(
           areaName: _getAreaName(track.latitude, track.longitude),
           trackCount: 1,
@@ -152,8 +158,11 @@ class _DataSharingConsentDialogState extends State<DataSharingConsentDialog> {
   }
 
   String _getAreaName(double latitude, double longitude) {
-    // Simple area naming based on coordinates (could be enhanced with reverse geocoding)
-    return "Area ${latitude.toStringAsFixed(2)}, ${longitude.toStringAsFixed(2)}";
+    // Create more user-friendly area names
+    // Use a simple grid-based naming system that's more readable
+    final latInt = (latitude * 100).round();
+    final lonInt = (longitude * 100).round();
+    return "Location Area ${latInt.abs()}.${lonInt.abs()}";
   }
 
   void _handleOptionChanged(LocationSharingOption? option) {
