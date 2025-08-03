@@ -104,44 +104,74 @@ The hamburger menu (three lines) in the top-left:
 
 ## Data Sharing Preferences (Research Mode Only)
 
-Research participants have **complete control** over what location data they share with researchers. 
+Research participants have **complete control** over what location data they share with researchers. **Location sharing preferences are now integrated directly into the survey form** for a streamlined experience.
 
 ### Data Sharing Options
 
-When you complete biweekly surveys in Research Mode, you'll be asked to choose:
+When you complete wellbeing surveys in Research Mode, you'll see a **Location Sharing section** within the survey form where you can choose:
 
-1. **Share Full Location Data** 📍
+1. **Share All Locations** 📍
    - Upload complete 2-week location history with survey responses
    - Helps researchers understand environmental context fully
    - All data is encrypted and anonymous
 
-2. **Share Partial Location Data** 🗺️
-   - **All location areas are selected by default**
-   - Uncheck any areas you prefer to keep private (e.g., home, work, sensitive locations)
-   - You can share some areas while keeping others completely private
+2. **Select Specific Locations** 🗺️
+   - Opens an interactive map to choose exactly which locations to share
+   - You can remove sensitive locations (e.g., home, work) while sharing others
    - Perfect for sharing public spaces while protecting personal locations
+   - Status shows how many locations are selected for sharing
 
-3. **Survey Responses Only** 📝
+3. **Survey Only** 📝
    - Upload only your survey answers, no location data
    - Still valuable for mood and wellbeing research
    - Complete privacy for your movements
 
+### Integrated Survey Experience
+
+**New Streamlined Process:**
+- Location sharing choices are made directly within the survey form
+- No separate consent dialogs or additional steps
+- Status indicator shows your current selection and location count
+- One-click submission handles both survey responses and location preferences
+- Immediate return to home screen after submission
+
+**Interactive Location Selection:**
+- When you choose "Select Specific Locations", an interactive map opens
+- All locations are shown by default - you remove ones you want to keep private
+- Easy-to-use eraser tool to exclude specific areas
+- "Confirm Selection" button returns you to the survey form
+- Clear help dialog explains all map controls
+
 ### Managing Your Preferences
+
+**Within Each Survey:**
+- Location sharing section shows your current choice
+- Status text displays location count and selection state
+- Help button explains each option
+- Can change preferences for each survey submission
 
 **Data Sharing Preferences** (Available in side menu):
 - View your current sharing settings
-- Change preferences anytime
+- Change default preferences
 - See history of your consent decisions
-- Update which location areas you're comfortable sharing
+- Review past location sharing choices
 
-### Location Area Selection
+### Different User Experiences
 
-When choosing "Partial Location Data":
-- The app groups your locations into general areas (like "Central Johannesburg" or "Sandton CBD")
-- **All areas start selected** - you uncheck ones you want to keep private
-- Each area shows how many location records and visit dates
-- You can select all areas, some areas, or no areas (equivalent to survey-only)
-- Your choices are saved for future uploads
+**Beta Testers:**
+- See orange success messages explaining that data is stored locally only
+- No actual data transmission (testing mode)
+- All location sharing controls available for testing
+
+**Research Participants:**
+- Blue success messages about research contribution
+- Data prepared for upload (server setup pending)
+- Full location sharing control and privacy protection
+
+**Regular Users:**
+- Simple confirmation messages
+- Private data storage on device only
+- Can still use location sharing interface for personal analysis
 
 ### Privacy Protection
 

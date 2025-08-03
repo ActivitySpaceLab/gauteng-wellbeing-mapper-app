@@ -115,6 +115,20 @@ When you first open the app, you'll see two options:
 - Practice answering research-style questions
 - Get comfortable with the survey interface
 
+#### New Integrated Location Sharing (Key Beta Test Feature! 🆕)
+- **Location sharing options are now built directly into the survey form**
+- Test the three sharing options: Share All, Select Specific, Survey Only
+- Try the interactive map for selecting specific locations to share
+- Practice the complete flow from survey to submission
+- **Beta Testing Note**: When you submit, you'll see an orange message confirming that no data was actually transmitted
+
+#### Interactive Location Selection Map
+- Opens when you choose "Select Specific Locations" in a survey
+- Test the eraser tool to exclude sensitive locations
+- Try the restore tool to include locations back
+- Practice with navigation mode to explore the map
+- Button now says "Confirm Selection" (not "Submit") since actual submission happens in the survey form
+
 #### Notifications
 - The app can remind you to take surveys
 - In beta: You can set very short intervals (1-5 minutes) for testing
@@ -143,7 +157,9 @@ When you first open the app, you'll see two options:
 | Feature | Beta Testing | Future Research Version |
 |---------|-------------|-------------------------|
 | Data Collection | Local only, safe testing | Real research data |
-| Surveys | Practice responses | Actual research responses |
+| Surveys | Practice responses with integrated location sharing | Actual research responses with location choices |
+| Survey Submission | Orange success messages (no transmission) | Blue messages for research participants |
+| Location Selection | Full interactive map testing | Same interface for real location privacy control |
 | Notifications | Fast testing intervals | Real 2-week schedule |
 | Participation | No codes needed | Requires participant codes |
 | Privacy | Everything local | Encrypted research uploads |
@@ -157,6 +173,8 @@ We want to hear about your beta testing experience!
 #### App Functionality
 - Does location tracking work smoothly?
 - Are surveys easy to understand and complete?
+- **NEW: Does the integrated location sharing work properly?**
+- **NEW: Is the interactive map easy to use for location selection?**
 - Do notifications appear correctly?
 - Is the interface intuitive?
 
@@ -164,7 +182,16 @@ We want to hear about your beta testing experience!
 - Is the onboarding process clear?
 - Are the mode explanations helpful?
 - Do you understand what each feature does?
+- **NEW: Is the survey-to-submission flow smooth and logical?**
+- **NEW: Are the different success messages clear for beta testing vs research?**
 - Any confusing or unclear parts?
+
+#### Specific Tests to Try
+- Complete a survey and choose "Share All Locations" - do you get a clear beta testing confirmation?
+- Try "Select Specific Locations" - does the map open and work properly?
+- Use the eraser tool on the map to exclude some locations, then submit - does it feel natural?
+- Choose "Survey Only" and submit - is the flow straightforward?
+- Test the help dialog in the location sharing section - is it helpful?
 
 #### Technical Issues
 - App crashes or freezes

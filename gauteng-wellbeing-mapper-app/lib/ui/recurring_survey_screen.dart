@@ -1,16 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_background_geolocation/flutter_background_geolocation.dart' as bg;
 import 'dart:io';
 import 'dart:convert';
 import '../models/survey_models.dart';
 import '../models/consent_models.dart';
+import '../models/data_sharing_consent.dart';
 import '../models/app_mode.dart';
+import '../services/data_upload_service.dart';
 import '../db/survey_database.dart';
-import '../services/consent_aware_upload_service.dart';
 import '../services/app_mode_service.dart';
+import 'interactive_location_privacy_map.dart';
+import '../theme/south_african_theme.dart';
 
 class RecurringSurveyScreen extends StatefulWidget {
   @override
@@ -32,11 +37,18 @@ class _RecurringSurveyScreenState extends State<RecurringSurveyScreen> {
   
   // Audio playback state
   Map<String, bool> _playingStates = {};
+  
+  // Location sharing state
+  LocationSharingOption _locationSharingOption = LocationSharingOption.fullData;
+  List<LocationTrack> _recentLocationTracks = [];
+  Set<int> _erasedLocationIndices = Set<int>(); // Track which locations user removed
+  int _totalLocationCount = 0;
 
   @override
   void initState() {
     super.initState();
     _loadResearchSite();
+    _loadLocationData(); // Load location data for status display
   }
 
   Future<void> _loadResearchSite() async {
@@ -178,6 +190,8 @@ class _RecurringSurveyScreenState extends State<RecurringSurveyScreen> {
               _buildPersonalCharacteristicsSection(),
               SizedBox(height: 24),
               _buildDigitalDiarySection(),
+              SizedBox(height: 24),
+              _buildLocationSharingSection(),
               SizedBox(height: 32),
               _buildSubmitButton(),
               SizedBox(height: 24),
@@ -684,6 +698,397 @@ class _RecurringSurveyScreenState extends State<RecurringSurveyScreen> {
     );
   }
 
+  Widget _buildLocationSharingSection() {
+    // Check if user is a research participant
+    return FutureBuilder<bool>(
+      future: _isResearchParticipant(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData || !snapshot.data!) {
+          return SizedBox.shrink(); // Don't show for non-research participants
+        }
+
+        return Card(
+          margin: EdgeInsets.all(0),
+          child: Padding(
+            padding: EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.location_on, color: SouthAfricanTheme.primaryBlue),
+                    SizedBox(width: 8),
+                    Text(
+                      'Location Data Sharing',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 12),
+                Text(
+                  'Choose how much location data to share with your survey responses:',
+                  style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                ),
+                SizedBox(height: 16),
+                
+                // Status indicator
+                Container(
+                  padding: EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.blue[50],
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.blue[200]!),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.info_outline, color: Colors.blue[700], size: 20),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          _getLocationStatusText(),
+                          style: TextStyle(fontSize: 13, color: Colors.blue[800]),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 16),
+                
+                // Sharing option buttons
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () => _setLocationSharingOption(LocationSharingOption.fullData),
+                        icon: Icon(Icons.location_on, size: 18),
+                        label: Text('Share All', style: TextStyle(fontSize: 12)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _locationSharingOption == LocationSharingOption.fullData 
+                              ? SouthAfricanTheme.primaryBlue 
+                              : Colors.grey[300],
+                          foregroundColor: _locationSharingOption == LocationSharingOption.fullData 
+                              ? Colors.white 
+                              : Colors.grey[700],
+                          padding: EdgeInsets.symmetric(vertical: 8),
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: _openLocationSelection,
+                        icon: Icon(Icons.edit_location, size: 18),
+                        label: Text('Select', style: TextStyle(fontSize: 12)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _locationSharingOption == LocationSharingOption.partialData 
+                              ? SouthAfricanTheme.primaryBlue 
+                              : Colors.grey[300],
+                          foregroundColor: _locationSharingOption == LocationSharingOption.partialData 
+                              ? Colors.white 
+                              : Colors.grey[700],
+                          padding: EdgeInsets.symmetric(vertical: 8),
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () => _setLocationSharingOption(LocationSharingOption.surveyOnly),
+                        icon: Icon(Icons.location_off, size: 18),
+                        label: Text('None', style: TextStyle(fontSize: 12)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _locationSharingOption == LocationSharingOption.surveyOnly 
+                              ? SouthAfricanTheme.primaryBlue 
+                              : Colors.grey[300],
+                          foregroundColor: _locationSharingOption == LocationSharingOption.surveyOnly 
+                              ? Colors.white 
+                              : Colors.grey[700],
+                          padding: EdgeInsets.symmetric(vertical: 8),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<bool> _isResearchParticipant() async {
+    try {
+      final db = SurveyDatabase();
+      final consent = await db.getConsent();
+      return consent != null;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  String _getLocationStatusText() {
+    switch (_locationSharingOption) {
+      case LocationSharingOption.fullData:
+        if (_totalLocationCount > 0) {
+          return 'Sharing all $_totalLocationCount location records from the last 2 weeks';
+        }
+        return 'Sharing complete location data (analyzing available data...)';
+      case LocationSharingOption.partialData:
+        final selectedCount = _totalLocationCount - _erasedLocationIndices.length;
+        if (_totalLocationCount > 0 && _erasedLocationIndices.isNotEmpty) {
+          return 'Sharing $selectedCount of $_totalLocationCount location records (custom selection)';
+        } else if (_totalLocationCount > 0) {
+          return 'Sharing all $_totalLocationCount location records (no locations removed)';
+        }
+        return 'Custom location selection (open map to choose locations)';
+      case LocationSharingOption.surveyOnly:
+        return 'No location data will be shared - survey responses only';
+    }
+  }
+
+  void _setLocationSharingOption(LocationSharingOption option) {
+    setState(() {
+      _locationSharingOption = option;
+      if (option != LocationSharingOption.partialData) {
+        _erasedLocationIndices.clear(); // Reset custom selection
+      }
+    });
+  }
+
+  Future<void> _openLocationSelection() async {
+    // Load location data if not already loaded
+    if (_recentLocationTracks.isEmpty) {
+      await _loadLocationData();
+    }
+
+    if (_recentLocationTracks.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('No location data available for selection'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    // Show help dialog first
+    final shouldProceed = await _showMapHelpDialog();
+    if (!shouldProceed) {
+      return;
+    }
+
+    // Get participant UUID from consent
+    String participantUuid = '';
+    try {
+      final db = SurveyDatabase();
+      final consent = await db.getConsent();
+      participantUuid = consent?.participantUuid ?? '';
+    } catch (e) {
+      print('Error getting participant UUID: $e');
+    }
+
+    // Open the interactive map
+    final result = await Navigator.of(context).push<Set<int>>(
+      MaterialPageRoute(
+        builder: (context) => InteractiveLocationPrivacyMap(
+          locationTracks: _recentLocationTracks,
+          participantUuid: participantUuid,
+          isSelectionMode: true, // Enable selection mode
+          onSelectionChanged: (Set<int> erasedIndices) {
+            // Selection callback will be handled by the result
+          },
+          onConfirmSelection: () {
+            // This callback is not used in selection mode
+          },
+          onCancel: () {
+            Navigator.of(context).pop();
+          },
+          onUploadProceed: () {
+            // Not needed for selection mode
+          },
+        ),
+      ),
+    );
+
+    // Update the selection based on result
+    if (result != null) {
+      setState(() {
+        _locationSharingOption = LocationSharingOption.partialData;
+        _erasedLocationIndices = result;
+      });
+    }
+  }
+
+  Future<void> _loadLocationData() async {
+    try {
+      List<LocationTrack> locationTracks = [];
+      
+      if (!kIsWeb) {
+        try {
+          // Get location data from background geolocation plugin
+          final bgLocations = await bg.BackgroundGeolocation.locations;
+          
+          // Convert to LocationTrack objects and filter for last 2 weeks
+          final twoWeeksAgo = DateTime.now().subtract(Duration(days: 14));
+          for (var bgLocation in bgLocations) {
+            try {
+              final locationMap = bgLocation as Map<Object?, Object?>;
+              
+              // Handle timestamp - could be int or string
+              DateTime locationTime;
+              final timestamp = locationMap['timestamp'];
+              if (timestamp is int) {
+                locationTime = DateTime.fromMillisecondsSinceEpoch(timestamp);
+              } else if (timestamp is String) {
+                locationTime = DateTime.parse(timestamp);
+              } else {
+                continue;
+              }
+              
+              if (locationTime.isAfter(twoWeeksAgo)) {
+                final coords = locationMap['coords'] as Map<Object?, Object?>?;
+                if (coords != null) {
+                  locationTracks.add(LocationTrack(
+                    timestamp: locationTime,
+                    latitude: coords['latitude'] as double,
+                    longitude: coords['longitude'] as double,
+                    accuracy: coords['accuracy'] as double?,
+                    altitude: coords['altitude'] as double?,
+                    speed: coords['speed'] as double?,
+                    activity: (locationMap['activity'] as Map<Object?, Object?>?)?['type'] as String?,
+                  ));
+                }
+              }
+            } catch (e) {
+              continue;
+            }
+          }
+        } catch (e) {
+          print('Error getting background locations: $e');
+        }
+      }
+      
+      setState(() {
+        _recentLocationTracks = locationTracks;
+        _totalLocationCount = locationTracks.length;
+      });
+    } catch (e) {
+      print('Error loading location data: $e');
+    }
+  }
+
+  Future<bool> _showMapHelpDialog() async {
+    return await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            'Location Selection Guide',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'You can choose exactly which locations to share:',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                ),
+                SizedBox(height: 16),
+                
+                Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.red[600],
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Icon(Icons.remove, color: Colors.white, size: 20),
+                    ),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Remove Mode: Tap or drag to exclude locations from sharing',
+                        style: TextStyle(fontSize: 14),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 12),
+                
+                Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.green[600],
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Icon(Icons.add, color: Colors.white, size: 20),
+                    ),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Restore Mode: Tap or drag to restore locations for sharing',
+                        style: TextStyle(fontSize: 14),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 12),
+                
+                Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.blue[600],
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Icon(Icons.navigation, color: Colors.white, size: 20),
+                    ),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Navigate Mode: Pan, zoom, and explore the map freely',
+                        style: TextStyle(fontSize: 14),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 16),
+                
+                Text(
+                  'When done, tap Submit to return to the survey form.',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: SouthAfricanTheme.primaryBlue,
+              ),
+              child: Text(
+                'Got It!',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        );
+      },
+    ) ?? false;
+  }
+
   Widget _buildSectionCard({required String title, String? subtitle, required Widget child}) {
     return Card(
       child: Padding(
@@ -714,7 +1119,7 @@ class _RecurringSurveyScreenState extends State<RecurringSurveyScreen> {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
-        onPressed: _isSubmitting ? null : _submitSurvey,
+        onPressed: _isSubmitting ? null : _submitSurveyWithLocationSharing,
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.green,
           padding: EdgeInsets.symmetric(vertical: 16),
@@ -938,97 +1343,145 @@ class _RecurringSurveyScreenState extends State<RecurringSurveyScreen> {
     });
   }
 
-  void _submitSurvey() async {
-    // Always save and allow submission - no validation required
-    _formKey.currentState?.save();
-    
+  Future<void> _submitSurveyWithLocationSharing() async {
+    if (!_formKey.currentState!.saveAndValidate()) {
+      return;
+    }
+
     setState(() {
       _isSubmitting = true;
     });
 
     try {
-      final formData = _formKey.currentState!.value;
+      // Save the regular survey data
+      await _submitSurveyData();
+
+      // Check if user is a research participant
+      final isResearchParticipant = await _isResearchParticipant();
       
-      final surveyResponse = RecurringSurveyResponse(
-        activities: List<String>.from(formData['activities'] ?? []),
-        livingArrangement: formData['livingArrangement'],
-        relationshipStatus: formData['relationshipStatus'],
-        generalHealth: formData['generalHealth'],
-        cheerfulSpirits: formData['cheerfulSpirits']?.round(),
-        calmRelaxed: formData['calmRelaxed']?.round(),
-        activeVigorous: formData['activeVigorous']?.round(),
-        wokeUpFresh: formData['wokeUpFresh']?.round(),
-        dailyLifeInteresting: formData['dailyLifeInteresting']?.round(),
-        cooperateWithPeople: formData['cooperateWithPeople']?.round(),
-        improvingSkills: formData['improvingSkills']?.round(),
-        socialSituations: formData['socialSituations']?.round(),
-        familySupport: formData['familySupport']?.round(),
-        familyKnowsMe: formData['familyKnowsMe']?.round(),
-        accessToFood: formData['accessToFood']?.round(),
-        peopleEnjoyTime: formData['peopleEnjoyTime']?.round(),
-        talkToFamily: formData['talkToFamily']?.round(),
-        friendsSupport: formData['friendsSupport']?.round(),
-        belongInCommunity: formData['belongInCommunity']?.round(),
-        familyStandsByMe: formData['familyStandsByMe']?.round(),
-        friendsStandByMe: formData['friendsStandByMe']?.round(),
-        treatedFairly: formData['treatedFairly']?.round(),
-        opportunitiesResponsibility: formData['opportunitiesResponsibility']?.round(),
-        secureWithFamily: formData['secureWithFamily']?.round(),
-        opportunitiesAbilities: formData['opportunitiesAbilities']?.round(),
-        enjoyCulturalTraditions: formData['enjoyCulturalTraditions']?.round(),
-        environmentalChallenges: formData['environmentalChallenges'],
-        challengesStressLevel: formData['challengesStressLevel'],
-        copingHelp: formData['copingHelp'],
-        voiceNoteUrls: _voiceNoteFiles.isNotEmpty ? _voiceNoteFiles.map((f) => f.path).toList() : null,
-        imageUrls: _selectedImages.isNotEmpty ? _selectedImages.map((f) => f.path).toList() : null,
-        researchSite: _researchSite, // Use the loaded research site
-        submittedAt: DateTime.now(),
-      );
+      if (isResearchParticipant && _locationSharingOption != LocationSharingOption.surveyOnly) {
+        await _saveLocationSharingConsent();
+      }
 
-      // Save to local database
-      await _saveSurveyResponse(surveyResponse);
-
-      // Check if we're in app testing mode and show appropriate message
+      // Check app mode to determine what kind of success message to show
       final currentMode = await AppModeService.getCurrentMode();
+      
       if (currentMode == AppMode.appTesting) {
-        _showBetaTestingSuccessDialog();
+        // Beta testing mode - show mock success
+        _showBetaTestingSuccessMessage();
+      } else if (isResearchParticipant) {
+        // Research participant - show research success with upload option
+        _showResearchParticipantSuccessMessage();
       } else {
-        _showSuccessDialog();
+        // Regular user - show simple success
+        _showRegularUserSuccessMessage();
       }
     } catch (e) {
-      _showErrorDialog(e.toString());
-    } finally {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error saving survey: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
       setState(() {
         _isSubmitting = false;
       });
     }
   }
 
-  Future<void> _saveSurveyResponse(RecurringSurveyResponse response) async {
+  Future<void> _saveLocationSharingConsent() async {
     try {
+      // Get participant UUID from consent
       final db = SurveyDatabase();
-      await db.insertRecurringSurvey(response);
-      print('Recurring survey saved to local database');
+      final consent = await db.getConsent();
+      final participantUuid = consent?.participantUuid ?? '';
+
+      if (participantUuid.isEmpty) {
+        throw Exception('No participant UUID found');
+      }
+
+      // Create location cluster IDs based on sharing option
+      List<String> customLocationIds = [];
+      
+      if (_locationSharingOption == LocationSharingOption.partialData) {
+        // Get the selected location tracks (those not erased)
+        final selectedTracks = _recentLocationTracks
+            .asMap()
+            .entries
+            .where((entry) => !_erasedLocationIndices.contains(entry.key))
+            .map((entry) => entry.value)
+            .toList();
+        
+        for (int i = 0; i < selectedTracks.length; i++) {
+          customLocationIds.add('track_${i}');
+        }
+      }
+
+      // Save location sharing consent
+      final locationConsent = DataSharingConsent(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        locationSharingOption: _locationSharingOption,
+        decisionTimestamp: DateTime.now(),
+        participantUuid: participantUuid,
+        customLocationIds: customLocationIds,
+      );
+
+      await db.insertDataSharingConsent(locationConsent);
     } catch (e) {
-      print('Error saving recurring survey: $e');
-      rethrow;
+      print('Error saving location sharing consent: $e');
+      throw e;
     }
   }
 
-  void _showSuccessDialog() async {
-    // Check if user is a research participant
-    bool isResearchParticipant = false;
-    String? participantUuid;
-    
-    try {
-      final db = SurveyDatabase();
-      final consent = await db.getConsent();
-      isResearchParticipant = consent != null;
-      participantUuid = consent?.participantUuid;
-    } catch (e) {
-      print('Error checking research participation: $e');
-    }
+  Future<void> _submitSurveyData() async {
+    // Extract survey data and save it
+    final formData = _formKey.currentState!.value;
+      
+    final surveyResponse = RecurringSurveyResponse(
+      activities: List<String>.from(formData['activities'] ?? []),
+      livingArrangement: formData['livingArrangement'],
+      relationshipStatus: formData['relationshipStatus'],
+      generalHealth: formData['generalHealth'],
+      cheerfulSpirits: formData['cheerfulSpirits']?.round(),
+      calmRelaxed: formData['calmRelaxed']?.round(),
+      activeVigorous: formData['activeVigorous']?.round(),
+      wokeUpFresh: formData['wokeUpFresh']?.round(),
+      dailyLifeInteresting: formData['dailyLifeInteresting']?.round(),
+      cooperateWithPeople: formData['cooperateWithPeople']?.round(),
+      improvingSkills: formData['improvingSkills']?.round(),
+      socialSituations: formData['socialSituations']?.round(),
+      familySupport: formData['familySupport']?.round(),
+      familyKnowsMe: formData['familyKnowsMe']?.round(),
+      accessToFood: formData['accessToFood']?.round(),
+      peopleEnjoyTime: formData['peopleEnjoyTime']?.round(),
+      talkToFamily: formData['talkToFamily']?.round(),
+      friendsSupport: formData['friendsSupport']?.round(),
+      belongInCommunity: formData['belongInCommunity']?.round(),
+      familyStandsByMe: formData['familyStandsByMe']?.round(),
+      friendsStandByMe: formData['friendsStandByMe']?.round(),
+      treatedFairly: formData['treatedFairly']?.round(),
+      opportunitiesResponsibility: formData['opportunitiesResponsibility']?.round(),
+      secureWithFamily: formData['secureWithFamily']?.round(),
+      opportunitiesAbilities: formData['opportunitiesAbilities']?.round(),
+      enjoyCulturalTraditions: formData['enjoyCulturalTraditions']?.round(),
+      environmentalChallenges: formData['environmentalChallenges'],
+      challengesStressLevel: formData['challengesStressLevel'],
+      copingHelp: formData['copingHelp'],
+      voiceNoteUrls: _voiceNoteFiles.isNotEmpty ? _voiceNoteFiles.map((f) => f.path).toList() : null,
+      imageUrls: _selectedImages.isNotEmpty ? _selectedImages.map((f) => f.path).toList() : null,
+      researchSite: _researchSite,
+      submittedAt: DateTime.now(),
+    );
 
+    final db = SurveyDatabase();
+    await db.insertRecurringSurvey(surveyResponse);
+  }
+
+  void _showBetaTestingSuccessMessage() {
+    setState(() {
+      _isSubmitting = false;
+    });
+    
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -1038,122 +1491,7 @@ class _RecurringSurveyScreenState extends State<RecurringSurveyScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Thank you for completing the wellbeing survey. Your responses have been saved.'),
-            if (isResearchParticipant) ...[
-              SizedBox(height: 16),
-              Container(
-                padding: EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.blue[50],
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.blue[200]!),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Research Participation',
-                      style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue[700]),
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      'As a research participant, your data helps advance scientific understanding. Would you like to upload your survey responses and location data now?',
-                      style: TextStyle(fontSize: 13),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ],
-        ),
-        actions: [
-          if (isResearchParticipant) ...[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Close dialog
-                Navigator.of(context).pop(); // Go back to previous screen
-              },
-              child: Text('Skip Upload'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                Navigator.of(context).pop(); // Close success dialog
-                
-                if (participantUuid != null) {
-                  // Trigger consent-aware upload
-                  ConsentAwareDataUploadService.uploadWithConsent(
-                    context: context,
-                    participantUuid: participantUuid,
-                    researchSite: _researchSite,
-                    onSuccess: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Data uploaded successfully!'),
-                          backgroundColor: Colors.green,
-                        ),
-                      );
-                      Navigator.of(context).pop(); // Go back to previous screen
-                    },
-                    onError: (error) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Upload failed: $error'),
-                          backgroundColor: Colors.red,
-                        ),
-                      );
-                      Navigator.of(context).pop(); // Go back to previous screen
-                    },
-                  );
-                } else {
-                  Navigator.of(context).pop(); // Go back to previous screen
-                }
-              },
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-              child: Text('Upload Data', style: TextStyle(color: Colors.white)),
-            ),
-          ] else ...[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Close dialog
-                Navigator.of(context).pop(); // Go back to previous screen
-              },
-              child: Text('OK'),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  void _showBetaTestingSuccessDialog() async {
-    // Get participant UUID for testing consent dialog
-    String? participantUuid;
-    try {
-      final db = SurveyDatabase();
-      final consent = await db.getConsent();
-      participantUuid = consent?.participantUuid;
-    } catch (e) {
-      print('Error getting participant UUID: $e');
-    }
-
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            Text('🧪 '),
-            Text('Beta Testing Mode'),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Your survey responses have been saved locally for testing purposes.',
-              style: TextStyle(fontSize: 16),
-            ),
+            Text('Thank you for completing the wellbeing survey. Your responses have been saved locally.'),
             SizedBox(height: 16),
             Container(
               padding: EdgeInsets.all(12),
@@ -1166,75 +1504,101 @@ class _RecurringSurveyScreenState extends State<RecurringSurveyScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Beta Testing Info',
+                    '🧪 Beta Testing Mode',
                     style: TextStyle(fontWeight: FontWeight.bold, color: Colors.orange[700]),
                   ),
                   SizedBox(height: 8),
                   Text(
-                    'If this had been research mode, your data would have been submitted to researchers. Since this is beta testing, no data was transmitted.',
+                    'Your data is stored locally for testing purposes. No data was transmitted to research servers.',
                     style: TextStyle(fontSize: 13),
                   ),
                 ],
               ),
             ),
+          ],
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop(); // Close dialog
+              Navigator.of(context).popUntil((route) => route.isFirst); // Go back to main screen
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+            child: Text('OK', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showResearchParticipantSuccessMessage() {
+    setState(() {
+      _isSubmitting = false;
+    });
+    
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: Text('Survey Submitted!'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Thank you for completing the wellbeing survey. Your responses and location preferences have been saved.'),
             SizedBox(height: 16),
-            Text(
-              '💙 Thank you for beta testing the Wellbeing Mapper!',
-              style: TextStyle(
-                fontWeight: FontWeight.w500,
-                color: Colors.blue[600],
-                fontSize: 16,
+            Container(
+              padding: EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.blue[50],
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.blue[200]!),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Research Participation',
+                    style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue[700]),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Your data is ready to contribute to scientific research. Note: Currently no server is set up to receive data, so uploading will be available in a future update.',
+                    style: TextStyle(fontSize: 13),
+                  ),
+                ],
               ),
             ),
           ],
         ),
         actions: [
-          if (participantUuid != null) ...[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Close dialog first
-                
-                // Show the consent dialog for testing
-                ConsentAwareDataUploadService.uploadWithConsent(
-                  context: context,
-                  participantUuid: participantUuid!,
-                  researchSite: _researchSite,
-                  onSuccess: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('🧪 Beta Testing: Location sharing consent dialog tested successfully! (No actual data was uploaded)'),
-                        backgroundColor: Colors.orange,
-                        duration: Duration(seconds: 4),
-                      ),
-                    );
-                    Navigator.of(context).pop(); // Go back to previous screen
-                  },
-                  onError: (error) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('🧪 Beta Testing: Consent dialog test completed. (Error: $error)'),
-                        backgroundColor: Colors.orange,
-                        duration: Duration(seconds: 4),
-                      ),
-                    );
-                    Navigator.of(context).pop(); // Go back to previous screen
-                  },
-                );
-              },
-              child: Text('Test Location Sharing Dialog'),
-            ),
-          ],
           ElevatedButton(
             onPressed: () {
               Navigator.of(context).pop(); // Close dialog
-              Navigator.of(context).pop(); // Go back to previous screen
+              Navigator.of(context).popUntil((route) => route.isFirst); // Go back to main screen
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-            child: Text('Got it!', style: TextStyle(color: Colors.white)),
+            child: Text('OK', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
     );
+  }
+
+  void _showRegularUserSuccessMessage() {
+    setState(() {
+      _isSubmitting = false;
+    });
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Survey submitted successfully!'),
+        backgroundColor: Colors.green,
+      ),
+    );
+    
+    // Navigate back to main screen
+    Navigator.of(context).popUntil((route) => route.isFirst);
   }
 
   void _showErrorDialog(String error) {

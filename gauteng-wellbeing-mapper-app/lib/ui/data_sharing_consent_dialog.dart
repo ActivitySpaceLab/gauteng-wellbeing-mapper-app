@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_background_geolocation/flutter_background_geolocation.dart' as bg;
 import '../models/data_sharing_consent.dart';
 import '../services/data_upload_service.dart';
 import '../db/survey_database.dart';
 import '../theme/south_african_theme.dart';
+import 'interactive_location_privacy_map.dart';
 
 /// Dialog that prompts research participants for their consent before uploading data
 class DataSharingConsentDialog extends StatefulWidget {
@@ -28,6 +31,7 @@ class _DataSharingConsentDialogState extends State<DataSharingConsentDialog> {
   bool _isLoading = true;
   DataUploadSummary? _dataSummary;
   Set<String> _selectedClusterIds = Set<String>(); // Track selected location clusters
+  List<LocationTrack> _recentLocationTracks = []; // Store the location tracks for map interaction
 
   @override
   void initState() {
@@ -41,17 +45,75 @@ class _DataSharingConsentDialogState extends State<DataSharingConsentDialog> {
         _isLoading = true;
       });
 
-      // Get recent location tracks
-      final locationTracks = await DataUploadService.getRecentLocationTracks();
+      // Debug: Check what's in the database directly
+      final db = SurveyDatabase();
+      final allLocationTracks = await db.getAllLocationTracks();
+      print('[DataSharingConsentDialog] Found ${allLocationTracks.length} total location tracks in database');
+
+      // Get location data from background geolocation plugin (same as map uses)
+      List<LocationTrack> locationTracks = [];
+      
+      if (!kIsWeb) {
+        try {
+          // Get location data from background geolocation plugin
+          final bgLocations = await bg.BackgroundGeolocation.locations;
+          print('[DataSharingConsentDialog] Found ${bgLocations.length} background geolocation records');
+          
+          // Convert to LocationTrack objects and filter for last 2 weeks
+          final twoWeeksAgo = DateTime.now().subtract(Duration(days: 14));
+          for (var bgLocation in bgLocations) {
+            try {
+              final locationMap = bgLocation as Map<Object?, Object?>;
+              
+              // Handle timestamp - could be int or string
+              DateTime locationTime;
+              final timestamp = locationMap['timestamp'];
+              if (timestamp is int) {
+                locationTime = DateTime.fromMillisecondsSinceEpoch(timestamp);
+              } else if (timestamp is String) {
+                locationTime = DateTime.parse(timestamp);
+              } else {
+                print('[DataSharingConsentDialog] Unknown timestamp format: ${timestamp.runtimeType}');
+                continue;
+              }
+              
+              if (locationTime.isAfter(twoWeeksAgo)) {
+                final coords = locationMap['coords'] as Map<Object?, Object?>?;
+                if (coords != null) {
+                  locationTracks.add(LocationTrack(
+                    timestamp: locationTime,
+                    latitude: coords['latitude'] as double,
+                    longitude: coords['longitude'] as double,
+                    accuracy: coords['accuracy'] as double?,
+                    altitude: coords['altitude'] as double?,
+                    speed: coords['speed'] as double?,
+                    activity: (locationMap['activity'] as Map<Object?, Object?>?)?['type'] as String?,
+                  ));
+                }
+              }
+            } catch (e) {
+              print('[DataSharingConsentDialog] Error processing location record: $e');
+              continue;
+            }
+          }
+        } catch (e) {
+          print('[DataSharingConsentDialog] Error getting background locations: $e');
+        }
+      }
+      
+      print('[DataSharingConsentDialog] Retrieved ${locationTracks.length} recent location tracks (last 2 weeks)');
+
+      // Store location tracks for interactive map
+      _recentLocationTracks = locationTracks;
 
       // Get survey count
-      final db = SurveyDatabase();
       final initialSurveys = await db.getInitialSurveys();
       final recurringSurveys = await db.getRecurringSurveys();
       final totalSurveys = initialSurveys.length + recurringSurveys.length;
 
       // Create clusters for location preview
       final clusters = _createLocationClusters(locationTracks);
+      print('[DataSharingConsentDialog] Created ${clusters.length} location clusters');
 
       if (locationTracks.isNotEmpty) {
         final dates = locationTracks.map((track) => track.timestamp).toList()..sort();
@@ -174,7 +236,202 @@ class _DataSharingConsentDialogState extends State<DataSharingConsentDialog> {
           _selectedClusterIds.clear();
         }
       });
+      
+      // Open interactive map for partial data selection
+      if (option == LocationSharingOption.partialData) {
+        _openInteractiveMap();
+      }
     }
+  }
+
+  void _openInteractiveMap() async {
+    if (_recentLocationTracks.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('No location data available for selection'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    // Show help dialog first
+    final shouldProceed = await _showMapHelpDialog();
+    if (!shouldProceed) {
+      // User cancelled, switch back to full data mode
+      setState(() {
+        _selectedOption = LocationSharingOption.fullData;
+      });
+      return;
+    }
+
+    final result = await Navigator.of(context).push<String>(
+      MaterialPageRoute(
+        builder: (context) => InteractiveLocationPrivacyMap(
+          locationTracks: _recentLocationTracks,
+          onConfirmSelection: () {
+            Navigator.of(context).pop('submitted'); // Signal that data was submitted
+          },
+          onCancel: () {
+            Navigator.of(context).pop('cancelled');
+          },
+          participantUuid: widget.participantUuid,
+          onUploadProceed: widget.onUploadProceed,
+        ),
+      ),
+    );
+
+    // Handle the result
+    if (result == 'submitted') {
+      // Data was submitted from the map, close this dialog too
+      Navigator.of(context).pop();
+    } else if (result == 'cancelled') {
+      // User cancelled, switch back to full data mode
+      setState(() {
+        _selectedOption = LocationSharingOption.fullData;
+      });
+    }
+  }
+
+  Future<bool> _showMapHelpDialog() async {
+    return await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            'Location Sharing Choices Guide',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'You can choose exactly which locations to share:',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                ),
+                SizedBox(height: 16),
+                
+                // Remove/Restore/Navigate buttons explanation
+                Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.red[600],
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Icon(Icons.remove, color: Colors.white, size: 20),
+                    ),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Remove Mode: Tap or drag to exclude locations from sharing',
+                        style: TextStyle(fontSize: 14),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 12),
+                
+                Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.green[600],
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Icon(Icons.add, color: Colors.white, size: 20),
+                    ),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Restore Mode: Tap or drag to restore locations for sharing',
+                        style: TextStyle(fontSize: 14),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 12),
+                
+                Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.blue[600],
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Icon(Icons.navigation, color: Colors.white, size: 20),
+                    ),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Navigate Mode: Pan, zoom, and explore the map freely',
+                        style: TextStyle(fontSize: 14),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 16),
+                
+                // Control buttons explanation
+                Text(
+                  'Bottom Controls:',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+                ),
+                SizedBox(height: 8),
+                
+                Row(
+                  children: [
+                    Icon(Icons.refresh, color: Colors.orange[700], size: 20),
+                    SizedBox(width: 12),
+                    Text('Reset - Restore all locations', style: TextStyle(fontSize: 14)),
+                  ],
+                ),
+                SizedBox(height: 8),
+                
+                Row(
+                  children: [
+                    Icon(Icons.close, color: Colors.grey[700], size: 20),
+                    SizedBox(width: 12),
+                    Text('Cancel - Exit without choosing', style: TextStyle(fontSize: 14)),
+                  ],
+                ),
+                SizedBox(height: 8),
+                
+                Row(
+                  children: [
+                    Icon(Icons.check, color: SouthAfricanTheme.primaryBlue, size: 20),
+                    SizedBox(width: 12),
+                    Text('Submit - Save your selection and continue', style: TextStyle(fontSize: 14)),
+                  ],
+                ),
+                SizedBox(height: 16),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: SouthAfricanTheme.primaryBlue,
+              ),
+              child: Text(
+                'Got It!',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        );
+      },
+    ) ?? false;
   }
 
   void _proceedWithUpload() async {
@@ -214,7 +471,7 @@ class _DataSharingConsentDialogState extends State<DataSharingConsentDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: Text(
-        'Data Sharing Consent',
+        'Location Sharing Choices',
         style: TextStyle(fontWeight: FontWeight.bold),
       ),
       content: _isLoading ? _buildLoadingContent() : _buildConsentContent(),
@@ -332,16 +589,12 @@ class _DataSharingConsentDialogState extends State<DataSharingConsentDialog> {
         
         RadioListTile<LocationSharingOption>(
           title: Text('Share Partial Location Data'),
-          subtitle: Text('Choose which location areas to share (all selected by default)'),
+          subtitle: Text('Open interactive map to select specific locations to share'),
           value: LocationSharingOption.partialData,
           groupValue: _selectedOption,
           onChanged: _handleOptionChanged,
           activeColor: SouthAfricanTheme.primaryBlue,
         ),
-        
-        // Show location cluster selection when partial data is selected
-        if (_selectedOption == LocationSharingOption.partialData)
-          _buildLocationClusterSelection(),
         
         RadioListTile<LocationSharingOption>(
           title: Text('Survey Responses Only'),
@@ -406,140 +659,5 @@ class _DataSharingConsentDialogState extends State<DataSharingConsentDialog> {
     }
     
     return false;
-  }
-
-  Widget _buildLocationClusterSelection() {
-    if (_dataSummary?.locationClusters.isEmpty ?? true) {
-      return Container(
-        margin: EdgeInsets.only(left: 16, right: 16, top: 8),
-        padding: EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.orange[50],
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.orange[200]!),
-        ),
-        child: Text(
-          'No location clusters available for selection.',
-          style: TextStyle(color: Colors.orange[800]),
-        ),
-      );
-    }
-
-    return Container(
-      margin: EdgeInsets.only(left: 16, right: 16, top: 8),
-      padding: EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.blue[50],
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.blue[200]!),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.location_on, color: Colors.blue[700], size: 20),
-              SizedBox(width: 8),
-              Text(
-                'Select Location Areas to Share',
-                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue[700]),
-              ),
-            ],
-          ),
-          SizedBox(height: 8),
-          Text(
-            'All location areas are selected by default. Uncheck any areas you prefer to keep private:',
-            style: TextStyle(fontSize: 13, color: Colors.blue[800]),
-          ),
-          if (_selectedClusterIds.isEmpty)
-            Container(
-              margin: EdgeInsets.only(top: 8),
-              padding: EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.orange[50],
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: Colors.orange[200]!),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.warning_amber_outlined, color: Colors.orange[700], size: 16),
-                  SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'You have unchecked all areas. This means no location data will be shared (survey responses only).',
-                      style: TextStyle(fontSize: 12, color: Colors.orange[800]),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          SizedBox(height: 12),
-          
-          // Location cluster checkboxes
-          Column(
-            children: _dataSummary!.locationClusters.asMap().entries.map((entry) {
-              final index = entry.key;
-              final cluster = entry.value;
-              final clusterId = 'cluster_$index';
-              final isSelected = _selectedClusterIds.contains(clusterId);
-
-              return CheckboxListTile(
-                title: Text(
-                  cluster.areaName,
-                  style: TextStyle(fontWeight: FontWeight.w500),
-                ),
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('${cluster.trackCount} location records'),
-                    Text(
-                      'Visited: ${_formatDate(cluster.firstVisit)} - ${_formatDate(cluster.lastVisit)}',
-                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                    ),
-                  ],
-                ),
-                value: isSelected,
-                onChanged: (bool? value) {
-                  setState(() {
-                    if (value == true) {
-                      _selectedClusterIds.add(clusterId);
-                    } else {
-                      _selectedClusterIds.remove(clusterId);
-                    }
-                  });
-                },
-                activeColor: SouthAfricanTheme.primaryBlue,
-                controlAffinity: ListTileControlAffinity.leading,
-                dense: true,
-              );
-            }).toList(),
-          ),
-          
-          SizedBox(height: 8),
-          Container(
-            padding: EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.amber[50],
-              borderRadius: BorderRadius.circular(6),
-              border: Border.all(color: Colors.amber[200]!),
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.info_outline, color: Colors.amber[700], size: 16),
-                SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    _selectedClusterIds.isEmpty 
-                        ? 'No location areas selected (survey responses only)'
-                        : 'Sharing: ${_selectedClusterIds.length} of ${_dataSummary!.locationClusters.length} location areas',
-                    style: TextStyle(fontSize: 12, color: Colors.amber[800]),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }

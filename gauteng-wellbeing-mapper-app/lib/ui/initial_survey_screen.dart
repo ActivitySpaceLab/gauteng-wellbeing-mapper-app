@@ -690,7 +690,7 @@ class _InitialSurveyScreenState extends State<InitialSurveyScreen> {
           TextButton(
             onPressed: () {
               Navigator.of(context).pop(); // Close dialog
-              Navigator.of(context).pop(true); // Go back to previous screen with success result
+              Navigator.of(context).popUntil((route) => route.isFirst); // Go back to main screen
             },
             child: Text('OK'),
           ),
@@ -756,7 +756,7 @@ class _InitialSurveyScreenState extends State<InitialSurveyScreen> {
           ElevatedButton(
             onPressed: () {
               Navigator.of(context).pop(); // Close dialog
-              Navigator.of(context).pop(true); // Go back to previous screen with success result
+              Navigator.of(context).popUntil((route) => route.isFirst); // Go back to main screen
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
             child: Text('Got it!', style: TextStyle(color: Colors.white)),
