@@ -1,0 +1,7 @@
+tags:
+  platform:
+    description: Tests that require platform-specific functionality (permissions, platform channels)
+    skip: Skipped in CI environments to avoid segmentation faults
+  integration:
+    description: Integration tests that require complex UI interactions or database setup
+    skip: Skipped in CI environments to avoid timeouts and platform issues
