@@ -65,51 +65,190 @@ class _WellbeingMapperSideDrawerState extends State<WellbeingMapperSideDrawer> {
     _loadCurrentMode();
     _checkInitialSurveyStatus();
   }
-  _exportData() async {
-    var now = new DateTime.now();
-    
-    // Get location data - skip background geolocation on web platform
-    List allLocations = [];
-    List<ShareLocation> customLocation = [];
-    
-    if (kIsWeb) {
-      print('[side_drawer] Web platform detected - skipping background geolocation data export');
-      // On web, we could potentially get location data from other sources
-      // For now, export empty location list
-    } else {
-      allLocations = await bg.BackgroundGeolocation.locations;
-      
-      // We get only timestamp and coordinates into our custom class
-      for (var thisLocation in allLocations) {
-        ShareLocation _loc = new ShareLocation(
-            bg.Location(thisLocation).timestamp,
-            bg.Location(thisLocation).coords.latitude,
-            bg.Location(thisLocation).coords.longitude,
-            bg.Location(thisLocation).coords.accuracy,
-            GlobalData.userUUID);
-        customLocation.add(_loc);
-      }
-    }
 
-    // Get wellbeing survey data
-    List wellbeingSurveys = [];
+  Future<void> _exportData() async {
     try {
-      final surveys = await WellbeingSurveyService().getWellbeingSurveysForExport();
-      wellbeingSurveys = surveys.map((survey) => survey.toJson()).toList();
+      print('[SideDrawer] Starting data export...');
+      var now = DateTime.now();
+      
+      // Show loading indicator
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            content: Row(
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(width: 20),
+                Text("Preparing data export..."),
+              ],
+            ),
+          );
+        },
+      );
+
+      // Get location data - skip background geolocation on web platform
+      List allLocations = [];
+      List<ShareLocation> customLocation = [];
+      
+      if (kIsWeb) {
+        print('[SideDrawer] Web platform detected - skipping background geolocation data export');
+        // On web, we could potentially get location data from other sources
+        // For now, export empty location list
+      } else {
+        try {
+          allLocations = await bg.BackgroundGeolocation.locations;
+          print('[SideDrawer] Retrieved ${allLocations.length} location records');
+          
+          // Convert to custom location format
+          for (var thisLocation in allLocations) {
+            final bgLocation = bg.Location(thisLocation);
+            ShareLocation _loc = ShareLocation(
+                bgLocation.timestamp,
+                bgLocation.coords.latitude,
+                bgLocation.coords.longitude,
+                bgLocation.coords.accuracy,
+                GlobalData.userUUID);
+            customLocation.add(_loc);
+          }
+        } catch (e) {
+          print('[SideDrawer] Error getting location data: $e');
+          // Continue with empty location list
+        }
+      }
+
+      // Get wellbeing survey data
+      List wellbeingSurveys = [];
+      try {
+        final surveys = await WellbeingSurveyService().getWellbeingSurveysForExport();
+        wellbeingSurveys = surveys.map((survey) => survey.toJson()).toList();
+        print('[SideDrawer] Retrieved ${wellbeingSurveys.length} wellbeing surveys');
+      } catch (e) {
+        print('[SideDrawer] Error getting wellbeing surveys for export: $e');
+        // Continue with empty survey list
+      }
+
+      // Get initial survey data if available
+      Map<String, dynamic>? initialSurveyData;
+      try {
+        final hasCompleted = await InitialSurveyService.hasCompletedInitialSurvey();
+        if (hasCompleted) {
+          // Try to get initial survey data if available
+          initialSurveyData = {
+            'completed': true,
+            'completion_date': 'Available in database',
+            'note': 'Initial survey data can be retrieved from local database'
+          };
+        }
+      } catch (e) {
+        print('[SideDrawer] Error getting initial survey data: $e');
+      }
+
+      // Create comprehensive export data
+      Map<String, dynamic> exportData = {
+        'export_info': {
+          'timestamp': now.toIso8601String(),
+          'app_version': '0.1.11+1',
+          'export_format_version': '1.0',
+          'app_mode': currentMode.displayName,
+          'user_id': GlobalData.userUUID,
+        },
+        'data_summary': {
+          'location_records': customLocation.length,
+          'wellbeing_surveys': wellbeingSurveys.length,
+          'initial_survey_completed': hasCompletedInitialSurvey,
+          'export_date_range': customLocation.isNotEmpty 
+            ? {
+                'total_location_records': customLocation.length,
+                'note': 'Location data available - see location_data section for details',
+              }
+            : {
+                'total_location_records': 0,
+                'note': 'No location data available',
+              },
+        },
+        'location_data': customLocation.map((loc) => loc.toJson()).toList(),
+        'wellbeing_surveys': wellbeingSurveys,
+        'initial_survey': initialSurveyData,
+        'privacy_note': currentMode == AppMode.private 
+          ? 'This data was collected in Private Mode - no data has been shared with research servers.'
+          : currentMode == AppMode.appTesting
+            ? 'This data was collected in App Testing Mode - data is stored locally for testing purposes only.'
+            : 'This data was collected in Research Mode - data may have been shared with research servers based on your consent preferences.',
+      };
+
+      // Close loading dialog
+      Navigator.of(context).pop();
+
+      // Format the JSON nicely
+      String prettyString = JsonEncoder.withIndent('  ').convert(exportData);
+      
+      // Show export options dialog
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Export Data'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Export Summary:', style: TextStyle(fontWeight: FontWeight.bold)),
+                SizedBox(height: 8),
+                Text('• Location records: ${customLocation.length}'),
+                Text('• Wellbeing surveys: ${wellbeingSurveys.length}'),
+                Text('• Initial survey: ${hasCompletedInitialSurvey ? "Completed" : "Not completed"}'),
+                Text('• App mode: ${currentMode.displayName}'),
+                SizedBox(height: 16),
+                Text('This will share your data as formatted JSON text that you can save or share as needed.'),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  Share.share(
+                    prettyString,
+                    subject: 'Wellbeing Mapper Data Export - ${now.toIso8601String().split('T')[0]}',
+                  );
+                },
+                child: Text('Export Data'),
+              ),
+            ],
+          );
+        },
+      );
+      
+      print('[SideDrawer] Data export completed successfully');
+      
     } catch (e) {
-      print('[SideDrawer] Error getting wellbeing surveys for export: $e');
+      // Close loading dialog if it's open
+      Navigator.of(context, rootNavigator: true).pop();
+      
+      print('[SideDrawer] Error during data export: $e');
+      
+      // Show error dialog
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Export Error'),
+            content: Text('Sorry, there was an error preparing your data for export. Please try again.\n\nError: ${e.toString()}'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
     }
-
-    // Create combined export data
-    Map<String, dynamic> exportData = {
-      'export_timestamp': now.toIso8601String(),
-      'user_id': GlobalData.userUUID,
-      'location_data': customLocation,
-      'wellbeing_surveys': wellbeingSurveys,
-    };
-
-    String prettyString = JsonEncoder.withIndent('  ').convert(exportData);
-    Share.share(prettyString);
   }
 
   _launchProjectURL() async {
