@@ -80,19 +80,19 @@ void main() {
         longitude: 0.0,
       );
 
-      expect(lowResponse.wellbeingCategory, equals('Very Low'));
-      expect(highResponse.wellbeingCategory, equals('Excellent'));
+      expect(lowResponse.wellbeingCategory, equals('Not Happy at All'));
+      expect(highResponse.wellbeingCategory, equals('Extremely Happy'));
     });
 
     test('Color mapping should work correctly', () {
-      expect(WellbeingSurveyResponse.getWellbeingColor(0), isA<Color>());
-      expect(WellbeingSurveyResponse.getWellbeingColor(5), isA<Color>());
-      expect(WellbeingSurveyResponse.getWellbeingColor(3), isA<Color>());
+      expect(WellbeingSurveyResponse.getWellbeingColor(0.0), isA<Color>());
+      expect(WellbeingSurveyResponse.getWellbeingColor(10.0), isA<Color>());
+      expect(WellbeingSurveyResponse.getWellbeingColor(5.0), isA<Color>());
       
       // Check that different scores have different colors
-      final color0 = WellbeingSurveyResponse.getWellbeingColor(0);
-      final color5 = WellbeingSurveyResponse.getWellbeingColor(5);
-      expect(color0, isNot(equals(color5)));
+      final color0 = WellbeingSurveyResponse.getWellbeingColor(0.0);
+      final color10 = WellbeingSurveyResponse.getWellbeingColor(10.0);
+      expect(color0, isNot(equals(color10)));
     });
   });
 }
