@@ -1,28 +1,31 @@
 {
   "SurveyEntry": {
-    "SurveyID": "initial_survey",
+    "SurveyID": "SV_20358bdab44b4ea7",
     "SurveyName": "Initial Survey - Wellbeing Mapping Study",
     "SurveyDescription": "An initial survey to collect participant demographics and background information for the Wellbeing Mapping Study.",
-    "SurveyOwnerID": "UR_placeholder",
-    "SurveyBrandID": "placeholder",
-    "DivisionID": "placeholder",
+    "SurveyOwnerID": "UR_532b70bfff264259",
+    "SurveyBrandID": "UR_06d98aa876fd42d4",
+    "DivisionID": "DV_f96855ac",
     "SurveyLanguage": "EN",
-    "SurveyActiveResponseSet": "RS_placeholder",
+    "SurveyActiveResponseSet": "RS_c4843bb023a743ed",
     "SurveyStatus": "Inactive",
-    "SurveyStartDate": "2025-08-02 00:45:13",
+    "SurveyStartDate": "0000-00-00 00:00:00",
     "SurveyExpirationDate": "0000-00-00 00:00:00",
-    "SurveyCreationDate": "2025-08-02 00:45:13",
-    "CreatorID": "UR_placeholder",
-    "LastModified": "2025-08-02 00:45:13",
+    "SurveyCreationDate": "2025-08-04 09:57:29",
+    "CreatorID": "UR_b4ad3123e692450f",
+    "LastModified": "2025-08-04 09:57:29",
     "LastAccessed": "0000-00-00 00:00:00",
     "LastActivated": "0000-00-00 00:00:00",
-    "Deleted": null
+    "SurveyCleanupDate": "0000-00-00 00:00:00",
+    "SurveyExpiration": "None",
+    "SurveyStartTime": "0000-00-00 00:00:00",
+    "SurveyEndTime": "0000-00-00 00:00:00"
   },
   "SurveyElements": [
     {
       "Type": "Block",
       "Description": "Default Question Block",
-      "ID": "BL_79215632",
+      "ID": "BL_80fc3e83",
       "BlockElements": [
         {
           "Type": "Question",
@@ -101,7 +104,11 @@
           "QuestionID": "QID19"
         }
       ],
-      "BlockVisibility": "Expanded"
+      "Options": {
+        "BlockLocking": "false",
+        "RandomizeQuestions": "false",
+        "PresentationMode": "On"
+      }
     },
     {
       "Type": "Question",
@@ -116,7 +123,10 @@
         "QuestionText": "Welcome to the Wellbeing Mapping Study!",
         "DefaultChoices": false,
         "DataExportTag": "intro_note",
-        "Language": []
+        "Language": [],
+        "NextChoiceId": 1,
+        "NextAnswerId": 1,
+        "QuestionJS": ""
       }
     },
     {
@@ -129,18 +139,21 @@
           "QuestionDescriptionOption": "UseText"
         },
         "QuestionDescription": "How old are you?",
-        "DefaultChoices": false,
         "DataExportTag": "age",
         "QuestionText": "How old are you?<br><em>Enter your age in years</em>",
-        "QuestionJS": null,
-        "Language": [],
+        "DefaultChoices": false,
         "Validation": {
           "Settings": {
             "ForceResponse": "OFF",
-            "Type": "ValidNumber"
-          },
-          "Type": "ValidNumber"
-        }
+            "ForceResponseType": "ON",
+            "Type": "ValidNumber",
+            "SubType": "ValidNumber"
+          }
+        },
+        "Language": [],
+        "NextChoiceId": 1,
+        "NextAnswerId": 1,
+        "QuestionJS": ""
       }
     },
     {
@@ -153,11 +166,20 @@
           "QuestionDescriptionOption": "UseText"
         },
         "QuestionDescription": "In which suburb or community in Gauteng do you live?",
-        "DefaultChoices": false,
         "DataExportTag": "suburb",
         "QuestionText": "In which suburb or community in Gauteng do you live?<br><em>This question only appears for Gauteng research site</em>",
-        "QuestionJS": null,
-        "Language": []
+        "DefaultChoices": false,
+        "Validation": {
+          "Settings": {
+            "ForceResponse": "OFF",
+            "ForceResponseType": "ON",
+            "Type": "None"
+          }
+        },
+        "Language": [],
+        "NextChoiceId": 1,
+        "NextAnswerId": 1,
+        "QuestionJS": ""
       }
     },
     {
@@ -170,11 +192,20 @@
           "QuestionDescriptionOption": "UseText"
         },
         "QuestionDescription": "Ethnicity (Select all that apply)",
-        "DefaultChoices": false,
         "DataExportTag": "ethnicity",
         "QuestionText": "Ethnicity (Select all that apply)<br><em>Multiple selections allowed</em>",
-        "QuestionJS": null,
+        "DefaultChoices": false,
+        "Validation": {
+          "Settings": {
+            "ForceResponse": "OFF",
+            "ForceResponseType": "ON",
+            "Type": "None"
+          }
+        },
         "Language": [],
+        "NextChoiceId": 7,
+        "NextAnswerId": 1,
+        "QuestionJS": "",
         "Choices": {
           "1": {
             "Display": "Black"
@@ -215,11 +246,20 @@
           "QuestionDescriptionOption": "UseText"
         },
         "QuestionDescription": "Ethnicity (Select all that apply)",
-        "DefaultChoices": false,
         "DataExportTag": "ethnicity",
         "QuestionText": "Ethnicity (Select all that apply)<br><em>Multiple selections allowed</em>",
-        "QuestionJS": null,
+        "DefaultChoices": false,
+        "Validation": {
+          "Settings": {
+            "ForceResponse": "OFF",
+            "ForceResponseType": "ON",
+            "Type": "None"
+          }
+        },
         "Language": [],
+        "NextChoiceId": 10,
+        "NextAnswerId": 1,
+        "QuestionJS": "",
         "Choices": {
           "1": {
             "Display": "South Asian"
@@ -272,11 +312,20 @@
           "QuestionDescriptionOption": "UseText"
         },
         "QuestionDescription": "Gender Identity",
-        "DefaultChoices": false,
         "DataExportTag": "gender",
         "QuestionText": "Gender Identity",
-        "QuestionJS": null,
+        "DefaultChoices": false,
+        "Validation": {
+          "Settings": {
+            "ForceResponse": "OFF",
+            "ForceResponseType": "ON",
+            "Type": "None"
+          }
+        },
         "Language": [],
+        "NextChoiceId": 7,
+        "NextAnswerId": 1,
+        "QuestionJS": "",
         "Choices": {
           "1": {
             "Display": "Male"
@@ -317,11 +366,20 @@
           "QuestionDescriptionOption": "UseText"
         },
         "QuestionDescription": "Sexual Orientation",
-        "DefaultChoices": false,
         "DataExportTag": "sexuality",
         "QuestionText": "Sexual Orientation",
-        "QuestionJS": null,
+        "DefaultChoices": false,
+        "Validation": {
+          "Settings": {
+            "ForceResponse": "OFF",
+            "ForceResponseType": "ON",
+            "Type": "None"
+          }
+        },
         "Language": [],
+        "NextChoiceId": 8,
+        "NextAnswerId": 1,
+        "QuestionJS": "",
         "Choices": {
           "1": {
             "Display": "Heterosexual/straight"
@@ -366,11 +424,20 @@
           "QuestionDescriptionOption": "UseText"
         },
         "QuestionDescription": "Place of Birth",
-        "DefaultChoices": false,
         "DataExportTag": "birth_place",
         "QuestionText": "Place of Birth",
-        "QuestionJS": null,
+        "DefaultChoices": false,
+        "Validation": {
+          "Settings": {
+            "ForceResponse": "OFF",
+            "ForceResponseType": "ON",
+            "Type": "None"
+          }
+        },
         "Language": [],
+        "NextChoiceId": 5,
+        "NextAnswerId": 1,
+        "QuestionJS": "",
         "Choices": {
           "1": {
             "Display": "South Africa"
@@ -403,11 +470,20 @@
           "QuestionDescriptionOption": "UseText"
         },
         "QuestionDescription": "Place of Birth",
-        "DefaultChoices": false,
         "DataExportTag": "birth_place",
         "QuestionText": "Place of Birth",
-        "QuestionJS": null,
+        "DefaultChoices": false,
+        "Validation": {
+          "Settings": {
+            "ForceResponse": "OFF",
+            "ForceResponseType": "ON",
+            "Type": "None"
+          }
+        },
         "Language": [],
+        "NextChoiceId": 4,
+        "NextAnswerId": 1,
+        "QuestionJS": "",
         "Choices": {
           "1": {
             "Display": "Spain"
@@ -436,11 +512,20 @@
           "QuestionDescriptionOption": "UseText"
         },
         "QuestionDescription": "Do you currently live in Barcelona?",
-        "DefaultChoices": false,
         "DataExportTag": "lives_in_barcelona",
         "QuestionText": "Do you currently live in Barcelona?",
-        "QuestionJS": null,
+        "DefaultChoices": false,
+        "Validation": {
+          "Settings": {
+            "ForceResponse": "OFF",
+            "ForceResponseType": "ON",
+            "Type": "None"
+          }
+        },
         "Language": [],
+        "NextChoiceId": 4,
+        "NextAnswerId": 1,
+        "QuestionJS": "",
         "Choices": {
           "1": {
             "Display": "Yes"
@@ -469,11 +554,20 @@
           "QuestionDescriptionOption": "UseText"
         },
         "QuestionDescription": "What best describes the type of building that you live in?",
-        "DefaultChoices": false,
         "DataExportTag": "building_type",
         "QuestionText": "What best describes the type of building that you live in?",
-        "QuestionJS": null,
+        "DefaultChoices": false,
+        "Validation": {
+          "Settings": {
+            "ForceResponse": "OFF",
+            "ForceResponseType": "ON",
+            "Type": "None"
+          }
+        },
         "Language": [],
+        "NextChoiceId": 8,
+        "NextAnswerId": 1,
+        "QuestionJS": "",
         "Choices": {
           "1": {
             "Display": "A brick house"
@@ -518,11 +612,20 @@
           "QuestionDescriptionOption": "UseText"
         },
         "QuestionDescription": "What best describes the type of building that you live in?",
-        "DefaultChoices": false,
         "DataExportTag": "building_type",
         "QuestionText": "What best describes the type of building that you live in?",
-        "QuestionJS": null,
+        "DefaultChoices": false,
+        "Validation": {
+          "Settings": {
+            "ForceResponse": "OFF",
+            "ForceResponseType": "ON",
+            "Type": "None"
+          }
+        },
         "Language": [],
+        "NextChoiceId": 8,
+        "NextAnswerId": 1,
+        "QuestionJS": "",
         "Choices": {
           "1": {
             "Display": "It is a detached single-family home"
@@ -567,11 +670,20 @@
           "QuestionDescriptionOption": "UseText"
         },
         "QuestionDescription": "Does the household that you live in have any of the following? (mark all that apply)",
-        "DefaultChoices": false,
         "DataExportTag": "household_items",
         "QuestionText": "Does the household that you live in have any of the following? (mark all that apply)",
-        "QuestionJS": null,
+        "DefaultChoices": false,
+        "Validation": {
+          "Settings": {
+            "ForceResponse": "OFF",
+            "ForceResponseType": "ON",
+            "Type": "None"
+          }
+        },
         "Language": [],
+        "NextChoiceId": 10,
+        "NextAnswerId": 1,
+        "QuestionJS": "",
         "Choices": {
           "1": {
             "Display": "Radio"
@@ -624,11 +736,20 @@
           "QuestionDescriptionOption": "UseText"
         },
         "QuestionDescription": "What is your highest level of completed education?",
-        "DefaultChoices": false,
         "DataExportTag": "education",
         "QuestionText": "What is your highest level of completed education?",
-        "QuestionJS": null,
+        "DefaultChoices": false,
+        "Validation": {
+          "Settings": {
+            "ForceResponse": "OFF",
+            "ForceResponseType": "ON",
+            "Type": "None"
+          }
+        },
         "Language": [],
+        "NextChoiceId": 8,
+        "NextAnswerId": 1,
+        "QuestionJS": "",
         "Choices": {
           "1": {
             "Display": "Less than high school"
@@ -673,11 +794,20 @@
           "QuestionDescriptionOption": "UseText"
         },
         "QuestionDescription": "What is your highest level of completed education?",
-        "DefaultChoices": false,
         "DataExportTag": "education",
         "QuestionText": "What is your highest level of completed education?",
-        "QuestionJS": null,
+        "DefaultChoices": false,
+        "Validation": {
+          "Settings": {
+            "ForceResponse": "OFF",
+            "ForceResponseType": "ON",
+            "Type": "None"
+          }
+        },
         "Language": [],
+        "NextChoiceId": 6,
+        "NextAnswerId": 1,
+        "QuestionJS": "",
         "Choices": {
           "1": {
             "Display": "Less than high school"
@@ -714,11 +844,20 @@
           "QuestionDescriptionOption": "UseText"
         },
         "QuestionDescription": "How would you describe your general health?",
-        "DefaultChoices": false,
         "DataExportTag": "general_health",
         "QuestionText": "How would you describe your general health?",
-        "QuestionJS": null,
+        "DefaultChoices": false,
+        "Validation": {
+          "Settings": {
+            "ForceResponse": "OFF",
+            "ForceResponseType": "ON",
+            "Type": "None"
+          }
+        },
         "Language": [],
+        "NextChoiceId": 6,
+        "NextAnswerId": 1,
+        "QuestionJS": "",
         "Choices": {
           "1": {
             "Display": "Excellent"
@@ -755,11 +894,20 @@
           "QuestionDescriptionOption": "UseText"
         },
         "QuestionDescription": "Are you involved in climate activism?",
-        "DefaultChoices": false,
         "DataExportTag": "climate_activism",
         "QuestionText": "Are you involved in climate activism?",
-        "QuestionJS": null,
+        "DefaultChoices": false,
+        "Validation": {
+          "Settings": {
+            "ForceResponse": "OFF",
+            "ForceResponseType": "ON",
+            "Type": "None"
+          }
+        },
         "Language": [],
+        "NextChoiceId": 6,
+        "NextAnswerId": 1,
+        "QuestionJS": "",
         "Choices": {
           "1": {
             "Display": "All the time"
@@ -796,11 +944,20 @@
           "QuestionDescriptionOption": "UseText"
         },
         "QuestionDescription": "Research Site",
-        "DefaultChoices": false,
         "DataExportTag": "research_site",
         "QuestionText": "Research Site",
-        "QuestionJS": null,
-        "Language": []
+        "DefaultChoices": false,
+        "Validation": {
+          "Settings": {
+            "ForceResponse": "OFF",
+            "ForceResponseType": "ON",
+            "Type": "None"
+          }
+        },
+        "Language": [],
+        "NextChoiceId": 1,
+        "NextAnswerId": 1,
+        "QuestionJS": ""
       }
     },
     {
@@ -816,23 +973,30 @@
         "QuestionText": "Thank you for completing the initial survey!",
         "DefaultChoices": false,
         "DataExportTag": "thank_you_note",
-        "Language": []
+        "Language": [],
+        "NextChoiceId": 1,
+        "NextAnswerId": 1,
+        "QuestionJS": ""
       }
     },
     {
       "Type": "Flow",
-      "ID": "FL_1",
+      "ID": "FL_4b877f5c",
       "Flow": [
         {
           "Type": "Block",
-          "ID": "BL_79215632",
-          "FlowID": "FL_1"
+          "ID": "BL_80fc3e83"
         }
       ],
       "Properties": {
-        "Count": 19
-      },
-      "FlowID": "FL_1"
+        "Count": 19,
+        "RemovedFieldsets": []
+      }
+    },
+    {
+      "Type": "EmbeddedData",
+      "FlowID": "FL_f846c36c",
+      "EmbeddedData": []
     }
   ]
 }

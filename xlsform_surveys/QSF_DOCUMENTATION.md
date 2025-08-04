@@ -169,6 +169,7 @@ Before deploying imported surveys:
 ## Troubleshooting Common Issues
 
 ### Import Failures
+- ✅ **JSON parse errors**: Fixed - Removed null values that caused "invalid character 'N'" errors
 - Ensure .qsf file is valid JSON
 - Check file size limits in Qualtrics
 - Verify account permissions for survey creation
@@ -194,6 +195,7 @@ The QSF files are generated from the CSV source files using `create_qsf_surveys.
 
 ## Version History
 
+- **v1.1** (August 2025): Fixed JSON parse error by removing null values that caused Qualtrics import failures
 - **v1.0** (August 2025): Initial QSF export functionality
 - Generated from XLSForm CSV data
 - Support for both biweekly and initial surveys

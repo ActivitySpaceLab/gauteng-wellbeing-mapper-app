@@ -11,6 +11,21 @@ import sys
 from datetime import datetime
 import uuid
 
+class QualtricsJSONEncoder(json.JSONEncoder):
+    """Custom JSON encoder for Qualtrics compatibility"""
+    def encode(self, obj):
+        def remove_none_values(d):
+            if isinstance(d, dict):
+                return {k: remove_none_values(v) for k, v in d.items() if v is not None}
+            elif isinstance(d, list):
+                return [remove_none_values(v) for v in d if v is not None]
+            else:
+                return d
+        
+        # Remove None values before encoding
+        cleaned_obj = remove_none_values(obj)
+        return super().encode(cleaned_obj)
+
 class XLSFormToQSFConverter:
     def __init__(self):
         self.question_counter = 1
@@ -96,23 +111,31 @@ class XLSFormToQSFConverter:
     
     def create_validation(self, xlsform_type, constraint=None):
         """Create validation rules for questions"""
-        validation = {}
+        validation = {
+            "Settings": {
+                "ForceResponse": "OFF",
+                "ForceResponseType": "ON",
+                "Type": "None"
+            }
+        }
         
         if xlsform_type == 'integer':
             validation = {
                 "Settings": {
                     "ForceResponse": "OFF",
-                    "Type": "ValidNumber"
-                },
-                "Type": "ValidNumber"
+                    "ForceResponseType": "ON",
+                    "Type": "ValidNumber",
+                    "SubType": "ValidNumber"
+                }
             }
         elif xlsform_type == 'decimal':
             validation = {
                 "Settings": {
                     "ForceResponse": "OFF",
-                    "Type": "ValidDecimal"
-                },
-                "Type": "ValidDecimal"
+                    "ForceResponseType": "ON",
+                    "Type": "ValidDecimal",
+                    "SubType": "ValidDecimal"
+                }
             }
         elif constraint and isinstance(constraint, str):
             # Handle custom constraints
@@ -120,9 +143,10 @@ class XLSFormToQSFConverter:
                 validation = {
                     "Settings": {
                         "ForceResponse": "OFF",
-                        "Type": "ContentType"
-                    },
-                    "Type": "ContentType"
+                        "ForceResponseType": "ON",
+                        "Type": "ContentType",
+                        "SubType": "ContentType"
+                    }
                 }
         
         return validation
@@ -139,26 +163,32 @@ class XLSFormToQSFConverter:
         survey_id = settings_df.iloc[0]['form_id'] if 'form_id' in settings_df.columns else survey_name.replace(' ', '_')
         survey_title = settings_df.iloc[0]['form_title'] if 'form_title' in settings_df.columns else survey_name
         
-        # Create the base QSF structure
+        # Generate proper Qualtrics IDs
+        survey_uid = f"SV_{uuid.uuid4().hex[:16]}"
+        
+        # Create the base QSF structure with proper Qualtrics format
         qsf_data = {
             "SurveyEntry": {
-                "SurveyID": survey_id,
+                "SurveyID": survey_uid,
                 "SurveyName": survey_title,
                 "SurveyDescription": survey_description,
-                "SurveyOwnerID": "UR_placeholder",
-                "SurveyBrandID": "placeholder",
-                "DivisionID": "placeholder",
+                "SurveyOwnerID": f"UR_{uuid.uuid4().hex[:16]}",
+                "SurveyBrandID": f"UR_{uuid.uuid4().hex[:16]}",
+                "DivisionID": f"DV_{uuid.uuid4().hex[:8]}",
                 "SurveyLanguage": "EN",
-                "SurveyActiveResponseSet": "RS_placeholder",
+                "SurveyActiveResponseSet": f"RS_{uuid.uuid4().hex[:16]}",
                 "SurveyStatus": "Inactive",
-                "SurveyStartDate": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "SurveyStartDate": "0000-00-00 00:00:00",
                 "SurveyExpirationDate": "0000-00-00 00:00:00",
                 "SurveyCreationDate": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                "CreatorID": "UR_placeholder",
+                "CreatorID": f"UR_{uuid.uuid4().hex[:16]}",
                 "LastModified": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 "LastAccessed": "0000-00-00 00:00:00",
                 "LastActivated": "0000-00-00 00:00:00",
-                "Deleted": None
+                "SurveyCleanupDate": "0000-00-00 00:00:00",
+                "SurveyExpiration": "None",
+                "SurveyStartTime": "0000-00-00 00:00:00",
+                "SurveyEndTime": "0000-00-00 00:00:00"
             },
             "SurveyElements": []
         }
@@ -183,7 +213,7 @@ class XLSFormToQSFConverter:
             qtype = self.map_question_type(question['type'])
             selector = self.map_question_selector(question['type'])
             
-            # Create question structure
+            # Create question structure with proper Qualtrics format
             question_data = {
                 "QuestionID": qid,
                 "QuestionType": qtype,
@@ -192,11 +222,14 @@ class XLSFormToQSFConverter:
                     "QuestionDescriptionOption": "UseText"
                 },
                 "QuestionDescription": question['label'],
-                "DefaultChoices": False,
                 "DataExportTag": question['name'],
                 "QuestionText": question['label'],
-                "QuestionJS": None,
-                "Language": []
+                "DefaultChoices": False,
+                "Validation": {},
+                "Language": [],
+                "NextChoiceId": 1,
+                "NextAnswerId": 1,
+                "QuestionJS": ""
             }
             
             # Add hint as sub-text if present
@@ -207,17 +240,31 @@ class XLSFormToQSFConverter:
             if question['type'].startswith('select_'):
                 choices, choice_order = self.create_choice_options(question['type'], choices_df)
                 
-                question_data["Choices"] = choices
-                question_data["ChoiceOrder"] = choice_order
+                if choices:  # Only add if choices exist
+                    question_data["Choices"] = choices
+                    question_data["ChoiceOrder"] = choice_order
+                    question_data["DefaultChoices"] = False
+                    question_data["NextChoiceId"] = len(choices) + 1
                 
                 # Set multiple answers for select_multiple
                 if question['type'].startswith('select_multiple'):
                     question_data["Selector"] = "MAVR"
+                else:
+                    question_data["Selector"] = "SAVR"
             
             # Add validation if needed
             validation = self.create_validation(question['type'], question.get('constraint'))
             if validation:
                 question_data["Validation"] = validation
+            else:
+                # Ensure validation object exists but is empty
+                question_data["Validation"] = {
+                    "Settings": {
+                        "ForceResponse": "OFF",
+                        "ForceResponseType": "ON",
+                        "Type": "None"
+                    }
+                }
             
             # Handle note/display questions
             if question['type'] == 'note':
@@ -232,18 +279,25 @@ class XLSFormToQSFConverter:
                     "QuestionText": question['label'],
                     "DefaultChoices": False,
                     "DataExportTag": question['name'],
-                    "Language": []
+                    "Language": [],
+                    "NextChoiceId": 1,
+                    "NextAnswerId": 1,
+                    "QuestionJS": ""
                 }
             
             questions[qid] = question_data
         
-        # Create survey block
+        # Create survey block with proper structure
         survey_block = {
             "Type": "Block",
             "Description": "Default Question Block",
             "ID": block_id,
             "BlockElements": [{"Type": "Question", "QuestionID": qid} for qid in question_order],
-            "BlockVisibility": "Expanded"
+            "Options": {
+                "BlockLocking": "false",
+                "RandomizeQuestions": "false",
+                "PresentationMode": "On"
+            }
         }
         
         # Add block to survey elements
@@ -256,24 +310,32 @@ class XLSFormToQSFConverter:
                 "Payload": question_data
             })
         
-        # Add survey flow
+        # Add survey flow with proper structure
         flow_element = {
             "Type": "Flow",
-            "ID": "FL_1",
+            "ID": f"FL_{uuid.uuid4().hex[:8]}",
             "Flow": [
                 {
                     "Type": "Block",
-                    "ID": block_id,
-                    "FlowID": "FL_1"
+                    "ID": block_id
                 }
             ],
             "Properties": {
-                "Count": len(question_order)
-            },
-            "FlowID": "FL_1"
+                "Count": len(question_order),
+                "RemovedFieldsets": []
+            }
         }
         
         qsf_data["SurveyElements"].append(flow_element)
+        
+        # Add required embedded data element
+        embedded_data = {
+            "Type": "EmbeddedData",
+            "FlowID": f"FL_{uuid.uuid4().hex[:8]}",
+            "EmbeddedData": []
+        }
+        
+        qsf_data["SurveyElements"].append(embedded_data)
         
         return qsf_data
     
@@ -281,7 +343,7 @@ class XLSFormToQSFConverter:
         """Save QSF data to JSON file"""
         try:
             with open(output_file, 'w', encoding='utf-8') as f:
-                json.dump(qsf_data, f, indent=2, ensure_ascii=False)
+                json.dump(qsf_data, f, indent=2, ensure_ascii=False, cls=QualtricsJSONEncoder)
             print(f"Successfully created {output_file}")
             return True
         except Exception as e:

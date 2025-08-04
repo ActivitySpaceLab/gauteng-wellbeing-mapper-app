@@ -1,28 +1,31 @@
 {
   "SurveyEntry": {
-    "SurveyID": "biweekly_wellbeing_survey",
+    "SurveyID": "SV_e5a13846255246af",
     "SurveyName": "Biweekly Wellbeing Survey",
     "SurveyDescription": "A biweekly survey to track participant wellbeing across multiple domains including mental, physical, social, environmental, and financial wellbeing.",
-    "SurveyOwnerID": "UR_placeholder",
-    "SurveyBrandID": "placeholder",
-    "DivisionID": "placeholder",
+    "SurveyOwnerID": "UR_bdee1dc6714a426a",
+    "SurveyBrandID": "UR_0d026028bb504104",
+    "DivisionID": "DV_ef7984f5",
     "SurveyLanguage": "EN",
-    "SurveyActiveResponseSet": "RS_placeholder",
+    "SurveyActiveResponseSet": "RS_e9169a9be97144a2",
     "SurveyStatus": "Inactive",
-    "SurveyStartDate": "2025-08-02 00:45:13",
+    "SurveyStartDate": "0000-00-00 00:00:00",
     "SurveyExpirationDate": "0000-00-00 00:00:00",
-    "SurveyCreationDate": "2025-08-02 00:45:13",
-    "CreatorID": "UR_placeholder",
-    "LastModified": "2025-08-02 00:45:13",
+    "SurveyCreationDate": "2025-08-04 09:57:29",
+    "CreatorID": "UR_1e862aadfc504bed",
+    "LastModified": "2025-08-04 09:57:29",
     "LastAccessed": "0000-00-00 00:00:00",
     "LastActivated": "0000-00-00 00:00:00",
-    "Deleted": null
+    "SurveyCleanupDate": "0000-00-00 00:00:00",
+    "SurveyExpiration": "None",
+    "SurveyStartTime": "0000-00-00 00:00:00",
+    "SurveyEndTime": "0000-00-00 00:00:00"
   },
   "SurveyElements": [
     {
       "Type": "Block",
       "Description": "Default Question Block",
-      "ID": "BL_29121946",
+      "ID": "BL_a8764fa1",
       "BlockElements": [
         {
           "Type": "Question",
@@ -141,7 +144,11 @@
           "QuestionID": "QID29"
         }
       ],
-      "BlockVisibility": "Expanded"
+      "Options": {
+        "BlockLocking": "false",
+        "RandomizeQuestions": "false",
+        "PresentationMode": "On"
+      }
     },
     {
       "Type": "Question",
@@ -156,7 +163,10 @@
         "QuestionText": "Welcome to your biweekly wellbeing survey! This survey will help us understand how you're feeling and what activities you've been doing.",
         "DefaultChoices": false,
         "DataExportTag": "intro_note",
-        "Language": []
+        "Language": [],
+        "NextChoiceId": 1,
+        "NextAnswerId": 1,
+        "QuestionJS": ""
       }
     },
     {
@@ -169,18 +179,21 @@
           "QuestionDescriptionOption": "UseText"
         },
         "QuestionDescription": "How many hours of sleep do you usually get on weeknights?",
-        "DefaultChoices": false,
         "DataExportTag": "sleep_hours_weeknight",
         "QuestionText": "How many hours of sleep do you usually get on weeknights?<br><em>Enter a number between 0-24</em>",
-        "QuestionJS": null,
-        "Language": [],
+        "DefaultChoices": false,
         "Validation": {
           "Settings": {
             "ForceResponse": "OFF",
-            "Type": "ValidNumber"
-          },
-          "Type": "ValidNumber"
-        }
+            "ForceResponseType": "ON",
+            "Type": "ValidNumber",
+            "SubType": "ValidNumber"
+          }
+        },
+        "Language": [],
+        "NextChoiceId": 1,
+        "NextAnswerId": 1,
+        "QuestionJS": ""
       }
     },
     {
@@ -193,18 +206,21 @@
           "QuestionDescriptionOption": "UseText"
         },
         "QuestionDescription": "How many hours of sleep do you usually get on weekends?",
-        "DefaultChoices": false,
         "DataExportTag": "sleep_hours_weekend",
         "QuestionText": "How many hours of sleep do you usually get on weekends?<br><em>Enter a number between 0-24</em>",
-        "QuestionJS": null,
-        "Language": [],
+        "DefaultChoices": false,
         "Validation": {
           "Settings": {
             "ForceResponse": "OFF",
-            "Type": "ValidNumber"
-          },
-          "Type": "ValidNumber"
-        }
+            "ForceResponseType": "ON",
+            "Type": "ValidNumber",
+            "SubType": "ValidNumber"
+          }
+        },
+        "Language": [],
+        "NextChoiceId": 1,
+        "NextAnswerId": 1,
+        "QuestionJS": ""
       }
     },
     {
@@ -217,11 +233,20 @@
           "QuestionDescriptionOption": "UseText"
         },
         "QuestionDescription": "In the last two weeks how often have you done at least 30 minutes of physical activity?",
-        "DefaultChoices": false,
         "DataExportTag": "physical_activity",
         "QuestionText": "In the last two weeks how often have you done at least 30 minutes of physical activity?<br><em>Choose the option that best describes your activity level</em>",
-        "QuestionJS": null,
+        "DefaultChoices": false,
+        "Validation": {
+          "Settings": {
+            "ForceResponse": "OFF",
+            "ForceResponseType": "ON",
+            "Type": "None"
+          }
+        },
         "Language": [],
+        "NextChoiceId": 6,
+        "NextAnswerId": 1,
+        "QuestionJS": "",
         "Choices": {
           "1": {
             "Display": "Daily"
@@ -258,11 +283,20 @@
           "QuestionDescriptionOption": "UseText"
         },
         "QuestionDescription": "How would you rate your mental wellbeing over the past two weeks?",
-        "DefaultChoices": false,
         "DataExportTag": "mental_wellbeing",
         "QuestionText": "How would you rate your mental wellbeing over the past two weeks?",
-        "QuestionJS": null,
+        "DefaultChoices": false,
+        "Validation": {
+          "Settings": {
+            "ForceResponse": "OFF",
+            "ForceResponseType": "ON",
+            "Type": "None"
+          }
+        },
         "Language": [],
+        "NextChoiceId": 6,
+        "NextAnswerId": 1,
+        "QuestionJS": "",
         "Choices": {
           "1": {
             "Display": "Excellent"
@@ -299,11 +333,20 @@
           "QuestionDescriptionOption": "UseText"
         },
         "QuestionDescription": "How would you rate your physical wellbeing over the past two weeks?",
-        "DefaultChoices": false,
         "DataExportTag": "physical_wellbeing",
         "QuestionText": "How would you rate your physical wellbeing over the past two weeks?",
-        "QuestionJS": null,
+        "DefaultChoices": false,
+        "Validation": {
+          "Settings": {
+            "ForceResponse": "OFF",
+            "ForceResponseType": "ON",
+            "Type": "None"
+          }
+        },
         "Language": [],
+        "NextChoiceId": 6,
+        "NextAnswerId": 1,
+        "QuestionJS": "",
         "Choices": {
           "1": {
             "Display": "Excellent"
@@ -340,11 +383,20 @@
           "QuestionDescriptionOption": "UseText"
         },
         "QuestionDescription": "How would you rate your social wellbeing over the past two weeks?",
-        "DefaultChoices": false,
         "DataExportTag": "social_wellbeing",
         "QuestionText": "How would you rate your social wellbeing over the past two weeks?",
-        "QuestionJS": null,
+        "DefaultChoices": false,
+        "Validation": {
+          "Settings": {
+            "ForceResponse": "OFF",
+            "ForceResponseType": "ON",
+            "Type": "None"
+          }
+        },
         "Language": [],
+        "NextChoiceId": 6,
+        "NextAnswerId": 1,
+        "QuestionJS": "",
         "Choices": {
           "1": {
             "Display": "Excellent"
@@ -381,11 +433,20 @@
           "QuestionDescriptionOption": "UseText"
         },
         "QuestionDescription": "How would you rate your environmental wellbeing over the past two weeks?",
-        "DefaultChoices": false,
         "DataExportTag": "environmental_wellbeing",
         "QuestionText": "How would you rate your environmental wellbeing over the past two weeks?",
-        "QuestionJS": null,
+        "DefaultChoices": false,
+        "Validation": {
+          "Settings": {
+            "ForceResponse": "OFF",
+            "ForceResponseType": "ON",
+            "Type": "None"
+          }
+        },
         "Language": [],
+        "NextChoiceId": 6,
+        "NextAnswerId": 1,
+        "QuestionJS": "",
         "Choices": {
           "1": {
             "Display": "Excellent"
@@ -422,11 +483,20 @@
           "QuestionDescriptionOption": "UseText"
         },
         "QuestionDescription": "How would you rate your financial wellbeing over the past two weeks?",
-        "DefaultChoices": false,
         "DataExportTag": "financial_wellbeing",
         "QuestionText": "How would you rate your financial wellbeing over the past two weeks?",
-        "QuestionJS": null,
+        "DefaultChoices": false,
+        "Validation": {
+          "Settings": {
+            "ForceResponse": "OFF",
+            "ForceResponseType": "ON",
+            "Type": "None"
+          }
+        },
         "Language": [],
+        "NextChoiceId": 6,
+        "NextAnswerId": 1,
+        "QuestionJS": "",
         "Choices": {
           "1": {
             "Display": "Excellent"
@@ -463,11 +533,20 @@
           "QuestionDescriptionOption": "UseText"
         },
         "QuestionDescription": "I feel like I belong in my local community",
-        "DefaultChoices": false,
         "DataExportTag": "community_belonging",
         "QuestionText": "I feel like I belong in my local community",
-        "QuestionJS": null,
+        "DefaultChoices": false,
+        "Validation": {
+          "Settings": {
+            "ForceResponse": "OFF",
+            "ForceResponseType": "ON",
+            "Type": "None"
+          }
+        },
         "Language": [],
+        "NextChoiceId": 6,
+        "NextAnswerId": 1,
+        "QuestionJS": "",
         "Choices": {
           "1": {
             "Display": "Strongly Agree"
@@ -504,11 +583,20 @@
           "QuestionDescriptionOption": "UseText"
         },
         "QuestionDescription": "People in my neighbourhood support each other",
-        "DefaultChoices": false,
         "DataExportTag": "community_support",
         "QuestionText": "People in my neighbourhood support each other",
-        "QuestionJS": null,
+        "DefaultChoices": false,
+        "Validation": {
+          "Settings": {
+            "ForceResponse": "OFF",
+            "ForceResponseType": "ON",
+            "Type": "None"
+          }
+        },
         "Language": [],
+        "NextChoiceId": 6,
+        "NextAnswerId": 1,
+        "QuestionJS": "",
         "Choices": {
           "1": {
             "Display": "Strongly Agree"
@@ -545,11 +633,20 @@
           "QuestionDescriptionOption": "UseText"
         },
         "QuestionDescription": "I trust most people in my neighbourhood",
-        "DefaultChoices": false,
         "DataExportTag": "neighborhood_trust",
         "QuestionText": "I trust most people in my neighbourhood",
-        "QuestionJS": null,
+        "DefaultChoices": false,
+        "Validation": {
+          "Settings": {
+            "ForceResponse": "OFF",
+            "ForceResponseType": "ON",
+            "Type": "None"
+          }
+        },
         "Language": [],
+        "NextChoiceId": 6,
+        "NextAnswerId": 1,
+        "QuestionJS": "",
         "Choices": {
           "1": {
             "Display": "Strongly Agree"
@@ -586,11 +683,20 @@
           "QuestionDescriptionOption": "UseText"
         },
         "QuestionDescription": "I feel safe walking in my neighbourhood during the day",
-        "DefaultChoices": false,
         "DataExportTag": "neighborhood_safety",
         "QuestionText": "I feel safe walking in my neighbourhood during the day",
-        "QuestionJS": null,
+        "DefaultChoices": false,
+        "Validation": {
+          "Settings": {
+            "ForceResponse": "OFF",
+            "ForceResponseType": "ON",
+            "Type": "None"
+          }
+        },
         "Language": [],
+        "NextChoiceId": 6,
+        "NextAnswerId": 1,
+        "QuestionJS": "",
         "Choices": {
           "1": {
             "Display": "Strongly Agree"
@@ -627,11 +733,20 @@
           "QuestionDescriptionOption": "UseText"
         },
         "QuestionDescription": "I feel safe walking in my neighbourhood at night",
-        "DefaultChoices": false,
         "DataExportTag": "neighborhood_safety_night",
         "QuestionText": "I feel safe walking in my neighbourhood at night",
-        "QuestionJS": null,
+        "DefaultChoices": false,
+        "Validation": {
+          "Settings": {
+            "ForceResponse": "OFF",
+            "ForceResponseType": "ON",
+            "Type": "None"
+          }
+        },
         "Language": [],
+        "NextChoiceId": 6,
+        "NextAnswerId": 1,
+        "QuestionJS": "",
         "Choices": {
           "1": {
             "Display": "Strongly Agree"
@@ -668,11 +783,20 @@
           "QuestionDescriptionOption": "UseText"
         },
         "QuestionDescription": "The presence of police makes me feel safer",
-        "DefaultChoices": false,
         "DataExportTag": "police_safety",
         "QuestionText": "The presence of police makes me feel safer",
-        "QuestionJS": null,
+        "DefaultChoices": false,
+        "Validation": {
+          "Settings": {
+            "ForceResponse": "OFF",
+            "ForceResponseType": "ON",
+            "Type": "None"
+          }
+        },
         "Language": [],
+        "NextChoiceId": 6,
+        "NextAnswerId": 1,
+        "QuestionJS": "",
         "Choices": {
           "1": {
             "Display": "Strongly Agree"
@@ -709,11 +833,20 @@
           "QuestionDescriptionOption": "UseText"
         },
         "QuestionDescription": "I have easy access to green spaces (parks etc.)",
-        "DefaultChoices": false,
         "DataExportTag": "green_space_access",
         "QuestionText": "I have easy access to green spaces (parks etc.)",
-        "QuestionJS": null,
+        "DefaultChoices": false,
+        "Validation": {
+          "Settings": {
+            "ForceResponse": "OFF",
+            "ForceResponseType": "ON",
+            "Type": "None"
+          }
+        },
         "Language": [],
+        "NextChoiceId": 6,
+        "NextAnswerId": 1,
+        "QuestionJS": "",
         "Choices": {
           "1": {
             "Display": "Strongly Agree"
@@ -750,11 +883,20 @@
           "QuestionDescriptionOption": "UseText"
         },
         "QuestionDescription": "The green spaces near me are well-maintained",
-        "DefaultChoices": false,
         "DataExportTag": "green_space_quality",
         "QuestionText": "The green spaces near me are well-maintained",
-        "QuestionJS": null,
+        "DefaultChoices": false,
+        "Validation": {
+          "Settings": {
+            "ForceResponse": "OFF",
+            "ForceResponseType": "ON",
+            "Type": "None"
+          }
+        },
         "Language": [],
+        "NextChoiceId": 6,
+        "NextAnswerId": 1,
+        "QuestionJS": "",
         "Choices": {
           "1": {
             "Display": "Strongly Agree"
@@ -791,11 +933,20 @@
           "QuestionDescriptionOption": "UseText"
         },
         "QuestionDescription": "The air quality in my area is good",
-        "DefaultChoices": false,
         "DataExportTag": "air_quality",
         "QuestionText": "The air quality in my area is good",
-        "QuestionJS": null,
+        "DefaultChoices": false,
+        "Validation": {
+          "Settings": {
+            "ForceResponse": "OFF",
+            "ForceResponseType": "ON",
+            "Type": "None"
+          }
+        },
         "Language": [],
+        "NextChoiceId": 6,
+        "NextAnswerId": 1,
+        "QuestionJS": "",
         "Choices": {
           "1": {
             "Display": "Strongly Agree"
@@ -832,11 +983,20 @@
           "QuestionDescriptionOption": "UseText"
         },
         "QuestionDescription": "Noise pollution is a problem in my area",
-        "DefaultChoices": false,
         "DataExportTag": "noise_pollution",
         "QuestionText": "Noise pollution is a problem in my area",
-        "QuestionJS": null,
+        "DefaultChoices": false,
+        "Validation": {
+          "Settings": {
+            "ForceResponse": "OFF",
+            "ForceResponseType": "ON",
+            "Type": "None"
+          }
+        },
         "Language": [],
+        "NextChoiceId": 6,
+        "NextAnswerId": 1,
+        "QuestionJS": "",
         "Choices": {
           "1": {
             "Display": "Strongly Agree"
@@ -873,11 +1033,20 @@
           "QuestionDescriptionOption": "UseText"
         },
         "QuestionDescription": "I feel anxious about climate change",
-        "DefaultChoices": false,
         "DataExportTag": "climate_anxiety",
         "QuestionText": "I feel anxious about climate change",
-        "QuestionJS": null,
+        "DefaultChoices": false,
+        "Validation": {
+          "Settings": {
+            "ForceResponse": "OFF",
+            "ForceResponseType": "ON",
+            "Type": "None"
+          }
+        },
         "Language": [],
+        "NextChoiceId": 6,
+        "NextAnswerId": 1,
+        "QuestionJS": "",
         "Choices": {
           "1": {
             "Display": "Strongly Agree"
@@ -914,11 +1083,20 @@
           "QuestionDescriptionOption": "UseText"
         },
         "QuestionDescription": "Digital Diary Section",
-        "DefaultChoices": false,
         "DataExportTag": "digital_diary_group",
         "QuestionText": "Digital Diary Section<br><em>Tell us about something interesting that happened in the past two weeks</em>",
-        "QuestionJS": null,
-        "Language": []
+        "DefaultChoices": false,
+        "Validation": {
+          "Settings": {
+            "ForceResponse": "OFF",
+            "ForceResponseType": "ON",
+            "Type": "None"
+          }
+        },
+        "Language": [],
+        "NextChoiceId": 1,
+        "NextAnswerId": 1,
+        "QuestionJS": ""
       }
     },
     {
@@ -931,11 +1109,20 @@
           "QuestionDescriptionOption": "UseText"
         },
         "QuestionDescription": "Please describe something that happened to you in the past two weeks that was important or meaningful to you.",
-        "DefaultChoices": false,
         "DataExportTag": "diary_text_entry",
         "QuestionText": "Please describe something that happened to you in the past two weeks that was important or meaningful to you.<br><em>This could be anything - a special moment with family or friends; a challenge you overcame; something that made you happy or worried; a place you visited; or anything else that stands out to you.</em>",
-        "QuestionJS": null,
-        "Language": []
+        "DefaultChoices": false,
+        "Validation": {
+          "Settings": {
+            "ForceResponse": "OFF",
+            "ForceResponseType": "ON",
+            "Type": "None"
+          }
+        },
+        "Language": [],
+        "NextChoiceId": 1,
+        "NextAnswerId": 1,
+        "QuestionJS": ""
       }
     },
     {
@@ -948,11 +1135,20 @@
           "QuestionDescriptionOption": "UseText"
         },
         "QuestionDescription": "Take a photo related to your story (optional)",
-        "DefaultChoices": false,
         "DataExportTag": "diary_photo",
         "QuestionText": "Take a photo related to your story (optional)<br><em>This could be a photo of a place, person, object, or anything related to what you described above.</em>",
-        "QuestionJS": null,
-        "Language": []
+        "DefaultChoices": false,
+        "Validation": {
+          "Settings": {
+            "ForceResponse": "OFF",
+            "ForceResponseType": "ON",
+            "Type": "None"
+          }
+        },
+        "Language": [],
+        "NextChoiceId": 1,
+        "NextAnswerId": 1,
+        "QuestionJS": ""
       }
     },
     {
@@ -965,11 +1161,20 @@
           "QuestionDescriptionOption": "UseText"
         },
         "QuestionDescription": NaN,
-        "DefaultChoices": false,
         "DataExportTag": NaN,
         "QuestionText": NaN,
-        "QuestionJS": null,
-        "Language": []
+        "DefaultChoices": false,
+        "Validation": {
+          "Settings": {
+            "ForceResponse": "OFF",
+            "ForceResponseType": "ON",
+            "Type": "None"
+          }
+        },
+        "Language": [],
+        "NextChoiceId": 1,
+        "NextAnswerId": 1,
+        "QuestionJS": ""
       }
     },
     {
@@ -982,11 +1187,20 @@
           "QuestionDescriptionOption": "UseText"
         },
         "QuestionDescription": "Your current location (optional)",
-        "DefaultChoices": false,
         "DataExportTag": "current_location",
         "QuestionText": "Your current location (optional)<br><em>This helps us understand the geographic context of your responses</em>",
-        "QuestionJS": null,
-        "Language": []
+        "DefaultChoices": false,
+        "Validation": {
+          "Settings": {
+            "ForceResponse": "OFF",
+            "ForceResponseType": "ON",
+            "Type": "None"
+          }
+        },
+        "Language": [],
+        "NextChoiceId": 1,
+        "NextAnswerId": 1,
+        "QuestionJS": ""
       }
     },
     {
@@ -1002,7 +1216,10 @@
         "QuestionText": "Before submitting, you can choose what data to share with researchers. Your privacy is important to us.",
         "DefaultChoices": false,
         "DataExportTag": "data_sharing_note",
-        "Language": []
+        "Language": [],
+        "NextChoiceId": 1,
+        "NextAnswerId": 1,
+        "QuestionJS": ""
       }
     },
     {
@@ -1015,11 +1232,20 @@
           "QuestionDescriptionOption": "UseText"
         },
         "QuestionDescription": "Which location data would you like to share with researchers? (Select all that apply)",
-        "DefaultChoices": false,
         "DataExportTag": "location_data_sharing",
         "QuestionText": "Which location data would you like to share with researchers? (Select all that apply)<br><em>You can choose to share none or all of these options</em>",
-        "QuestionJS": null,
+        "DefaultChoices": false,
+        "Validation": {
+          "Settings": {
+            "ForceResponse": "OFF",
+            "ForceResponseType": "ON",
+            "Type": "None"
+          }
+        },
         "Language": [],
+        "NextChoiceId": 5,
+        "NextAnswerId": 1,
+        "QuestionJS": "",
         "Choices": {
           "1": {
             "Display": "Current survey location (where you took this survey)"
@@ -1052,11 +1278,20 @@
           "QuestionDescriptionOption": "UseText"
         },
         "QuestionDescription": "How would you like your data to be handled?",
-        "DefaultChoices": false,
         "DataExportTag": "upload_preference",
         "QuestionText": "How would you like your data to be handled?",
-        "QuestionJS": null,
+        "DefaultChoices": false,
+        "Validation": {
+          "Settings": {
+            "ForceResponse": "OFF",
+            "ForceResponseType": "ON",
+            "Type": "None"
+          }
+        },
         "Language": [],
+        "NextChoiceId": 4,
+        "NextAnswerId": 1,
+        "QuestionJS": "",
         "Choices": {
           "1": {
             "Display": "Upload my data now"
@@ -1088,23 +1323,30 @@
         "QuestionText": "Thank you for completing your biweekly wellbeing survey!",
         "DefaultChoices": false,
         "DataExportTag": "thank_you_note",
-        "Language": []
+        "Language": [],
+        "NextChoiceId": 1,
+        "NextAnswerId": 1,
+        "QuestionJS": ""
       }
     },
     {
       "Type": "Flow",
-      "ID": "FL_1",
+      "ID": "FL_89479cd1",
       "Flow": [
         {
           "Type": "Block",
-          "ID": "BL_29121946",
-          "FlowID": "FL_1"
+          "ID": "BL_a8764fa1"
         }
       ],
       "Properties": {
-        "Count": 29
-      },
-      "FlowID": "FL_1"
+        "Count": 29,
+        "RemovedFieldsets": []
+      }
+    },
+    {
+      "Type": "EmbeddedData",
+      "FlowID": "FL_14c7cfa5",
+      "EmbeddedData": []
     }
   ]
 }
