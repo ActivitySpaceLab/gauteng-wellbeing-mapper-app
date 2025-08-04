@@ -37,11 +37,7 @@ void main() {
       final response1 = WellbeingSurveyResponse(
         id: '1',
         timestamp: DateTime.now(),
-        cheerfulSpirits: 1,
-        calmRelaxed: 1,
-        activeVigorous: 1,
-        wokeRested: 1,
-        interestingLife: 1,
+        happinessScore: 10.0,
         latitude: 0.0,
         longitude: 0.0,
       );
@@ -49,11 +45,7 @@ void main() {
       final response2 = WellbeingSurveyResponse(
         id: '2',
         timestamp: DateTime.now(),
-        cheerfulSpirits: 0,
-        calmRelaxed: 0,
-        activeVigorous: 0,
-        wokeRested: 0,
-        interestingLife: 0,
+        happinessScore: 0.0,
         latitude: 0.0,
         longitude: 0.0,
       );
@@ -61,29 +53,21 @@ void main() {
       final response3 = WellbeingSurveyResponse(
         id: '3',
         timestamp: DateTime.now(),
-        cheerfulSpirits: 1,
-        calmRelaxed: 0,
-        activeVigorous: 1,
-        wokeRested: 0,
-        interestingLife: 1,
+        happinessScore: 5.5,
         latitude: 0.0,
         longitude: 0.0,
       );
 
-      expect(response1.wellbeingScore, equals(5));
-      expect(response2.wellbeingScore, equals(0));
-      expect(response3.wellbeingScore, equals(3));
+      expect(response1.wellbeingScore, equals(10.0));
+      expect(response2.wellbeingScore, equals(0.0));
+      expect(response3.wellbeingScore, equals(5.5));
     });
 
     test('Wellbeing categories should be correct', () {
       final lowResponse = WellbeingSurveyResponse(
         id: '1',
         timestamp: DateTime.now(),
-        cheerfulSpirits: 0,
-        calmRelaxed: 0,
-        activeVigorous: 0,
-        wokeRested: 0,
-        interestingLife: 0,
+        happinessScore: 0.0,
         latitude: 0.0,
         longitude: 0.0,
       );
@@ -91,11 +75,7 @@ void main() {
       final highResponse = WellbeingSurveyResponse(
         id: '2',
         timestamp: DateTime.now(),
-        cheerfulSpirits: 1,
-        calmRelaxed: 1,
-        activeVigorous: 1,
-        wokeRested: 1,
-        interestingLife: 1,
+        happinessScore: 10.0,
         latitude: 0.0,
         longitude: 0.0,
       );

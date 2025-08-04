@@ -13,7 +13,7 @@ class WellbeingSurveyScreen extends StatefulWidget {
 }
 
 class _WellbeingSurveyScreenState extends State<WellbeingSurveyScreen> {
-  final Map<String, int?> _responses = {};
+  double? _happinessScore; // 0.0 to 10.0, null means not answered
   bool _isSubmitting = false;
   bool _isCaptingLocation = false;
   bg.Location? _currentLocation;
@@ -22,10 +22,6 @@ class _WellbeingSurveyScreenState extends State<WellbeingSurveyScreen> {
   @override
   void initState() {
     super.initState();
-    // Initialize responses map with null values (no default selection)
-    for (final question in WellbeingSurveyQuestion.questions) {
-      _responses[question.id] = null;
-    }
     _captureLocation();
   }
 
@@ -78,11 +74,7 @@ class _WellbeingSurveyScreenState extends State<WellbeingSurveyScreen> {
 
     try {
       final response = WellbeingSurveyService.createResponse(
-        cheerfulSpirits: _responses['cheerful_spirits'],
-        calmRelaxed: _responses['calm_relaxed'],
-        activeVigorous: _responses['active_vigorous'],
-        wokeRested: _responses['woke_rested'],
-        interestingLife: _responses['interesting_life'],
+        happinessScore: _happinessScore,
         latitude: _currentLocation?.coords.latitude,
         longitude: _currentLocation?.coords.longitude,
         accuracy: _currentLocation?.coords.accuracy,
@@ -93,7 +85,7 @@ class _WellbeingSurveyScreenState extends State<WellbeingSurveyScreen> {
 
       // Check if we're in app testing mode
       final currentMode = await AppModeService.getCurrentMode();
-      final answeredCount = _responses.values.where((v) => v != null).length;
+      final hasAnswer = _happinessScore != null;
       
       if (currentMode == AppMode.appTesting) {
         // Show beta testing message
@@ -109,8 +101,8 @@ class _WellbeingSurveyScreenState extends State<WellbeingSurveyScreen> {
                 ),
                 SizedBox(height: 4),
                 Text(
-                  answeredCount > 0 
-                    ? 'Your $answeredCount response(s) would have been submitted if this was research mode, but no data was transmitted since this is beta testing.'
+                  hasAnswer 
+                    ? 'Your happiness rating of ${_happinessScore!.toStringAsFixed(1)} would have been submitted if this was research mode, but no data was transmitted since this is beta testing.'
                     : 'Your survey would have been submitted if this was research mode, but no data was transmitted since this is beta testing.',
                 ),
                 SizedBox(height: 8),
@@ -129,8 +121,8 @@ class _WellbeingSurveyScreenState extends State<WellbeingSurveyScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              answeredCount > 0 
-                ? 'Wellbeing survey submitted successfully with $answeredCount response(s)!'
+              hasAnswer 
+                ? 'Wellbeing survey submitted successfully! Happiness rating: ${_happinessScore!.toStringAsFixed(1)}/10'
                 : 'Wellbeing survey submitted successfully!',
             ),
             backgroundColor: SouthAfricanTheme.success,
@@ -221,60 +213,114 @@ class _WellbeingSurveyScreenState extends State<WellbeingSurveyScreen> {
     }
   }
 
-  Widget _buildQuestionCard(WellbeingSurveyQuestion question, int index) {
+  Widget _buildHappinessSlider() {
+    final question = WellbeingSurveyQuestion.question;
+    
     return Card(
       margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Padding(
-        padding: EdgeInsets.all(16),
+        padding: EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Question ${index + 1} (Optional)',
+              'Happiness Survey (Optional)',
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
                 color: Colors.grey[600],
               ),
             ),
-            SizedBox(height: 8),
+            SizedBox(height: 12),
             Text(
               question.text,
               style: TextStyle(
-                fontSize: 16,
+                fontSize: 18,
                 fontWeight: FontWeight.w500,
               ),
             ),
-            SizedBox(height: 16),
-            Text(
-              'How have you felt in the past 2 weeks:',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
-                fontStyle: FontStyle.italic,
-              ),
-            ),
-            SizedBox(height: 12),
-            ...question.options.asMap().entries.map((entry) {
-              final optionIndex = entry.key;
-              final optionText = entry.value;
-              
-              return RadioListTile<int>(
-                title: Text(
-                  optionText,
-                  style: TextStyle(fontSize: 16),
+            SizedBox(height: 24),
+            
+            // Slider
+            Column(
+              children: [
+                Slider(
+                  value: _happinessScore ?? 5.0,
+                  min: question.minValue,
+                  max: question.maxValue,
+                  divisions: 10, // 0, 1, 2, ..., 10
+                  label: _happinessScore?.toStringAsFixed(1) ?? '5.0',
+                  onChanged: (value) {
+                    setState(() {
+                      _happinessScore = value;
+                    });
+                  },
+                  activeColor: SouthAfricanTheme.primaryBlue,
+                  inactiveColor: Colors.grey[300],
                 ),
-                value: optionIndex,
-                groupValue: _responses[question.id],
-                onChanged: (value) {
-                  setState(() {
-                    _responses[question.id] = value;
-                  });
-                },
-                dense: true,
-                contentPadding: EdgeInsets.zero,
-              );
-            }).toList(),
+                
+                // Labels below slider
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          question.minLabel,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[600],
+                          ),
+                          textAlign: TextAlign.start,
+                        ),
+                      ),
+                      Flexible(
+                        child: Text(
+                          question.maxLabel,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[600],
+                          ),
+                          textAlign: TextAlign.end,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            
+            SizedBox(height: 16),
+            
+            // Current value display
+            if (_happinessScore != null)
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: SouthAfricanTheme.softYellow,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.mood,
+                      color: SouthAfricanTheme.primaryBlue,
+                      size: 20,
+                    ),
+                    SizedBox(width: 8),
+                    Text(
+                      'Your happiness: ${_happinessScore!.toStringAsFixed(1)}/10',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: SouthAfricanTheme.primaryBlue,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
           ],
         ),
       ),
@@ -285,7 +331,7 @@ class _WellbeingSurveyScreenState extends State<WellbeingSurveyScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Mental Wellbeing Survey'),
+        title: Text('Happiness Survey'),
         backgroundColor: SouthAfricanTheme.primaryBlue,
         foregroundColor: SouthAfricanTheme.pureWhite,
       ),
@@ -300,7 +346,7 @@ class _WellbeingSurveyScreenState extends State<WellbeingSurveyScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Mental Wellbeing Survey',
+                  'Happiness Survey',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -309,7 +355,7 @@ class _WellbeingSurveyScreenState extends State<WellbeingSurveyScreen> {
                 ),
                 SizedBox(height: 8),
                 Text(
-                  'Please answer any questions you feel comfortable answering.',
+                  'Rate how happy you are feeling right now using the slider below.',
                   style: TextStyle(
                     fontSize: 14,
                     color: SouthAfricanTheme.darkGrey,
@@ -323,12 +369,8 @@ class _WellbeingSurveyScreenState extends State<WellbeingSurveyScreen> {
           
           // Questions
           Expanded(
-            child: ListView.builder(
-              itemCount: WellbeingSurveyQuestion.questions.length,
-              itemBuilder: (context, index) {
-                final question = WellbeingSurveyQuestion.questions[index];
-                return _buildQuestionCard(question, index);
-              },
+            child: SingleChildScrollView(
+              child: _buildHappinessSlider(),
             ),
           ),
           

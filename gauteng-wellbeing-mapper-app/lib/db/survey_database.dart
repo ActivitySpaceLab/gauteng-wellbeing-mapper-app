@@ -23,7 +23,7 @@ class SurveyDatabase {
     String path = join(await getDatabasesPath(), 'survey_database.db');
     return await openDatabase(
       path,
-      version: 5, // Bumped version to add data sharing consent table
+      version: 6, // Bumped version to update wellbeing survey to single happiness question
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -130,11 +130,7 @@ class SurveyDatabase {
       CREATE TABLE wellbeing_survey_responses (
         id TEXT PRIMARY KEY,
         timestamp TEXT NOT NULL,
-        cheerful_spirits INTEGER NOT NULL,
-        calm_relaxed INTEGER NOT NULL,
-        active_vigorous INTEGER NOT NULL,
-        woke_rested INTEGER NOT NULL,
-        interesting_life INTEGER NOT NULL,
+        happiness_score REAL,
         latitude REAL,
         longitude REAL,
         accuracy REAL,
@@ -266,6 +262,61 @@ class SurveyDatabase {
           created_at TEXT DEFAULT CURRENT_TIMESTAMP
         )
       ''');
+    }
+    
+    if (oldVersion < 6) {
+      // Migrate wellbeing survey responses to single happiness question
+      // First backup existing data
+      await db.execute('''
+        CREATE TEMPORARY TABLE wellbeing_backup AS 
+        SELECT * FROM wellbeing_survey_responses
+      ''');
+      
+      // Drop old table
+      await db.execute('DROP TABLE wellbeing_survey_responses');
+      
+      // Create new table with happiness_score field
+      await db.execute('''
+        CREATE TABLE wellbeing_survey_responses (
+          id TEXT PRIMARY KEY,
+          timestamp TEXT NOT NULL,
+          happiness_score REAL,
+          latitude REAL,
+          longitude REAL,
+          accuracy REAL,
+          location_timestamp TEXT,
+          is_synced INTEGER DEFAULT 0
+        )
+      ''');
+      
+      // Migrate existing data by calculating average happiness from old questions
+      // This converts the old Yes/No questions to a 0-10 happiness scale
+      await db.execute('''
+        INSERT INTO wellbeing_survey_responses (
+          id, timestamp, happiness_score, latitude, longitude, accuracy, location_timestamp, is_synced
+        )
+        SELECT 
+          id, 
+          timestamp,
+          CASE 
+            WHEN (COALESCE(cheerful_spirits, 0) + COALESCE(calm_relaxed, 0) + 
+                  COALESCE(active_vigorous, 0) + COALESCE(woke_rested, 0) + 
+                  COALESCE(interesting_life, 0)) > 0 
+            THEN ((COALESCE(cheerful_spirits, 0) + COALESCE(calm_relaxed, 0) + 
+                   COALESCE(active_vigorous, 0) + COALESCE(woke_rested, 0) + 
+                   COALESCE(interesting_life, 0)) * 2.0) -- Scale 0-5 to 0-10
+            ELSE NULL 
+          END as happiness_score,
+          latitude,
+          longitude,
+          accuracy,
+          location_timestamp,
+          is_synced
+        FROM wellbeing_backup
+      ''');
+      
+      // Drop backup table
+      await db.execute('DROP TABLE wellbeing_backup');
     }
   }
 

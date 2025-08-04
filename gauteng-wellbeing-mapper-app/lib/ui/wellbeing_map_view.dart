@@ -151,15 +151,15 @@ class _WellbeingMapViewState extends State<WellbeingMapView> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Wellbeing Score Legend',
+            'Happiness Score Legend',
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
           SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              for (int score = 0; score <= 5; score++)
-                _buildLegendItem(score),
+              for (int score = 0; score <= 10; score += 2)
+                _buildLegendItem(score.toDouble()),
             ],
           ),
         ],
@@ -167,7 +167,7 @@ class _WellbeingMapViewState extends State<WellbeingMapView> {
     );
   }
 
-  Widget _buildLegendItem(int score) {
+  Widget _buildLegendItem(double score) {
     return Column(
       children: [
         Container(
@@ -181,7 +181,7 @@ class _WellbeingMapViewState extends State<WellbeingMapView> {
         ),
         SizedBox(height: 4),
         Text(
-          score.toString(),
+          score.toInt().toString(),
           style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
         ),
       ],
@@ -213,11 +213,11 @@ class _WellbeingMapViewState extends State<WellbeingMapView> {
               ),
               child: Center(
                 child: Text(
-                  response.wellbeingScore.toString(),
+                  response.wellbeingScore.toStringAsFixed(1),
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
-                    fontSize: 12,
+                    fontSize: 10,
                   ),
                 ),
               ),
@@ -235,7 +235,7 @@ class _WellbeingMapViewState extends State<WellbeingMapView> {
       circles: _surveyResponses.map((response) {
         return CircleMarker(
           point: LatLng(response.latitude!, response.longitude!),
-          radius: 50 + (response.wellbeingScore * 10), // Larger circles for higher scores
+          radius: 30 + (response.wellbeingScore * 5), // Adjusted for 0-10 scale
           color: WellbeingSurveyResponse.getWellbeingColor(response.wellbeingScore)
               .withValues(alpha: 0.3),
           borderColor: WellbeingSurveyResponse.getWellbeingColor(response.wellbeingScore),
@@ -254,8 +254,8 @@ class _WellbeingMapViewState extends State<WellbeingMapView> {
         .reduce((a, b) => a + b) / totalResponses;
     
     final scoreDistribution = <int, int>{};
-    for (int i = 0; i <= 5; i++) {
-      scoreDistribution[i] = _surveyResponses.where((r) => r.wellbeingScore == i).length;
+    for (int i = 0; i <= 10; i++) {
+      scoreDistribution[i] = _surveyResponses.where((r) => r.wellbeingScore.round() == i).length;
     }
 
     return Container(
@@ -275,7 +275,7 @@ class _WellbeingMapViewState extends State<WellbeingMapView> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Wellbeing Statistics',
+            'Happiness Statistics',
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
           SizedBox(height: 8),
@@ -285,7 +285,7 @@ class _WellbeingMapViewState extends State<WellbeingMapView> {
               _buildStatItem('Total Surveys', totalResponses.toString()),
               _buildStatItem('Average Score', avgScore.toStringAsFixed(1)),
               _buildStatItem('Highest Score', 
-                _surveyResponses.map((r) => r.wellbeingScore).reduce((a, b) => a > b ? a : b).toString()),
+                _surveyResponses.map((r) => r.wellbeingScore).reduce((a, b) => a > b ? a : b).toStringAsFixed(1)),
             ],
           ),
         ],
@@ -319,15 +319,8 @@ class _WellbeingMapViewState extends State<WellbeingMapView> {
           children: [
             Text('Date: ${response.timestamp.toString().split('.')[0]}'),
             SizedBox(height: 8),
-            Text('Wellbeing Score: ${response.wellbeingScore}/5'),
+            Text('Happiness Score: ${response.wellbeingScore.toStringAsFixed(1)}/10'),
             Text('Category: ${response.wellbeingCategory}'),
-            SizedBox(height: 12),
-            Text('Responses:', style: TextStyle(fontWeight: FontWeight.bold)),
-            Text('• Cheerful spirits: ${response.cheerfulSpirits == 1 ? "Yes" : "No"}'),
-            Text('• Calm & relaxed: ${response.calmRelaxed == 1 ? "Yes" : "No"}'),
-            Text('• Active & vigorous: ${response.activeVigorous == 1 ? "Yes" : "No"}'),
-            Text('• Woke up rested: ${response.wokeRested == 1 ? "Yes" : "No"}'),
-            Text('• Interesting life: ${response.interestingLife == 1 ? "Yes" : "No"}'),
             if (response.accuracy != null) ...[
               SizedBox(height: 8),
               Text('Location accuracy: ${response.accuracy!.toStringAsFixed(1)}m'),

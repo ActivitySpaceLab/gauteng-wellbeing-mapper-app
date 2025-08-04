@@ -168,11 +168,11 @@ class _WellbeingTimelineViewState extends State<WellbeingTimelineView> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildStatItem('Latest', latestScore.toString(), 
+              _buildStatItem('Latest', latestScore.toStringAsFixed(1), 
                   WellbeingSurveyResponse.getWellbeingColor(latestScore)),
               _buildStatItem('Average', avgScore.toStringAsFixed(1), Colors.blue),
-              _buildStatItem('Best', maxScore.toString(), Colors.green),
-              _buildStatItem('Lowest', minScore.toString(), Colors.orange),
+              _buildStatItem('Best', maxScore.toStringAsFixed(1), Colors.green),
+              _buildStatItem('Lowest', minScore.toStringAsFixed(1), Colors.orange),
             ],
           ),
           SizedBox(height: 12),
@@ -240,7 +240,7 @@ class _WellbeingTimelineViewState extends State<WellbeingTimelineView> {
           gridData: FlGridData(
             show: true,
             drawVerticalLine: false,
-            horizontalInterval: 1,
+            horizontalInterval: 2,
             getDrawingHorizontalLine: (value) {
               return FlLine(
                 color: Colors.grey[300]!,
@@ -275,7 +275,7 @@ class _WellbeingTimelineViewState extends State<WellbeingTimelineView> {
             leftTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
-                interval: 1,
+                interval: 2,
                 reservedSize: 30,
                 getTitlesWidget: (value, meta) {
                   return Text(
@@ -293,7 +293,7 @@ class _WellbeingTimelineViewState extends State<WellbeingTimelineView> {
           minX: 0,
           maxX: (_filteredResponses.length - 1).toDouble(),
           minY: 0,
-          maxY: 5,
+          maxY: 10,
           lineBarsData: [
             LineChartBarData(
               spots: spots,
@@ -306,7 +306,7 @@ class _WellbeingTimelineViewState extends State<WellbeingTimelineView> {
               dotData: FlDotData(
                 show: true,
                 getDotPainter: (spot, percent, barData, index) {
-                  final score = spot.y.toInt();
+                  final score = spot.y;
                   return FlDotCirclePainter(
                     radius: 6,
                     color: WellbeingSurveyResponse.getWellbeingColor(score),
@@ -339,7 +339,7 @@ class _WellbeingTimelineViewState extends State<WellbeingTimelineView> {
                     final dateStr = DateFormat('MMM dd, yyyy').format(response.timestamp);
                     final timeStr = DateFormat('HH:mm').format(response.timestamp);
                     return LineTooltipItem(
-                      '$dateStr\n$timeStr\nScore: ${response.wellbeingScore}/5\n${response.wellbeingCategory}',
+                      '$dateStr\n$timeStr\nHappiness: ${response.wellbeingScore.toStringAsFixed(1)}/10\n${response.wellbeingCategory}',
                       TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
@@ -377,21 +377,21 @@ class _WellbeingTimelineViewState extends State<WellbeingTimelineView> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Wellbeing Scale',
+            'Happiness Scale',
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
           ),
           SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              for (int score = 0; score <= 5; score++)
+              for (int score = 0; score <= 10; score += 2)
                 Column(
                   children: [
                     Container(
                       width: 16,
                       height: 16,
                       decoration: BoxDecoration(
-                        color: WellbeingSurveyResponse.getWellbeingColor(score),
+                        color: WellbeingSurveyResponse.getWellbeingColor(score.toDouble()),
                         shape: BoxShape.circle,
                         border: Border.all(color: Colors.white, width: 1),
                       ),

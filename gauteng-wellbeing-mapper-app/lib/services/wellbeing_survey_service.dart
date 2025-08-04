@@ -88,31 +88,18 @@ class WellbeingSurveyService {
   }
 
   /// Create a new wellbeing survey response with current timestamp and optional location
-  /// Note: Input values are option indices (0="Yes", 1="No"), converted to scoring values (1="Yes", 0="No")
-  /// Now supports optional responses - null means the user didn't answer that question
+  /// happinessScore: 0.0-10.0 from slider, null means not answered
   static WellbeingSurveyResponse createResponse({
-    int? cheerfulSpirits, // null means not answered
-    int? calmRelaxed, // null means not answered
-    int? activeVigorous, // null means not answered
-    int? wokeRested, // null means not answered
-    int? interestingLife, // null means not answered
+    double? happinessScore, // 0.0-10.0 from slider, null means not answered
     double? latitude,
     double? longitude,
     double? accuracy,
     String? locationTimestamp,
   }) {
-    // Convert option indices to scoring values: 0 (Yes) -> 1 point, 1 (No) -> 0 points
-    // null stays null (not answered)
-    int? convertOptionToScore(int? optionIndex) => optionIndex == null ? null : (optionIndex == 0 ? 1 : 0);
-    
     return WellbeingSurveyResponse(
       id: const Uuid().v4(),
       timestamp: DateTime.now(),
-      cheerfulSpirits: convertOptionToScore(cheerfulSpirits),
-      calmRelaxed: convertOptionToScore(calmRelaxed),
-      activeVigorous: convertOptionToScore(activeVigorous),
-      wokeRested: convertOptionToScore(wokeRested),
-      interestingLife: convertOptionToScore(interestingLife),
+      happinessScore: happinessScore,
       latitude: latitude,
       longitude: longitude,
       accuracy: accuracy,
