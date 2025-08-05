@@ -21,6 +21,7 @@ import 'package:uuid/uuid.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import 'map_view.dart';
+import '../services/ios_location_fix_service.dart';
 
 import '../util/dialog.dart' as util;
 
@@ -553,18 +554,132 @@ class HomeViewState extends State<HomeView>
       
       // Check if we have the necessary permissions before starting tracking
       try {
-        // Check basic location permission
-        final locationStatus = await Permission.locationWhenInUse.status;
+        // On iOS, use the comprehensive location fix service first to handle permission issues
+        if (Theme.of(context).platform == TargetPlatform.iOS) {
+          print('[_onClickEnable] iOS detected, checking with IosLocationFixService first...');
+          
+          // Check if native iOS permissions are working (bypasses Flutter plugin issues)
+          final hasNativePermission = await IosLocationFixService.checkNativeLocationPermission();
+          final isRegistered = await IosLocationFixService.isAppRegisteredInSettings();
+          
+          print('[_onClickEnable] Native permission check: $hasNativePermission, registered: $isRegistered');
+          
+          // If native permissions are working, proceed with tracking
+          if (hasNativePermission || isRegistered) {
+            print('[_onClickEnable] ✅ Native iOS permissions confirmed, starting tracking directly');
+            
+            try {
+              bg.State state = await bg.BackgroundGeolocation.state;
+              print('[_onClickEnable] Current BG state before start: $state');
+              
+              if (state.trackingMode == 1) {
+                print('[_onClickEnable] Starting background geolocation (tracking mode)...');
+                await bg.BackgroundGeolocation.start();
+              } else {
+                print('[_onClickEnable] Starting geofences...');
+                await bg.BackgroundGeolocation.startGeofences();
+              }
+              
+              // Get the final state after starting
+              bg.State finalState = await bg.BackgroundGeolocation.state;
+              print('[_onClickEnable] Final BG state after start: $finalState');
+              
+              setState(() {
+                _enabled = finalState.enabled;
+              });
+              
+              if (!finalState.enabled) {
+                print('[_onClickEnable] WARNING: Background geolocation failed to start even with native permissions');
+                _showPermissionError('Failed to start location tracking. Please check your location settings and try again.');
+              } else {
+                print('[_onClickEnable] ✅ Successfully started background geolocation via native iOS permissions');
+              }
+              
+              return; // Exit early since native permissions worked
+              
+            } catch (bgError) {
+              print('[_onClickEnable] Error starting background geolocation with native permissions: $bgError');
+              setState(() {
+                _enabled = false;
+              });
+              _showPermissionError('Failed to start location tracking: $bgError');
+              return;
+            }
+          }
+          
+          // If native permissions aren't working, try the comprehensive fix
+          print('[_onClickEnable] Native permissions not working, attempting comprehensive iOS fix...');
+          final iosFixResult = await IosLocationFixService.performComprehensiveFix(context: context);
+          
+          if (iosFixResult) {
+            print('[_onClickEnable] iOS location fix successful, re-checking native permissions...');
+            
+            final hasNativePermissionAfterFix = await IosLocationFixService.checkNativeLocationPermission();
+            final isRegisteredAfterFix = await IosLocationFixService.isAppRegisteredInSettings();
+            
+            if (hasNativePermissionAfterFix || isRegisteredAfterFix) {
+              print('[_onClickEnable] ✅ Native iOS permissions now working after fix, starting tracking');
+              
+              try {
+                bg.State state = await bg.BackgroundGeolocation.state;
+                
+                if (state.trackingMode == 1) {
+                  await bg.BackgroundGeolocation.start();
+                } else {
+                  await bg.BackgroundGeolocation.startGeofences();
+                }
+                
+                bg.State finalState = await bg.BackgroundGeolocation.state;
+                setState(() {
+                  _enabled = finalState.enabled;
+                });
+                
+                if (finalState.enabled) {
+                  print('[_onClickEnable] ✅ Successfully started background geolocation after iOS fix');
+                  return; // Exit early since fix worked
+                }
+              } catch (bgError) {
+                print('[_onClickEnable] Error starting background geolocation after iOS fix: $bgError');
+              }
+            }
+          }
+          
+          print('[_onClickEnable] iOS native fixes failed, falling back to standard permission flow...');
+        }
+        
+        // Standard permission checking for non-iOS or iOS fallback
+        print('[_onClickEnable] Using standard Flutter permission checking...');
+        
+        // Check location permissions - prioritize "Always" over "when in use"
         final locationAlwaysStatus = await Permission.locationAlways.status;
+        final locationWhenInUseStatus = await Permission.locationWhenInUse.status;
         
         // Check motion & fitness permission (iOS)
         final motionStatus = await Permission.sensors.status;
         
-        print('[_onClickEnable] Current permissions - location: $locationStatus, always: $locationAlwaysStatus, motion: $motionStatus');
+        print('[_onClickEnable] Current permissions - whenInUse: $locationWhenInUseStatus, always: $locationAlwaysStatus, motion: $motionStatus');
         
-        // If we don't have basic location permission, request it first
-        if (locationStatus != PermissionStatus.granted && locationAlwaysStatus != PermissionStatus.granted) {
-          print('[_onClickEnable] Basic location permission missing, requesting...');
+        bool hasLocationPermission = false;
+        bool hasAlwaysPermission = false;
+        
+        // Check if we have adequate location permissions
+        if (locationAlwaysStatus == PermissionStatus.granted) {
+          print('[_onClickEnable] ✅ Already have Always location permission - proceeding');
+          hasLocationPermission = true;
+          hasAlwaysPermission = true;
+        } else if (locationWhenInUseStatus == PermissionStatus.granted) {
+          print('[_onClickEnable] ⚠️ Have When-In-Use permission but need Always for background tracking');
+          hasLocationPermission = true;
+          hasAlwaysPermission = false;
+        } else {
+          print('[_onClickEnable] ❌ No location permission granted');
+          hasLocationPermission = false;
+          hasAlwaysPermission = false;
+        }
+        
+        // If we don't have any location permission, request it first
+        if (!hasLocationPermission) {
+          print('[_onClickEnable] Requesting basic location permission...');
           final result = await Permission.locationWhenInUse.request();
           if (result != PermissionStatus.granted) {
             print('[_onClickEnable] Location permission denied, cannot start tracking');
@@ -576,55 +691,30 @@ class HomeViewState extends State<HomeView>
           }
           // Give iOS time to propagate the permission
           await Future.delayed(Duration(milliseconds: 1000));
+          hasLocationPermission = true;
         }
         
-        // Request always permission if we only have when-in-use (or no permission yet)
-        if (locationAlwaysStatus != PermissionStatus.granted) {
-          print('[_onClickEnable] Need always location permission for background tracking...');
-          
-          // First ensure we have basic location permission
-          final freshLocationStatus = await Permission.locationWhenInUse.status;
-          if (freshLocationStatus != PermissionStatus.granted) {
-            print('[_onClickEnable] Requesting basic location permission first...');
-            final basicResult = await Permission.locationWhenInUse.request();
-            if (basicResult != PermissionStatus.granted) {
-              print('[_onClickEnable] Basic location permission denied, cannot start tracking');
-              setState(() {
-                _enabled = false;
-              });
-              _showPermissionError('Location permission is required for tracking. Please grant location permission in Settings.');
-              return;
-            }
-            await Future.delayed(Duration(milliseconds: 1000));
-          }
-          
-          // Now request always permission
-          print('[_onClickEnable] Requesting always location permission...');
+        // If we don't have Always permission, request it
+        if (!hasAlwaysPermission) {
+          print('[_onClickEnable] Requesting Always location permission for background tracking...');
           final alwaysResult = await Permission.locationAlways.request();
           
           if (alwaysResult != PermissionStatus.granted) {
             print('[_onClickEnable] Always location permission denied or needs manual settings change');
-            // Don't immediately set to false - check if we at least have when-in-use
-            final finalLocationStatus = await Permission.locationWhenInUse.status;
-            if (finalLocationStatus == PermissionStatus.granted) {
-              print('[_onClickEnable] Have when-in-use permission, showing always permission dialog');
-              _showAlwaysPermissionDialog();
-              // Keep the switch on but show the dialog
-              return;
-            } else {
-              setState(() {
-                _enabled = false;
-              });
-              _showPermissionError('Location permission is required for tracking. Please grant location permission in Settings.');
-              return;
-            }
+            // Show dialog to guide user to settings but don't disable the switch yet
+            _showAlwaysPermissionDialog();
+            // Let the user decide - keep the switch on but they'll need to manually enable in settings
+            return;
+          } else {
+            print('[_onClickEnable] ✅ Always permission granted successfully');
+            hasAlwaysPermission = true;
           }
           
           // Give iOS time to propagate the permission
           await Future.delayed(Duration(milliseconds: 1000));
         }
         
-        // Request motion & fitness permission if needed
+        // Request motion & fitness permission if needed (not critical for tracking)
         if (motionStatus != PermissionStatus.granted) {
           print('[_onClickEnable] Requesting motion & fitness permission...');
           await Permission.sensors.request();
@@ -632,7 +722,7 @@ class HomeViewState extends State<HomeView>
           await Future.delayed(Duration(milliseconds: 500));
         }
         
-        print('[_onClickEnable] All permissions ready, starting background geolocation...');
+        print('[_onClickEnable] ✅ All required permissions ready, starting background geolocation...');
         
         // Debug the current state before starting
         await _debugBackgroundGeolocationState();
@@ -662,7 +752,7 @@ class HomeViewState extends State<HomeView>
             print('[_onClickEnable] WARNING: Background geolocation failed to start even with permissions');
             _showPermissionError('Failed to start location tracking. Please check your location settings and try again.');
           } else {
-            print('[_onClickEnable] Successfully started background geolocation');
+            print('[_onClickEnable] ✅ Successfully started background geolocation');
           }
           
         } catch (bgError) {

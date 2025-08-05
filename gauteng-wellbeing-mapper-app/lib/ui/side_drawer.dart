@@ -7,7 +7,7 @@ import 'package:wellbeing_mapper/services/app_mode_service.dart';
 import 'package:wellbeing_mapper/services/wellbeing_survey_service.dart';
 import 'package:wellbeing_mapper/services/initial_survey_service.dart';
 import 'package:wellbeing_mapper/theme/south_african_theme.dart';
-import 'package:wellbeing_mapper/debug/ios_location_debug.dart';
+// import 'package:wellbeing_mapper/debug/ios_location_debug.dart'; // Commented out with iOS Location Debug menu (August 5, 2025)
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:url_launcher/url_launcher.dart';
@@ -409,6 +409,9 @@ class _WellbeingMapperSideDrawerState extends State<WellbeingMapperSideDrawer> {
               ),
             ),
             // iOS Location Debug - Debug tool for diagnosing iOS location permission issues
+            // NOTE: Commented out as iOS location issues have been resolved (August 5, 2025)
+            // Uncomment if iOS location debugging is needed again in the future
+            /*
             Card(
               child: ListTile(
                 leading: const Icon(Icons.bug_report, color: Colors.orange),
@@ -423,6 +426,7 @@ class _WellbeingMapperSideDrawerState extends State<WellbeingMapperSideDrawer> {
                 },
               ),
             ),
+            */
             // Help & Guide - Always visible
             Card(
               child: ListTile(
