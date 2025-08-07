@@ -75,6 +75,20 @@ static List<AppMode> getAvailableModes() {
 - **With `APP_FLAVOR=production`**: Tests expecting production behavior pass  
 - **With `FLUTTER_TEST_MODE=true`**: All mode transitions work for testing
 
+## Usage in CI and Deployment
+
+To run tests with the fix, use:
+```bash
+flutter test --dart-define=FLUTTER_TEST_MODE=true
+```
+
+**Important**: This flag is required in ALL workflows that run tests:
+- ✅ CI workflow (`CI.yml`) - Uses test mode flag
+- ✅ Beta deployment workflow (`CD-deploy-beta-releases.yml`) - Updated to use test mode flag  
+- ✅ Production deployment workflow (`CD-deploy-github-releases.yml`) - Updated to use test mode flag
+
+Without this flag, deployment workflows will fail because they cannot access `AppMode.appTesting` in production builds.
+
 The solution successfully resolves the CI testing conflict while maintaining production security and build flavor restrictions.
 
 ## How This Works

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../models/data_sharing_consent.dart';
+import '../models/app_mode.dart';
 import '../services/data_upload_service.dart';
 import '../services/wellbeing_survey_service.dart';
+import '../services/app_mode_service.dart';
 import '../db/survey_database.dart';
 import '../ui/data_sharing_consent_dialog.dart';
 
@@ -49,6 +51,24 @@ class ConsentAwareDataUploadService {
     required Function(String) onError,
   }) async {
     try {
+      // CRITICAL: Check app mode before any upload operations
+      final currentMode = await AppModeService.getCurrentMode();
+      
+      // If in app testing mode, simulate upload but don't actually send data
+      if (currentMode == AppMode.appTesting) {
+        print('[ConsentAwareUpload] App Testing Mode: Simulating upload without sending real data');
+        // Wait a moment to simulate upload time
+        await Future.delayed(Duration(seconds: 2));
+        onSuccess();
+        return;
+      }
+      
+      // Only proceed with real upload if in research mode
+      if (!await AppModeService.sendsDataToResearch()) {
+        onError('Data upload not available in current app mode');
+        return;
+      }
+      
       final db = SurveyDatabase();
       
       // Get user's latest consent decision

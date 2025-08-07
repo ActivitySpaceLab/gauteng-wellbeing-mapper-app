@@ -70,4 +70,4 @@ jobs:
           script: |
             cd gauteng-wellbeing-mapper-app
             echo "Starting integration tests..."
-            timeout 600 flutter test integration_test/app_test.dart || echo "Test completed or timed out"
+            timeout 600 flutter test --dart-define=FLUTTER_TEST_MODE=true integration_test/app_test.dart || echo "Test completed or timed out"
