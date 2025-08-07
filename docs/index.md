@@ -59,10 +59,42 @@ This site contains documentation for beta testers, app users, developers, and re
 - **[API Reference](API_REFERENCE.md)** - Complete API documentation
 - **[Architecture Overview](ARCHITECTURE.md)** - System design and data flow
 
+### Build & Release Management
+- **[Git Flow + Build Flavors Guide](GIT_FLOW_BUILD_FLAVORS_GUIDE.md)** - Production vs beta build system
+- **[Implementation Complete](IMPLEMENTATION_COMPLETE.md)** - Latest implementation status
+- **[Release Guide](RELEASE_GUIDE.md)** - Complete release and deployment process
+- **[Release Checklist](RELEASE_CHECKLIST.md)** - Pre-release validation steps
+- **[CI Performance Improvements](CI_PERFORMANCE_IMPROVEMENTS.md)** - Build optimization notes
+
+### Platform-Specific Guides
+- **[iOS Location Fix Summary](iOS_LOCATION_FIX_SUMMARY.md)** - iOS location permission implementation
+- **[iOS Location Debug Status](iOS_LOCATION_DEBUG_STATUS.md)** - iOS debugging and testing notes
+- **[iOS Location Debug Notes](IOS_LOCATION_DEBUG_NOTES.md)** - Additional iOS troubleshooting
+- **[iOS Location Prevention System](iOS_LOCATION_PREVENTION_SYSTEM.md)** - iOS location permission prevention
+- **[Tablet Screenshot Guide](manual_tablet_screenshot_guide.md)** - App Store screenshot generation
+- **[Cloud Testing Options](CLOUD_TESTING_OPTIONS.md)** - Remote testing configurations
+
+### Feature Implementation
+- **[Voice Notes and Photos](VOICE_NOTES_AND_PHOTOS_IMPLEMENTATION.md)** - Media capture features
+- **[Wellbeing Map Feature](WELLBEING_MAP_FEATURE.md)** - Interactive mapping functionality
+- **[Wellbeing Timeline Feature](WELLBEING_TIMELINE_FEATURE.md)** - Timeline visualization system
+- **[Export Data Fix Summary](EXPORT_DATA_FIX_SUMMARY.md)** - Data export improvements
+- **[Location Selection Testing](LOCATION_SELECTION_TESTING_SUMMARY.md)** - Location feature testing
+- **[Consent System](CONSENT_SYSTEM.md)** - User consent and privacy implementation
+
 ### Recent Updates
 - **[App Mode System](DEVELOPER_GUIDE.md#app-mode-system)** - Beta vs. research configuration
 - **[Notification Features](NOTIFICATION_FEATURE_SUMMARY.md)** - Enhanced survey reminder system
+- **[Notification System Enhancement](NOTIFICATION_SYSTEM_ENHANCEMENT.md)** - Advanced notification features
 - **[Testing Tools](DEVELOPER_GUIDE.md#notification-system-features)** - Beta testing capabilities
+
+### Bug Fixes & Troubleshooting
+- **[App Mode Switching Bug Fix](APP_MODE_SWITCHING_BUG_FIX.md)** - Mode switching issue resolution
+- **[Testing App Mode Fix](TESTING_APP_MODE_FIX.md)** - App mode testing procedures
+- **[Wellbeing Survey Bug Fix](WELLBEING_SURVEY_BUG_FIX.md)** - Survey functionality fixes
+- **[Google Play Compliance Fix](GOOGLE_PLAY_COMPLIANCE_FIX.md)** - Play Store policy compliance
+- **[Google Play Exact Alarm Fix](GOOGLE_PLAY_USE_EXACT_ALARM_FIX_SUMMARY.md)** - Alarm permission handling
+- **[Happiness Survey Update](HAPPINESS_SURVEY_UPDATE_SUMMARY.md)** - Survey content updates
 
 ## 🔬 For Researchers
 
