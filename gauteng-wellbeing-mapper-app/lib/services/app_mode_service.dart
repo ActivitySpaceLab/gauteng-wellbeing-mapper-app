@@ -6,6 +6,15 @@ class AppModeService {
   static const String _modeKey = 'app_mode';
   static const String _testingParticipantCodeKey = 'testing_participant_code';
   
+  /// Get the current app flavor from build configuration
+  static const String appFlavor = String.fromEnvironment('APP_FLAVOR', defaultValue: 'production');
+  
+  /// Check if this is a beta build
+  static bool get isBetaBuild => appFlavor == 'beta';
+  
+  /// Check if this is a production build
+  static bool get isProductionBuild => appFlavor == 'production';
+  
   /// Get current app mode
   static Future<AppMode> getCurrentMode() async {
     final prefs = await SharedPreferences.getInstance();
@@ -15,20 +24,38 @@ class AppModeService {
       return AppMode.private; // Default to private
     }
     
+    AppMode requestedMode;
     switch (modeString) {
       case 'private':
-        return AppMode.private;
+        requestedMode = AppMode.private;
+        break;
       case 'research':
-        return AppMode.research;
+        requestedMode = AppMode.research;
+        break;
       case 'appTesting':
-        return AppMode.appTesting;
+        requestedMode = AppMode.appTesting;
+        break;
       default:
-        return AppMode.private;
+        requestedMode = AppMode.private;
+    }
+    
+    // Ensure the requested mode is available in this build flavor
+    if (getAvailableModes().contains(requestedMode)) {
+      return requestedMode;
+    } else {
+      // If the stored mode is not available in this build, return default
+      return AppMode.private;
     }
   }
 
   /// Set current app mode
   static Future<void> setCurrentMode(AppMode mode) async {
+    // Validate that the mode is available in this build flavor
+    if (!getAvailableModes().contains(mode)) {
+      print('[AppModeService] Cannot set mode ${mode.displayName} - not available in $appFlavor build');
+      return;
+    }
+    
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_modeKey, mode.toString().split('.').last);
     
@@ -37,7 +64,7 @@ class AppModeService {
       await _generateTestingParticipantCode();
     }
     
-    print('[AppModeService] Mode changed to: ${mode.displayName}');
+    print('[AppModeService] Mode changed to: ${mode.displayName} (Build: $appFlavor)');
   }
 
   /// Generate a fake participant code for testing
@@ -95,12 +122,19 @@ class AppModeService {
 
   /// Get available modes for selection
   static List<AppMode> getAvailableModes() {
-    return AppModeExtension.availableModes;
+    // Return available modes based on build flavor
+    if (isBetaBuild) {
+      // Beta builds include all modes for testing
+      return [AppMode.private, AppMode.research, AppMode.appTesting];
+    } else {
+      // Production builds only include Private and Research modes
+      return [AppMode.private, AppMode.research];
+    }
   }
 
   /// Validate mode transition
   static bool canSwitchToMode(AppMode fromMode, AppMode toMode) {
-    // Allow all transitions during beta phase
-    return AppModeExtension.availableModes.contains(toMode);
+    // Only allow transitions to modes available in this build flavor
+    return getAvailableModes().contains(toMode);
   }
 }

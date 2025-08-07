@@ -58,14 +58,12 @@ extension AppModeExtension on AppMode {
   }
 
   /// Available modes for current app build
+  /// Note: This getter is deprecated - use AppModeService.getAvailableModes() instead
+  @Deprecated('Use AppModeService.getAvailableModes() instead')
   static List<AppMode> get availableModes {
-    // For beta testing phase: show Private and App Testing
-    // For full release: show Private and Research
-    // TODO: Set to false for full release
-    return _isBetaPhase ? [AppMode.private, AppMode.appTesting] : [AppMode.private, AppMode.research];
+    // Default fallback - in practice, AppModeService should be used
+    return [AppMode.private, AppMode.research];
   }
-
-  static const bool _isBetaPhase = true;
 
   /// Get theme color for this mode
   Color get themeColor {
