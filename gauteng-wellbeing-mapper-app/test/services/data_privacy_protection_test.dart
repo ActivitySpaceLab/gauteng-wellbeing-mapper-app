@@ -54,14 +54,23 @@ void main() {
         expect(currentMode.description, contains('Anonymous data shared with researchers'));
       });
 
-      test('beta phase should only allow private and testing modes', () {
-        // Verify beta phase available modes
+      test('build flavor should provide appropriate modes for its phase', () {
+        // Verify available modes based on actual build flavor
         final availableModes = AppModeService.getAvailableModes();
         
-        expect(availableModes, hasLength(2));
-        expect(availableModes, contains(AppMode.private));
-        expect(availableModes, contains(AppMode.appTesting));
-        expect(availableModes, isNot(contains(AppMode.research)));
+        if (AppModeService.isBetaBuild) {
+          // Beta builds should only offer safe modes (no research data collection)
+          expect(availableModes, hasLength(2));
+          expect(availableModes, contains(AppMode.private));
+          expect(availableModes, contains(AppMode.appTesting));
+          expect(availableModes, isNot(contains(AppMode.research)));
+        } else {
+          // Production builds should offer private and research modes
+          expect(availableModes, hasLength(2));
+          expect(availableModes, contains(AppMode.private));
+          expect(availableModes, contains(AppMode.research));
+          expect(availableModes, isNot(contains(AppMode.appTesting)));
+        }
       });
     });
 
@@ -227,22 +236,32 @@ void main() {
       });
     });
 
-    group('Beta Testing Phase Restrictions', () {
-      test('should prevent access to research mode during beta', () {
-        // During beta phase, research mode should not be available
+    group('Build Flavor Restrictions', () {
+      test('should enforce appropriate mode restrictions based on build flavor', () {
+        // Test that each build flavor enforces correct restrictions
         final availableModes = AppModeService.getAvailableModes();
         
-        // Beta phase should only offer safe modes
-        expect(availableModes, hasLength(2));
-        expect(availableModes, contains(AppMode.private));
-        expect(availableModes, contains(AppMode.appTesting));
+        if (AppModeService.isBetaBuild) {
+          // Beta phase should only offer safe modes
+          expect(availableModes, hasLength(2));
+          expect(availableModes, contains(AppMode.private));
+          expect(availableModes, contains(AppMode.appTesting));
+          
+          // Research mode should not be available during beta
+          expect(availableModes, isNot(contains(AppMode.research)));
+        } else {
+          // Production should offer private and research modes
+          expect(availableModes, hasLength(2));
+          expect(availableModes, contains(AppMode.private));
+          expect(availableModes, contains(AppMode.research));
+          
+          // App testing mode should not be available in production UI
+          expect(availableModes, isNot(contains(AppMode.appTesting)));
+        }
         
-        // Research mode should not be available during beta
-        expect(availableModes, isNot(contains(AppMode.research)));
-        
-        // Verify beta phase configuration by checking available modes
-        // In beta phase, only private and appTesting modes should be available
-        // In production, private and research modes would be available
+        // Verify flavor configuration by checking available modes
+        // In beta: only private and appTesting modes should be available
+        // In production: private and research modes should be available
       });
 
       test('should generate safe test participant codes in testing mode', () async {
