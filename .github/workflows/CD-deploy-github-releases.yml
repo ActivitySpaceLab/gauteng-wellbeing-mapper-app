@@ -3,7 +3,8 @@ name: Deploy Production Release to GitHub Releases
 on:
   push:
     tags:
-      - 'v*' # Trigger on production version tags like v1.0.0 (no beta suffix)
+      - 'v[0-9]+.[0-9]+.[0-9]+' # Only trigger on production tags like v1.0.0 (no beta suffix)
+      - 'v[0-9]+.[0-9]+.[0-9]+-[0-9]+' # Also support tags with build numbers like v1.0.0-123
 
 permissions:
   contents: write
@@ -35,12 +36,25 @@ jobs:
       id: release_type
       run: |
         TAG="${GITHUB_REF#refs/tags/}"
+        echo "Processing tag: $TAG"
+        
         if [[ "$TAG" =~ -beta ]]; then
-          echo "❌ This workflow is for production releases only. Beta tags should not trigger this workflow."
-          echo "Beta releases should use a separate workflow or be tagged without -beta suffix."
+          echo "❌ ERROR: Beta tag detected in production workflow!"
+          echo "Tag '$TAG' contains '-beta' suffix which should not trigger this workflow."
+          echo "Beta tags should only trigger the 'CD-deploy-beta-releases.yml' workflow."
+          echo "If you see this error, the workflow trigger patterns need to be updated."
           exit 1
         fi
-        echo "✅ Confirmed production release tag: $TAG"
+        
+        # Verify tag matches expected production pattern
+        if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9]+)?$ ]]; then
+          echo "❌ ERROR: Invalid production tag format!"
+          echo "Expected format: v1.0.0 or v1.0.0-123 (semantic version with optional build number)"
+          echo "Received: $TAG"
+          exit 1
+        fi
+        
+        echo "✅ Confirmed valid production release tag: $TAG"
         echo "is_production=true" >> $GITHUB_OUTPUT
 
     - name: Validate version consistency
