@@ -91,6 +91,7 @@ This site contains documentation for beta testers, app users, developers, and re
 
 ### Bug Fixes & Troubleshooting
 - **[App Mode Switching Bug Fix](APP_MODE_SWITCHING_BUG_FIX.md)** - Mode switching issue resolution
+- **[App Mode Testing Fix](APP_MODE_TESTING_FIX.md)** - CI testing with app mode restrictions
 - **[Testing App Mode Fix](TESTING_APP_MODE_FIX.md)** - App mode testing procedures
 - **[Wellbeing Survey Bug Fix](WELLBEING_SURVEY_BUG_FIX.md)** - Survey functionality fixes
 - **[Google Play Compliance Fix](GOOGLE_PLAY_COMPLIANCE_FIX.md)** - Play Store policy compliance

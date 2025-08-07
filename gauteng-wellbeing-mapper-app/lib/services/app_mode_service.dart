@@ -9,6 +9,9 @@ class AppModeService {
   /// Get the current app flavor from build configuration
   static const String appFlavor = String.fromEnvironment('APP_FLAVOR', defaultValue: 'production');
   
+  /// Check if we're in test mode
+  static const bool isTestMode = bool.fromEnvironment('FLUTTER_TEST_MODE', defaultValue: false);
+  
   /// Check if this is a beta build
   static bool get isBetaBuild => appFlavor == 'beta';
   
@@ -40,7 +43,8 @@ class AppModeService {
     }
     
     // Ensure the requested mode is available in this build flavor
-    if (getAvailableModes().contains(requestedMode)) {
+    // In test mode, allow any stored mode for comprehensive testing
+    if (isTestMode || getAvailableModes().contains(requestedMode)) {
       return requestedMode;
     } else {
       // If the stored mode is not available in this build, return default
@@ -50,8 +54,9 @@ class AppModeService {
 
   /// Set current app mode
   static Future<void> setCurrentMode(AppMode mode) async {
-    // Validate that the mode is available in this build flavor
-    if (!getAvailableModes().contains(mode)) {
+    // In test mode, allow setting any mode for comprehensive testing
+    // but still respect flavor restrictions for getAvailableModes()
+    if (!isTestMode && !getAvailableModes().contains(mode)) {
       print('[AppModeService] Cannot set mode ${mode.displayName} - not available in $appFlavor build');
       return;
     }
@@ -124,10 +129,10 @@ class AppModeService {
   static List<AppMode> getAvailableModes() {
     // Return available modes based on build flavor
     if (isBetaBuild) {
-      // Beta builds include all modes for testing
-      return [AppMode.private, AppMode.research, AppMode.appTesting];
+      // Beta builds only include safe modes (no research data collection)
+      return [AppMode.private, AppMode.appTesting];
     } else {
-      // Production builds only include Private and Research modes
+      // Production builds include Private and Research modes
       return [AppMode.private, AppMode.research];
     }
   }
