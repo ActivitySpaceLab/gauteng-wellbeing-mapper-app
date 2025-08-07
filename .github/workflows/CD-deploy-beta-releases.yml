@@ -1,0 +1,230 @@
+name: Deploy Beta Release to GitHub Releases
+
+on:
+  push:
+    tags:
+      - 'v*-beta*' # Trigger on beta version tags like v1.0.0-beta1
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:  
+  build:
+    runs-on: macos-latest # Use macOS for iOS builds
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'zulu'
+        java-version: '17'
+    
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        channel: 'stable'
+        flutter-version: '3.27.1' # Match your fvm version
+    
+    - name: Get version from tag
+      id: version
+      run: echo "content=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+    - name: Check if this is a beta release
+      id: release_type
+      run: |
+        TAG="${GITHUB_REF#refs/tags/}"
+        if [[ ! "$TAG" =~ -beta ]]; then
+          echo "❌ This workflow is for beta releases only. Production tags should not trigger this workflow."
+          echo "Production releases should be tagged without -beta suffix."
+          exit 1
+        fi
+        echo "✅ Confirmed beta release tag: $TAG"
+        echo "is_beta=true" >> $GITHUB_OUTPUT
+
+    - name: Validate version consistency
+      run: |
+        # Get version from pubspec.yaml (remove build number)
+        PUBSPEC_VERSION=$(grep "version:" gauteng-wellbeing-mapper-app/pubspec.yaml | sed 's/version: //' | sed 's/+.*//' | tr -d ' ')
+        
+        # Get version from git tag (remove 'v' prefix and beta suffix for comparison)
+        TAG_VERSION=${GITHUB_REF#refs/tags/v}
+        TAG_VERSION_BASE=$(echo "$TAG_VERSION" | sed 's/-beta.*//')
+        
+        echo "pubspec.yaml version: $PUBSPEC_VERSION"
+        echo "Git tag base version: $TAG_VERSION_BASE"
+        echo "Full git tag: $TAG_VERSION"
+        
+        if [ "$PUBSPEC_VERSION" = "$TAG_VERSION_BASE" ]; then
+          echo "✅ Versions match!"
+        else
+          echo "❌ Version mismatch between pubspec.yaml ($PUBSPEC_VERSION) and git tag base ($TAG_VERSION_BASE)"
+          echo "Please update pubspec.yaml version to match the git tag base version"
+          exit 1
+        fi
+
+    - name: Get flutter dependencies
+      run: flutter pub get
+      working-directory: gauteng-wellbeing-mapper-app
+
+    - name: Verify iOS entitlements configuration
+      run: |
+        echo "🔍 Verifying iOS entitlements are properly configured..."
+        
+        # Check entitlements file exists
+        if [ ! -f "ios/Runner/Runner.entitlements" ]; then
+          echo "❌ ERROR: Entitlements file missing!"
+          exit 1
+        fi
+        
+        # Check entitlements are linked in Xcode project
+        if ! grep -q "CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements" ios/Runner.xcodeproj/project.pbxproj; then
+          echo "❌ ERROR: Entitlements not linked in Xcode project!"
+          exit 1
+        fi
+        
+        # Count linked configurations
+        ENTITLEMENT_COUNT=$(grep -c "CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements" ios/Runner.xcodeproj/project.pbxproj)
+        if [ "$ENTITLEMENT_COUNT" -lt 3 ]; then
+          echo "❌ ERROR: Entitlements not linked in all build configurations!"
+          exit 1
+        fi
+        
+        # Check location permissions in Info.plist
+        REQUIRED_KEYS=("NSLocationAlwaysAndWhenInUseUsageDescription" "NSLocationAlwaysUsageDescription" "NSLocationWhenInUseUsageDescription" "NSLocationUsageDescription")
+        for key in "${REQUIRED_KEYS[@]}"; do
+          if ! grep -q "$key" ios/Runner/Info.plist; then
+            echo "❌ ERROR: Missing location permission key: $key"
+            exit 1
+          fi
+        done
+        
+        echo "✅ iOS entitlements configuration verified"
+      working-directory: gauteng-wellbeing-mapper-app
+
+    - name: Statically analyze the Dart code for any errors
+      run: flutter analyze
+      working-directory: gauteng-wellbeing-mapper-app
+    
+    - name: Run tests for our flutter project
+      run: flutter test
+      working-directory: gauteng-wellbeing-mapper-app
+
+    # Android Builds - Beta Flavor
+    - name: Build Android APK (Beta)
+      run: ./build-flavors.sh beta android
+      working-directory: gauteng-wellbeing-mapper-app
+
+    - name: Build Android App Bundle (Beta)
+      run: flutter build appbundle --release --flavor beta
+      working-directory: gauteng-wellbeing-mapper-app
+
+    # iOS Builds - Beta Flavor
+    - name: Install iOS dependencies
+      run: cd ios && pod install && cd ..
+      working-directory: gauteng-wellbeing-mapper-app
+      
+    - name: Build iOS (Beta)
+      run: ./build-flavors.sh beta ios
+      working-directory: gauteng-wellbeing-mapper-app
+    
+    - name: Create a Beta Release in GitHub
+      uses: ncipollo/release-action@v1
+      with:
+        artifacts: |
+          gauteng-wellbeing-mapper-app/build/app/outputs/flutter-apk/app-beta-arm64-v8a-release.apk
+          gauteng-wellbeing-mapper-app/build/app/outputs/flutter-apk/app-beta-armeabi-v7a-release.apk
+          gauteng-wellbeing-mapper-app/build/app/outputs/flutter-apk/app-beta-x86_64-release.apk
+          gauteng-wellbeing-mapper-app/build/app/outputs/bundle/betaRelease/app-beta-release.aab
+        token: ${{ secrets.GITHUB_TOKEN }}
+        tag: ${{ steps.version.outputs.content }}
+        name: "Wellbeing Mapper ${{ steps.version.outputs.content }} - Beta Release"
+        body: |
+          # 🧪 Wellbeing Mapper Beta Release ${{ steps.version.outputs.content }}
+          
+          **This is a beta testing release - help us improve Wellbeing Mapper!**
+          
+          Thank you for helping us test and improve this privacy-focused app for mapping your mental wellbeing.
+          
+          ## 📱 What is Wellbeing Mapper?
+          Wellbeing Mapper helps you track your mental wellbeing and movement patterns. This beta version includes the latest features and improvements that need testing before the next production release.
+          
+          ## 🧪 Beta Testing Features
+          - Latest experimental features and improvements
+          - Enhanced privacy controls and data protection
+          - New user interface elements and interactions
+          - Performance optimizations and bug fixes
+          - Research mode capabilities for testing
+          
+          ## 📲 How to Download and Install
+          
+          ### Android Users
+          **Download one of the beta APK files below:**
+          - `app-beta-arm64-v8a-release.apk` (most modern Android devices)
+          - `app-beta-armeabi-v7a-release.apk` (older Android devices)
+          - `app-beta-x86_64-release.apk` (emulators/tablets)
+          
+          **Installation steps:**
+          1. Download the appropriate APK file from the Assets section below
+          2. Enable "Install unknown apps" in your device's security settings
+          3. Tap the APK file and follow the installation prompts
+          4. Open Wellbeing Mapper and start testing!
+          
+          **⚠️ Beta Installation Notes:**
+          - You can install this beta alongside the production version (different package names)
+          - Beta versions may have bugs or incomplete features
+          - Your feedback is crucial for improving the final release
+          
+          ### Android App Bundle
+          The `app-beta-release.aab` file is for internal testing distribution.
+          
+          ### iOS Users
+          iOS beta testing requires TestFlight. Contact the research team for beta access.
+          
+          ## 🔒 Privacy & Beta Testing
+          - **Private Mode**: All data stays securely on your device during testing
+          - **App Testing Mode**: Try research features without real data collection
+          - **No Production Data**: Beta testing data is separate from production
+          - **Full Control**: Delete all beta data anytime from app settings
+          
+          ## 🆚 Beta vs Production
+          This is a **beta testing release** - recommended for:
+          - ✅ Testers wanting to try new features early
+          - ✅ Developers testing integrations
+          - ✅ Research team validation before production
+          - ✅ Bug hunting and feedback collection
+          
+          **Not recommended for:**
+          - ❌ Production research studies
+          - ❌ Long-term personal data tracking
+          - ❌ Users needing stable, reliable functionality
+          
+          ## 💡 How to Help with Beta Testing
+          - **Explore all features**: Try surveys, location tracking, notifications, and settings
+          - **Test edge cases**: Use unusual inputs, test permission scenarios
+          - **Report issues**: Use GitHub Issues or in-app feedback for any problems
+          - **Share suggestions**: Let us know what works well and what could be improved
+          
+          ## 📞 Beta Support & Feedback
+          - 📧 Email: john.palmer@upf.edu (include "BETA" in subject)
+          - 📖 Beta Guide: [Beta Testing Guide](https://github.com/ActivitySpaceLab/gauteng-wellbeing-mapper-app/blob/main/docs/BETA_TESTING_GUIDE.md)
+          - 🐛 Report Issues: Use GitHub Issues with "beta" label
+          - 💬 In-app feedback: Use the built-in feedback system
+          
+          ## 📦 What's Included
+          - ✅ Beta Android APKs with beta app signatures
+          - ✅ Android App Bundle for internal distribution
+          - ✅ iOS build ready for TestFlight
+          - ✅ Latest features and improvements
+          - ✅ Enhanced debugging and testing tools
+          
+          ## 🔄 Next Steps
+          1. **Download**: Get the appropriate APK for your Android device
+          2. **Test**: Explore all features thoroughly
+          3. **Report**: Share bugs, suggestions, and feedback
+          4. **Wait**: Watch for the production release based on your testing!
+          
+          Thank you for being part of the Wellbeing Mapper beta testing community! 🙏
+        draft: false
+        prerelease: true

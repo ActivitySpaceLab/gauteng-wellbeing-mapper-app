@@ -61,6 +61,7 @@ This site contains documentation for beta testers, app users, developers, and re
 
 ### Build & Release Management
 - **[Git Flow + Build Flavors Guide](GIT_FLOW_BUILD_FLAVORS_GUIDE.md)** - Production vs beta build system
+- **[GitHub Releases Guide](GITHUB_RELEASES_GUIDE.md)** - Automated release deployment system
 - **[Implementation Complete](IMPLEMENTATION_COMPLETE.md)** - Latest implementation status
 - **[Release Guide](RELEASE_GUIDE.md)** - Complete release and deployment process
 - **[Release Checklist](RELEASE_CHECKLIST.md)** - Pre-release validation steps
