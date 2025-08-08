@@ -35,7 +35,7 @@ class _ParticipantCodeEntryScreenState extends State<ParticipantCodeEntryScreen>
         foregroundColor: Colors.white,
       ),
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
           child: Form(
             key: _formKey,
@@ -201,7 +201,7 @@ class _ParticipantCodeEntryScreenState extends State<ParticipantCodeEntryScreen>
                   ),
                 ),
                 
-                Spacer(),
+                SizedBox(height: 32),
                 
                 // Contact information
                 Text(
@@ -212,6 +212,8 @@ class _ParticipantCodeEntryScreenState extends State<ParticipantCodeEntryScreen>
                   ),
                   textAlign: TextAlign.center,
                 ),
+                
+                SizedBox(height: 16), // Add some bottom padding
               ],
             ),
           ),

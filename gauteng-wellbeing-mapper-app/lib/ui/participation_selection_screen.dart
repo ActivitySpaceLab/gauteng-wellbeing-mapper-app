@@ -98,23 +98,24 @@ class _ParticipationSelectionScreenState extends State<ParticipationSelectionScr
               overflow: TextOverflow.ellipsis,
             ),
             SizedBox(height: 12),
-            // Beta testing notice
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.orange.shade100,
-                border: Border.all(color: Colors.orange),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Text(
-                '🧪 BETA VERSION',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.orange.shade800,
+            // Beta testing notice - only show for beta builds
+            if (AppModeService.isBetaBuild)
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.orange.shade100,
+                  border: Border.all(color: Colors.orange),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Text(
+                  '🧪 BETA VERSION',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.orange.shade800,
+                  ),
                 ),
               ),
-            ),
           ],
         ),
       ),
@@ -476,30 +477,33 @@ class _ParticipationSelectionScreenState extends State<ParticipationSelectionScr
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              padding: EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.orange.shade50,
-                border: Border.all(color: Colors.orange),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.info, color: Colors.orange),
-                  SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'This is a beta testing version. For questions about the app:',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.orange.shade800,
+            // Beta notice - only show for beta builds
+            if (AppModeService.isBetaBuild) ...[
+              Container(
+                padding: EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.orange.shade50,
+                  border: Border.all(color: Colors.orange),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.info, color: Colors.orange),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'This is a beta testing version. For questions about the app:',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.orange.shade800,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            SizedBox(height: 16),
+              SizedBox(height: 16),
+            ],
             Text('Development Team:', style: TextStyle(fontWeight: FontWeight.bold)),
             SizedBox(height: 8),
             Text('• John Palmer: john.palmer@upf.edu'),
