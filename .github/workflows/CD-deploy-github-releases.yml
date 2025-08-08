@@ -132,12 +132,13 @@ jobs:
         flutter build apk --release \
           --flavor=production \
           --dart-define=APP_FLAVOR=production \
-          --target-platform android-arm,android-arm64,android-x64 \
           --split-per-abi
         
         echo "✅ Production Android APKs built successfully!"
         echo "APK locations:"
-        ls -la build/app/outputs/flutter-apk/app-production-*-release.apk || echo "APK files not found"
+        find build/app/outputs/flutter-apk/ -name "*.apk" -type f | sort
+        echo "Listing all APK files:"
+        ls -la build/app/outputs/flutter-apk/ || echo "APK directory not found"
       working-directory: gauteng-wellbeing-mapper-app
 
     - name: Build Android App Bundle (Production)
@@ -187,9 +188,7 @@ jobs:
       uses: ncipollo/release-action@v1
       with:
         artifacts: |
-          gauteng-wellbeing-mapper-app/build/app/outputs/flutter-apk/app-production-arm64-v8a-release.apk
-          gauteng-wellbeing-mapper-app/build/app/outputs/flutter-apk/app-production-armeabi-v7a-release.apk
-          gauteng-wellbeing-mapper-app/build/app/outputs/flutter-apk/app-production-x86_64-release.apk
+          gauteng-wellbeing-mapper-app/build/app/outputs/flutter-apk/*.apk
           gauteng-wellbeing-mapper-app/build/app/outputs/bundle/productionRelease/app-production-release.aab
           gauteng-wellbeing-mapper-app/wellbeing-mapper-production-ios.zip
         token: ${{ secrets.GITHUB_TOKEN }}
@@ -214,12 +213,11 @@ jobs:
           
           ### Android Users
           **Download one of the production APK files below:**
-          - `app-production-arm64-v8a-release.apk` (most modern Android devices)
-          - `app-production-armeabi-v7a-release.apk` (older Android devices)
-          - `app-production-x86_64-release.apk` (emulators/tablets)
+          - Choose any `app-production-*.apk` file (Flutter automatically optimizes for your device architecture)
+          - All APK variants work on modern Android devices - download any one
           
           **Installation steps:**
-          1. Download the appropriate APK file from the Assets section below
+          1. Download any APK file from the Assets section below
           2. Enable "Install unknown apps" in your device's security settings
           3. Tap the APK file and follow the installation prompts
           4. Open Wellbeing Mapper and choose your preferred mode
@@ -255,9 +253,9 @@ jobs:
           - 🐛 Report Issues: Use GitHub Issues or in-app feedback
           
           ## 📦 What's Included
-          - ✅ Production Android APKs with official app signatures
+          - ✅ Multiple Production Android APKs (automatically optimized for different devices)
           - ✅ Android App Bundle for Play Store
-          - ✅ iOS build ready for App Store submission
+          - ✅ iOS app archive ready for App Store submission or re-signing
           - ✅ Full test coverage and quality assurance
           - ✅ Complete privacy and security implementations
         draft: false

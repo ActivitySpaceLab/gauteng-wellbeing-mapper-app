@@ -131,18 +131,16 @@ git push origin --delete release/1.2.0
 ## 📦 Release Artifacts
 
 ### Beta Release Artifacts
-- `app-beta-arm64-v8a-release.apk` (Android ARM64)
-- `app-beta-armeabi-v7a-release.apk` (Android ARM32)
-- `app-beta-x86_64-release.apk` (Android x86_64)
+- Multiple `app-beta-*.apk` files (Android - different architectures automatically optimized)
 - `app-beta-release.aab` (Android App Bundle)
-- iOS build for TestFlight distribution
+- `wellbeing-mapper-beta-ios.zip` (iOS app archive)
+- Source code archives (automatic)
 
 ### Production Release Artifacts
-- `app-production-arm64-v8a-release.apk` (Android ARM64)
-- `app-production-armeabi-v7a-release.apk` (Android ARM32)
-- `app-production-x86_64-release.apk` (Android x86_64)
+- Multiple `app-production-*.apk` files (Android - different architectures automatically optimized)
 - `app-production-release.aab` (Android App Bundle for Play Store)
-- iOS build for App Store submission
+- `wellbeing-mapper-production-ios.zip` (iOS app archive)
+- Source code archives (automatic)
 
 ## 🔍 Quality Assurance
 

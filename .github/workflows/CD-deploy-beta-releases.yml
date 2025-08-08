@@ -120,12 +120,13 @@ jobs:
         flutter build apk --release \
           --flavor=beta \
           --dart-define=APP_FLAVOR=beta \
-          --target-platform android-arm,android-arm64,android-x64 \
           --split-per-abi
         
         echo "✅ Beta Android APKs built successfully!"
         echo "APK locations:"
-        ls -la build/app/outputs/flutter-apk/app-beta-*-release.apk || echo "APK files not found"
+        find build/app/outputs/flutter-apk/ -name "*.apk" -type f | sort
+        echo "Listing all APK files:"
+        ls -la build/app/outputs/flutter-apk/ || echo "APK directory not found"
       working-directory: gauteng-wellbeing-mapper-app
 
     - name: Build Android App Bundle (Beta)
@@ -175,9 +176,7 @@ jobs:
       uses: ncipollo/release-action@v1
       with:
         artifacts: |
-          gauteng-wellbeing-mapper-app/build/app/outputs/flutter-apk/app-beta-arm64-v8a-release.apk
-          gauteng-wellbeing-mapper-app/build/app/outputs/flutter-apk/app-beta-armeabi-v7a-release.apk
-          gauteng-wellbeing-mapper-app/build/app/outputs/flutter-apk/app-beta-x86_64-release.apk
+          gauteng-wellbeing-mapper-app/build/app/outputs/flutter-apk/*.apk
           gauteng-wellbeing-mapper-app/build/app/outputs/bundle/betaRelease/app-beta-release.aab
           gauteng-wellbeing-mapper-app/wellbeing-mapper-beta-ios.zip
         token: ${{ secrets.GITHUB_TOKEN }}
@@ -204,12 +203,11 @@ jobs:
           
           ### Android Users
           **Download one of the beta APK files below:**
-          - `app-beta-arm64-v8a-release.apk` (most modern Android devices)
-          - `app-beta-armeabi-v7a-release.apk` (older Android devices)
-          - `app-beta-x86_64-release.apk` (emulators/tablets)
+          - Choose any `app-beta-*.apk` file (Flutter automatically optimizes for your device architecture)
+          - All APK variants work on modern Android devices - download any one
           
           **Installation steps:**
-          1. Download the appropriate APK file from the Assets section below
+          1. Download any APK file from the Assets section below
           2. Enable "Install unknown apps" in your device's security settings
           3. Tap the APK file and follow the installation prompts
           4. Open Wellbeing Mapper and start testing!
@@ -261,9 +259,9 @@ jobs:
           - 💬 In-app feedback: Use the built-in feedback system
           
           ## 📦 What's Included
-          - ✅ Beta Android APKs with beta app signatures
+          - ✅ Multiple Beta Android APKs (automatically optimized for different devices)
           - ✅ Android App Bundle for internal distribution
-          - ✅ iOS build ready for TestFlight
+          - ✅ iOS app archive ready for TestFlight or re-signing
           - ✅ Latest features and improvements
           - ✅ Enhanced debugging and testing tools
           
