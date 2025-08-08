@@ -183,8 +183,8 @@ This app is part of the **Planet4Health** study investigating how environmental 
 
 ### Study Goals
 - Understand relationships between place and mental health
-- Identify environmental factors that promote wellbeing
-- Develop evidence-based interventions for communities
+- Identify resilience factors that promote wellbeing among people exposed to physical environment stressors (e.g. air pollution, high heat, drought, floods)
+- Develop evidence-based guidelines for communities
 - Support policy decisions for healthier urban environments
 
 ### Participation
