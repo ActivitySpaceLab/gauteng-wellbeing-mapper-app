@@ -124,12 +124,32 @@ jobs:
       working-directory: gauteng-wellbeing-mapper-app
 
     # Android Builds - Production Flavor
-    - name: Build Android APK (Production)
-      run: ./build-flavors.sh production android
+    - name: Build Android APKs (Production) - Multiple Architectures
+      run: |
+        echo "📱 Building Production Android APKs for multiple architectures..."
+        
+        # Build APKs for all supported architectures
+        flutter build apk --release \
+          --flavor=production \
+          --dart-define=APP_FLAVOR=production \
+          --target-platform android-arm,android-arm64,android-x64 \
+          --split-per-abi
+        
+        echo "✅ Production Android APKs built successfully!"
+        echo "APK locations:"
+        ls -la build/app/outputs/flutter-apk/app-production-*-release.apk || echo "APK files not found"
       working-directory: gauteng-wellbeing-mapper-app
 
     - name: Build Android App Bundle (Production)
-      run: flutter build appbundle --release --flavor production
+      run: |
+        echo "📦 Building Production Android App Bundle..."
+        flutter build appbundle --release \
+          --flavor=production \
+          --dart-define=APP_FLAVOR=production
+        
+        echo "✅ Production App Bundle built successfully!"
+        echo "AAB location:"
+        ls -la build/app/outputs/bundle/productionRelease/app-production-release.aab || echo "AAB file not found"
       working-directory: gauteng-wellbeing-mapper-app
 
     # iOS Builds - Production Flavor
@@ -151,6 +171,15 @@ jobs:
           --no-codesign
         
         echo "✅ iOS Production build complete (unsigned)!"
+        echo "iOS build location:"
+        ls -la build/ios/iphoneos/ || echo "iOS build directory not found"
+        
+        # Create a zip archive of the iOS app for distribution
+        cd build/ios/iphoneos/
+        zip -r ../../../wellbeing-mapper-production-ios.zip Runner.app/
+        cd ../../../
+        
+        echo "📦 iOS app archived as wellbeing-mapper-production-ios.zip"
         echo "Note: This build is for distribution - actual App Store submission requires proper provisioning profiles and signing"
       working-directory: gauteng-wellbeing-mapper-app
     
@@ -162,6 +191,7 @@ jobs:
           gauteng-wellbeing-mapper-app/build/app/outputs/flutter-apk/app-production-armeabi-v7a-release.apk
           gauteng-wellbeing-mapper-app/build/app/outputs/flutter-apk/app-production-x86_64-release.apk
           gauteng-wellbeing-mapper-app/build/app/outputs/bundle/productionRelease/app-production-release.aab
+          gauteng-wellbeing-mapper-app/wellbeing-mapper-production-ios.zip
         token: ${{ secrets.GITHUB_TOKEN }}
         tag: ${{ steps.version.outputs.content }}
         name: "Wellbeing Mapper ${{ steps.version.outputs.content }} - Production Release"
@@ -199,6 +229,7 @@ jobs:
           
           ### iOS Users
           **iOS builds are included but require proper signing for installation:**
+          - Download `wellbeing-mapper-production-ios.zip` which contains the unsigned iOS app
           - iOS builds in this release are unsigned (for distribution purposes)
           - For device installation, contact the research team for TestFlight access
           - App Store distribution requires additional signing and review process
