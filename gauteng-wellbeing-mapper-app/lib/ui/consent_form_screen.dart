@@ -8,6 +8,7 @@ import '../models/consent_models.dart';
 import '../db/survey_database.dart';
 import '../services/app_mode_service.dart';
 import '../models/app_mode.dart';
+import '../services/participant_validation_service.dart';
 
 class ConsentFormScreen extends StatefulWidget {
   final String participantCode;
@@ -876,6 +877,20 @@ class _ConsentFormScreenState extends State<ConsentFormScreen> {
       // Save consent to database
       final db = SurveyDatabase();
       await db.insertConsent(consent);
+
+      // Record consent with participant validation service (for research participants)
+      if (!widget.isTestingMode && widget.participantCode.isNotEmpty) {
+        final consentResult = await ParticipantValidationService.recordConsent(
+          widget.participantCode,
+          DateTime.now(),
+        );
+        if (!consentResult.success) {
+          print('[ConsentForm] Warning: Failed to record consent on server: ${consentResult.error}');
+          // Don't fail the whole process - consent is still saved locally
+        } else {
+          print('[ConsentForm] Consent successfully recorded on server');
+        }
+      }
 
       // Save participation settings based on mode
       final prefs = await SharedPreferences.getInstance();

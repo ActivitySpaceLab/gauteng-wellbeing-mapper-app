@@ -9,6 +9,7 @@ import '../services/app_mode_service.dart';
 import '../services/location_service.dart';
 import '../services/ios_location_fix_service.dart';
 import '../theme/south_african_theme.dart';
+import '../services/participant_validation_service.dart';
 
 class ParticipationSelectionScreen extends StatefulWidget {
   @override
@@ -408,24 +409,41 @@ class _ParticipationSelectionScreenState extends State<ParticipationSelectionScr
         }
         // If consent was cancelled or failed, do nothing (stay on current screen)
       } else if (selectedAppMode == AppMode.research) {
-        // Research participation flow - go through consent process
+        // Research participation flow - check if already validated
         await AppModeService.setCurrentMode(AppMode.research);
         
-        // Navigate to consent form for research participation
-        final result = await Navigator.of(context).pushNamed(
-          '/consent_form',
-          arguments: {
-            'participantCode': '', // Will be provided through consent form
-            'researchSite': 'gauteng', // Use Gauteng site for research
-            'isTestingMode': false, // This is actual research participation
-          },
-        );
+        // Check if participant is already validated
+        final isValidated = await ParticipantValidationService.isParticipantValidated();
+        
+        if (isValidated) {
+          // Already validated - go directly to consent form
+          final participantCode = await ParticipantValidationService.getValidatedParticipantCode();
+          final result = await Navigator.of(context).pushNamed(
+            '/consent_form',
+            arguments: {
+              'participantCode': participantCode ?? '',
+              'researchSite': 'gauteng',
+              'isTestingMode': false,
+            },
+          );
 
-        if (result == true) {
-          // Consent completed for research mode - settings already saved by consent form
-          _navigateToMainApp();
+          if (result == true) {
+            _navigateToMainApp();
+          }
+        } else {
+          // Not validated - go to participant code entry screen
+          final result = await Navigator.of(context).pushNamed(
+            '/participant_code_entry',
+            arguments: {
+              'researchSite': 'gauteng',
+            },
+          );
+
+          if (result == true) {
+            _navigateToMainApp();
+          }
         }
-        // If consent was cancelled or failed, do nothing (stay on current screen)
+        // If validation/consent was cancelled or failed, do nothing (stay on current screen)
       }
     } catch (error) {
       _showErrorDialog('Error setting up app mode: $error');

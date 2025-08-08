@@ -17,6 +17,7 @@ import '../ui/wellbeing_map_view.dart';
 import '../ui/wellbeing_timeline_view.dart';
 import '../ui/change_mode_screen.dart';
 import '../ui/help_screen.dart';
+import '../ui/participant_code_entry_screen.dart';
 
 class GlobalRouteData {
   static String? user_route = "brown";
@@ -94,6 +95,15 @@ class RouteGenerator {
         return MaterialPageRoute(builder: (_) => ChangeModeScreen());
       case '/help':
         return MaterialPageRoute(builder: (_) => HelpScreen());
+      case '/participant_code_entry':
+        if (args is Map<String, dynamic>) {
+          return MaterialPageRoute(
+            builder: (_) => ParticipantCodeEntryScreen(
+              researchSite: args['researchSite'] ?? 'gauteng',
+            ),
+          );
+        }
+        return MaterialPageRoute(builder: (_) => ParticipantCodeEntryScreen());
       default:
         // If there is no such named route in the switch statement, e.g. /third
         return _errorRoute();
