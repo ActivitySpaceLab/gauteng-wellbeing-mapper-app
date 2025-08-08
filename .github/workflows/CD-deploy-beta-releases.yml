@@ -125,8 +125,21 @@ jobs:
       run: cd ios && pod install && cd ..
       working-directory: gauteng-wellbeing-mapper-app
       
-    - name: Build iOS (Beta)
-      run: ./build-flavors.sh beta ios
+    - name: Build iOS (Beta) - Unsigned for Distribution
+      run: |
+        echo "🍎 Building iOS Beta without code signing for distribution..."
+        
+        # Set the appropriate Info.plist for beta flavor
+        cp ios/Runner/Info-Beta.plist ios/Runner/Info.plist
+        echo "📄 Using Beta Info.plist with bundle ID: com.github.activityspacelab.wellbeingmapper.gauteng.beta"
+        
+        # Build iOS without code signing (for distribution only)
+        flutter build ios --release \
+          --dart-define=APP_FLAVOR=beta \
+          --no-codesign
+        
+        echo "✅ iOS Beta build complete (unsigned)!"
+        echo "Note: This build is for distribution - actual device installation requires proper provisioning profiles"
       working-directory: gauteng-wellbeing-mapper-app
     
     - name: Create a Beta Release in GitHub
@@ -180,7 +193,11 @@ jobs:
           The `app-beta-release.aab` file is for internal testing distribution.
           
           ### iOS Users
-          iOS beta testing requires TestFlight. Contact the research team for beta access.
+          **iOS beta builds are included but require proper signing for installation:**
+          - iOS builds in this release are unsigned (for distribution purposes)
+          - For device testing, contact the research team for TestFlight access
+          - Beta testers can re-sign builds with their own developer profiles
+          - Bundle ID for beta: `com.github.activityspacelab.wellbeingmapper.gauteng.beta`
           
           ## 🔒 Privacy & Beta Testing
           - **Private Mode**: All data stays securely on your device during testing
