@@ -5,6 +5,11 @@ import 'package:wellbeing_mapper/models/app_mode.dart';
 
 void main() {
   group('Consent Form Navigation Fix Tests', () {
+    bool isAppTestingModeAvailable() {
+      final availableModes = AppModeService.getAvailableModes();
+      return availableModes.contains(AppMode.appTesting);
+    }
+
     setUp(() async {
       // Initialize SharedPreferences with mock implementation
       SharedPreferences.setMockInitialValues({});
@@ -18,6 +23,11 @@ void main() {
     });
 
     test('should maintain app mode when consent form returns success for testing mode', () async {
+      if (!isAppTestingModeAvailable()) {
+        print('[TEST] ⏭️ Skipping appTesting mode test - not available in production build');
+        return;
+      }
+      
       print('[TEST] Testing consent form navigation fix for app testing mode');
       
       // Step 1: Start in private mode
@@ -61,6 +71,11 @@ void main() {
     });
 
     test('should demonstrate the bug scenario that was happening before fix', () async {
+      if (!isAppTestingModeAvailable()) {
+        print('[TEST] ⏭️ Skipping appTesting mode test - not available in production build');
+        return;
+      }
+      
       print('[TEST] Demonstrating the original bug scenario');
       
       // Step 1: Start in private mode
@@ -101,6 +116,11 @@ void main() {
     });
 
     test('should verify the complete fix flow with proper navigation', () async {
+      if (!isAppTestingModeAvailable()) {
+        print('[TEST] ⏭️ Skipping appTesting mode test - not available in production build');
+        return;
+      }
+      
       print('[TEST] Testing complete fix flow with proper navigation');
       
       // Simulate the complete user flow after the fix

@@ -8,6 +8,11 @@ import 'package:wellbeing_mapper/models/wellbeing_survey_models.dart';
 
 void main() {
   group('Data Privacy Protection Tests', () {
+    bool isAppTestingModeAvailable() {
+      final availableModes = AppModeService.getAvailableModes();
+      return availableModes.contains(AppMode.appTesting);
+    }
+
     setUp(() async {
       SharedPreferences.setMockInitialValues({});
     });

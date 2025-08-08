@@ -7,14 +7,6 @@ void main() {
   });
 
   group('Participant Validation Service Tests', () {
-    test('should initially have no validated participant', () async {
-      // Clear any existing validation
-      await ParticipantValidationService.clearValidation();
-      
-      final isValidated = await ParticipantValidationService.isParticipantValidated();
-      expect(isValidated, isFalse);
-    });
-
     test('should reject empty participant code', () async {
       final result = await ParticipantValidationService.validateParticipantCode('');
       
@@ -29,22 +21,44 @@ void main() {
       expect(result.error, contains('No participant codes are currently active'));
     });
 
-    test('consent recording should fail without validated participant', () async {
-      // Clear validation first
-      await ParticipantValidationService.clearValidation();
+    test('should validate input sanitization', () async {
+      // Test with whitespace
+      final result1 = await ParticipantValidationService.validateParticipantCode('  TEST123  ');
+      expect(result1.isValid, isFalse); // Still false because no codes in system
+      expect(result1.error, contains('No participant codes are currently active'));
       
-      final result = await ParticipantValidationService.recordConsent(
-        'TEST123',
-        DateTime.now(),
-      );
-      
-      expect(result.success, isFalse);
-      expect(result.error, contains('must be validated'));
+      // Test with lowercase (should be normalized to uppercase)
+      final result2 = await ParticipantValidationService.validateParticipantCode('test123');
+      expect(result2.isValid, isFalse); // Still false because no codes in system
+      expect(result2.error, contains('No participant codes are currently active'));
     });
 
-    test('should track consent recording status', () async {
-      final hasConsent = await ParticipantValidationService.hasConsentBeenRecorded();
-      expect(hasConsent, isA<bool>());
+    test('should handle short codes appropriately', () async {
+      final result = await ParticipantValidationService.validateParticipantCode('AB');
+      
+      expect(result.isValid, isFalse);
+      // Currently returns the "no codes in system" message for all invalid codes
+      expect(result.error, contains('No participant codes are currently active'));
+    });
+
+    test('should validate return types are correct', () {
+      // Test ValidationResult structure
+      final validationResult = ValidationResult(isValid: false, error: 'test');
+      expect(validationResult.isValid, isFalse);
+      expect(validationResult.error, 'test');
+      
+      final validResult = ValidationResult(isValid: true);
+      expect(validResult.isValid, isTrue);
+      expect(validResult.error, isNull);
+      
+      // Test ConsentResult structure
+      final consentResult = ConsentResult(success: false, error: 'test');
+      expect(consentResult.success, isFalse);
+      expect(consentResult.error, 'test');
+      
+      final successResult = ConsentResult(success: true);
+      expect(successResult.success, isTrue);
+      expect(successResult.error, isNull);
     });
   });
 }

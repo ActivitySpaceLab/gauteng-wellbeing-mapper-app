@@ -5,6 +5,11 @@ import 'package:wellbeing_mapper/models/app_mode.dart';
 
 void main() {
   group('Consent Form App Mode Fix Tests', () {
+    bool isAppTestingModeAvailable() {
+      final availableModes = AppModeService.getAvailableModes();
+      return availableModes.contains(AppMode.appTesting);
+    }
+
     setUp(() async {
       // Initialize SharedPreferences with mock implementation
       SharedPreferences.setMockInitialValues({});
@@ -18,6 +23,11 @@ void main() {
     });
 
     test('should set app mode to appTesting after testing mode consent completion', () async {
+      if (!isAppTestingModeAvailable()) {
+        print('[TEST] ⏭️ Skipping appTesting mode test - not available in production build');
+        return;
+      }
+      
       print('[TEST] Starting app testing mode consent completion test');
       
       // Initial state - should be private mode by default
@@ -89,6 +99,11 @@ void main() {
     });
 
     test('should maintain app mode persistence after app restart simulation', () async {
+      if (!isAppTestingModeAvailable()) {
+        print('[TEST] ⏭️ Skipping appTesting mode test - not available in production build');
+        return;
+      }
+      
       print('[TEST] Starting app mode persistence test');
       
       // Set app mode to appTesting
@@ -111,6 +126,11 @@ void main() {
     });
 
     test('should verify the fix resolves the original bug scenario', () async {
+      if (!isAppTestingModeAvailable()) {
+        print('[TEST] ⏭️ Skipping appTesting mode test - not available in production build');
+        return;
+      }
+      
       print('[TEST] Starting original bug scenario reproduction test');
       
       // Step 1: Start in private mode (initial state)
