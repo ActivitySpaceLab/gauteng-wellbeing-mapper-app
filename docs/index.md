@@ -50,12 +50,14 @@ This site contains documentation for beta testers, app users, developers, and re
 - **Consent Process**: Full research consent and information sheets
 - **Data Security**: End-to-end encryption for all research data
 - **Study Locations**: Gauteng, South Africa and Barcelona, Spain
+- **Validation System**: Secure participant code verification system
 
 ## 💻 For Developers
 
 ### Development Resources
 - **[Developer Guide](DEVELOPER_GUIDE.md)** - Technical documentation and architecture
 - **[Beta Testing Guide](BETA_TESTING_GUIDE.md)** - Release preparation instructions
+- **[Research Mode Activation](RESEARCH_MODE_ACTIVATION.md)** - Guide for activating research participation
 - **[API Reference](API_REFERENCE.md)** - Complete API documentation
 - **[Architecture Overview](ARCHITECTURE.md)** - System design and data flow
 
@@ -79,6 +81,7 @@ This site contains documentation for beta testers, app users, developers, and re
 - **[Voice Notes and Photos](VOICE_NOTES_AND_PHOTOS_IMPLEMENTATION.md)** - Media capture features
 - **[Wellbeing Map Feature](WELLBEING_MAP_FEATURE.md)** - Interactive mapping functionality
 - **[Wellbeing Timeline Feature](WELLBEING_TIMELINE_FEATURE.md)** - Timeline visualization system
+- **[Participant Validation System](PARTICIPANT_VALIDATION_SYSTEM.md)** - Secure research access control
 - **[Export Data Fix Summary](EXPORT_DATA_FIX_SUMMARY.md)** - Data export improvements
 - **[Location Selection Testing](LOCATION_SELECTION_TESTING_SUMMARY.md)** - Location feature testing
 - **[Consent System](CONSENT_SYSTEM.md)** - User consent and privacy implementation
@@ -102,6 +105,7 @@ This site contains documentation for beta testers, app users, developers, and re
 
 ### Future Research Release
 - **[Server Setup](SERVER_SETUP.md)** - Research server configuration
+- **[Participant Validation System](PARTICIPANT_VALIDATION_SYSTEM.md)** - Secure participant access control
 - **[Encryption Setup](ENCRYPTION_SETUP.md)** - Security and key management
 - **[Research Features](RESEARCH_FEATURES_SUMMARY.md)** - Available research tools
 - **[Privacy Documentation](PRIVACY.md)** - Data protection measures

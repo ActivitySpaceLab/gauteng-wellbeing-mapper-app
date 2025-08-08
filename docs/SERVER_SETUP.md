@@ -151,6 +151,25 @@ CREATE TABLE location_tracks (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Participant validation tables
+CREATE TABLE participant_codes (
+    id SERIAL PRIMARY KEY,
+    hashed_code VARCHAR(64) UNIQUE NOT NULL,  -- SHA-256 hash of participant code
+    study_site VARCHAR(50) NOT NULL,          -- 'gauteng', 'barcelona', etc.
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    is_active BOOLEAN DEFAULT TRUE,
+    notes TEXT                                -- Optional researcher notes
+);
+
+CREATE TABLE consent_records (
+    id SERIAL PRIMARY KEY,
+    hashed_participant_code VARCHAR(64) NOT NULL,
+    consent_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
+    consent_version VARCHAR(10) DEFAULT '1.0',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    FOREIGN KEY (hashed_participant_code) REFERENCES participant_codes(hashed_code)
+);
+
 -- Indexes for performance
 CREATE INDEX idx_participants_uuid ON participants(participant_uuid);
 CREATE INDEX idx_participants_site ON participants(research_site);
@@ -159,11 +178,94 @@ CREATE INDEX idx_uploads_timestamp ON data_uploads(upload_timestamp);
 CREATE INDEX idx_surveys_participant ON survey_responses(participant_uuid);
 CREATE INDEX idx_locations_participant ON location_tracks(participant_uuid);
 CREATE INDEX idx_locations_time ON location_tracks(recorded_at);
+CREATE INDEX idx_participant_codes_hash ON participant_codes(hashed_code);
+CREATE INDEX idx_participant_codes_site ON participant_codes(study_site);
+CREATE INDEX idx_consent_records_code ON consent_records(hashed_participant_code);
+CREATE INDEX idx_consent_records_timestamp ON consent_records(consent_timestamp);
 ```
 
 ## 5. REST API Endpoints
 
-### Upload Endpoint Specification
+### 5.1 Participant Validation Endpoints
+
+#### Validate Participant Code
+**Endpoint**: `POST /api/v1/participants/validate`
+
+**Purpose**: Verify that a participant code is valid and active for research participation.
+
+**Headers**:
+```
+Content-Type: application/json
+User-Agent: WellbeingMapper/1.0
+```
+
+**Request Body**:
+```json
+{
+  "hashed_code": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
+  "timestamp": "2025-08-08T12:00:00Z"
+}
+```
+
+**Response** (Valid Code):
+```json
+{
+  "valid": true,
+  "study_site": "gauteng"
+}
+```
+
+**Response** (Invalid Code):
+```json
+{
+  "valid": false,
+  "error": "Invalid participant code"
+}
+```
+
+**Response Codes**:
+- `200 OK`: Code validation successful
+- `404 Not Found`: Code not found or inactive
+- `400 Bad Request`: Invalid request format
+- `429 Too Many Requests`: Rate limit exceeded
+- `500 Internal Server Error`: Server error
+
+#### Record Consent
+**Endpoint**: `POST /api/v1/participants/consent`
+
+**Purpose**: Record when a participant completes the consent process.
+
+**Headers**:
+```
+Content-Type: application/json
+User-Agent: WellbeingMapper/1.0
+```
+
+**Request Body**:
+```json
+{
+  "hashed_participant_code": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
+  "consent_timestamp": "2025-08-08T12:00:00Z",
+  "consent_version": "1.0"
+}
+```
+
+**Response**:
+```json
+{
+  "success": true,
+  "consent_id": "12345"
+}
+```
+
+**Response Codes**:
+- `201 Created`: Consent recorded successfully
+- `404 Not Found`: Participant code not found
+- `400 Bad Request`: Invalid request format
+- `409 Conflict`: Consent already recorded
+- `500 Internal Server Error`: Server error
+
+### 5.2 Research Data Upload Endpoint
 
 **Endpoint**: `POST /api/v1/participant-data`
 
@@ -448,6 +550,223 @@ async function processUploads() {
     }
   }
 }
+```
+
+## 7. Participant Code Management
+
+### Adding Participant Codes
+
+Create a script to add participant codes to the system:
+
+```javascript
+// scripts/add-participant-codes.js
+const crypto = require('crypto');
+const { Pool } = require('pg');
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL
+});
+
+// Function to hash participant codes
+function hashCode(code) {
+  return crypto.createHash('sha256').update(code.trim().toUpperCase()).digest('hex');
+}
+
+// Add a single participant code
+async function addParticipantCode(plainCode, studySite, notes = null) {
+  const hashedCode = hashCode(plainCode);
+  
+  try {
+    const result = await pool.query(
+      'INSERT INTO participant_codes (hashed_code, study_site, notes) VALUES ($1, $2, $3) RETURNING id',
+      [hashedCode, studySite, notes]
+    );
+    
+    console.log(`✅ Added participant code for ${studySite}: ${plainCode.substring(0, 3)}*** (ID: ${result.rows[0].id})`);
+    return result.rows[0].id;
+  } catch (error) {
+    if (error.code === '23505') { // Unique violation
+      console.log(`⚠️  Code already exists: ${plainCode.substring(0, 3)}***`);
+    } else {
+      console.error(`❌ Error adding code: ${error.message}`);
+    }
+    throw error;
+  }
+}
+
+// Bulk add participant codes from array
+async function bulkAddCodes(codes, studySite) {
+  const results = {
+    added: 0,
+    skipped: 0,
+    errors: 0
+  };
+  
+  for (const code of codes) {
+    try {
+      await addParticipantCode(code, studySite);
+      results.added++;
+    } catch (error) {
+      if (error.code === '23505') {
+        results.skipped++;
+      } else {
+        results.errors++;
+      }
+    }
+  }
+  
+  console.log(`\n📊 Bulk import results:
+  ✅ Added: ${results.added}
+  ⚠️  Skipped (duplicates): ${results.skipped}
+  ❌ Errors: ${results.errors}`);
+  
+  return results;
+}
+
+// Example usage
+async function main() {
+  // Add individual codes
+  await addParticipantCode('GTNG001', 'gauteng', 'Pilot participant');
+  await addParticipantCode('GTNG002', 'gauteng', 'Recruitment batch 1');
+  
+  // Bulk add codes
+  const gautengCodes = [
+    'GTNG003', 'GTNG004', 'GTNG005', 'GTNG006', 'GTNG007',
+    'GTNG008', 'GTNG009', 'GTNG010', 'GTNG011', 'GTNG012'
+  ];
+  
+  await bulkAddCodes(gautengCodes, 'gauteng');
+  
+  await pool.end();
+}
+
+// Run if called directly
+if (require.main === module) {
+  main().catch(console.error);
+}
+
+module.exports = { addParticipantCode, bulkAddCodes, hashCode };
+```
+
+### Managing Participant Codes
+
+```javascript
+// scripts/manage-codes.js
+const { Pool } = require('pg');
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL
+});
+
+// List all participant codes
+async function listCodes(studySite = null, activeOnly = true) {
+  let query = 'SELECT id, hashed_code, study_site, created_at, is_active, notes FROM participant_codes';
+  let params = [];
+  
+  const conditions = [];
+  if (studySite) {
+    conditions.push('study_site = $' + (params.length + 1));
+    params.push(studySite);
+  }
+  if (activeOnly) {
+    conditions.push('is_active = $' + (params.length + 1));
+    params.push(true);
+  }
+  
+  if (conditions.length > 0) {
+    query += ' WHERE ' + conditions.join(' AND ');
+  }
+  
+  query += ' ORDER BY created_at DESC';
+  
+  const result = await pool.query(query, params);
+  return result.rows;
+}
+
+// Deactivate a participant code
+async function deactivateCode(hashedCode) {
+  const result = await pool.query(
+    'UPDATE participant_codes SET is_active = FALSE WHERE hashed_code = $1 RETURNING id',
+    [hashedCode]
+  );
+  
+  if (result.rows.length > 0) {
+    console.log(`✅ Deactivated code (ID: ${result.rows[0].id})`);
+  } else {
+    console.log('❌ Code not found');
+  }
+}
+
+// Get participant statistics
+async function getParticipantStats() {
+  const stats = await pool.query(`
+    SELECT 
+      pc.study_site,
+      COUNT(pc.id) as total_codes,
+      COUNT(CASE WHEN pc.is_active THEN 1 END) as active_codes,
+      COUNT(cr.id) as consented_participants,
+      ROUND(
+        (COUNT(cr.id)::float / COUNT(CASE WHEN pc.is_active THEN 1 END)) * 100, 
+        2
+      ) as consent_rate_percent
+    FROM participant_codes pc
+    LEFT JOIN consent_records cr ON pc.hashed_code = cr.hashed_participant_code
+    GROUP BY pc.study_site
+    ORDER BY pc.study_site
+  `);
+  
+  return stats.rows;
+}
+
+// Recent consent activity
+async function getRecentActivity(days = 7) {
+  const activity = await pool.query(`
+    SELECT 
+      DATE(consent_timestamp) as consent_date,
+      COUNT(*) as consents_given
+    FROM consent_records 
+    WHERE consent_timestamp >= NOW() - INTERVAL '${days} days'
+    GROUP BY DATE(consent_timestamp)
+    ORDER BY consent_date DESC
+  `);
+  
+  return activity.rows;
+}
+
+module.exports = {
+  listCodes,
+  deactivateCode,
+  getParticipantStats,
+  getRecentActivity
+};
+```
+
+### Command Line Tools
+
+```bash
+# Add participant codes
+node scripts/add-participant-codes.js
+
+# Check statistics
+node -e "
+const { getParticipantStats } = require('./scripts/manage-codes.js');
+getParticipantStats().then(stats => {
+  console.table(stats);
+  process.exit(0);
+});
+"
+
+# List active codes for Gauteng
+node -e "
+const { listCodes } = require('./scripts/manage-codes.js');
+listCodes('gauteng', true).then(codes => {
+  console.log(\`Found \${codes.length} active codes for Gauteng\`);
+  codes.forEach(code => {
+    console.log(\`- ID: \${code.id}, Created: \${code.created_at}\`);
+  });
+  process.exit(0);
+});
+"
 ```
 
 ## 8. Security Considerations
