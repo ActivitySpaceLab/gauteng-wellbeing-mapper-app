@@ -18,8 +18,25 @@ class ParticipationSelectionScreen extends StatefulWidget {
 class _ParticipationSelectionScreenState extends State<ParticipationSelectionScreen> {
   // Note: _participantCodeController kept for future research mode restoration
   final _participantCodeController = TextEditingController();
-  String _selectedMode = 'private'; // 'private', 'appTesting'
+  String _selectedMode = 'private'; // Default to private mode
   bool _isLoading = false;
+  List<AppMode> _availableModes = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAvailableModes();
+  }
+
+  void _loadAvailableModes() {
+    // Get available modes based on build flavor
+    _availableModes = AppModeService.getAvailableModes();
+    
+    // Ensure selected mode is available in current build
+    if (!_availableModes.any((mode) => mode.toString().split('.').last == _selectedMode)) {
+      _selectedMode = _availableModes.first.toString().split('.').last;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -112,47 +129,97 @@ class _ParticipationSelectionScreenState extends State<ParticipationSelectionScr
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         SizedBox(height: 16),
+        ..._availableModes.map((mode) => _buildModeOption(mode)).toList(),
+      ],
+    );
+  }
+
+  Widget _buildModeOption(AppMode mode) {
+    final modeString = mode.toString().split('.').last;
+    
+    return Column(
+      children: [
         Card(
           child: RadioListTile<String>(
-            value: 'private',
+            value: modeString,
             groupValue: _selectedMode,
             onChanged: (value) {
               setState(() {
                 _selectedMode = value!;
               });
             },
-            title: Text('Personal Use Only'),
-            subtitle: Text('Use the app privately for your own wellbeing tracking. No data will be shared.'),
-            secondary: Icon(Icons.lock, color: Colors.green),
+            title: Text(_getModeTitle(mode)),
+            subtitle: _getModeSubtitle(mode),
+            secondary: Icon(_getModeIcon(mode), color: _getModeColor(mode)),
           ),
         ),
         SizedBox(height: 8),
-        Card(
-          child: RadioListTile<String>(
-            value: 'appTesting',
-            groupValue: _selectedMode,
-            onChanged: (value) {
-              setState(() {
-                _selectedMode = value!;
-              });
-            },
-            title: Text('App Testing'),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Test all app features safely. No real research data is collected or shared.'),
-                SizedBox(height: 4),
-                Text(
-                  '• Experience all research features\n• Practice with surveys and mapping\n• All data stays local - nothing sent to servers',
-                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                ),
-              ],
-            ),
-            secondary: Icon(Icons.science, color: Colors.orange),
-          ),
-        ),
       ],
     );
+  }
+
+  String _getModeTitle(AppMode mode) {
+    switch (mode) {
+      case AppMode.private:
+        return 'Personal Use Only';
+      case AppMode.research:
+        return 'Research Participation';
+      case AppMode.appTesting:
+        return 'App Testing';
+    }
+  }
+
+  Widget _getModeSubtitle(AppMode mode) {
+    switch (mode) {
+      case AppMode.private:
+        return Text('Use the app privately for your own wellbeing tracking. No data will be shared.');
+      case AppMode.research:
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Participate in research studies and help advance scientific knowledge.'),
+            SizedBox(height: 4),
+            Text(
+              '• Anonymous data shared with researchers\n• Contribute to mental wellbeing research\n• Secure and privacy-protected',
+              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+            ),
+          ],
+        );
+      case AppMode.appTesting:
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Test all app features safely. No real research data is collected or shared.'),
+            SizedBox(height: 4),
+            Text(
+              '• Experience all research features\n• Practice with surveys and mapping\n• All data stays local - nothing sent to servers',
+              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+            ),
+          ],
+        );
+    }
+  }
+
+  IconData _getModeIcon(AppMode mode) {
+    switch (mode) {
+      case AppMode.private:
+        return Icons.lock;
+      case AppMode.research:
+        return Icons.science;
+      case AppMode.appTesting:
+        return Icons.bug_report;
+    }
+  }
+
+  Color _getModeColor(AppMode mode) {
+    switch (mode) {
+      case AppMode.private:
+        return Colors.green;
+      case AppMode.research:
+        return Colors.blue;
+      case AppMode.appTesting:
+        return Colors.orange;
+    }
   }
 
   // BETA TESTING: Research participation section disabled
@@ -217,6 +284,11 @@ class _ParticipationSelectionScreenState extends State<ParticipationSelectionScr
   */
 
   Widget _buildActionButtons() {
+    final selectedAppMode = _availableModes.firstWhere(
+      (mode) => mode.toString().split('.').last == _selectedMode,
+      orElse: () => AppMode.private,
+    );
+
     return Column(
       children: [
         SizedBox(
@@ -225,13 +297,13 @@ class _ParticipationSelectionScreenState extends State<ParticipationSelectionScr
           child: ElevatedButton(
             onPressed: _isLoading ? null : _handleContinue,
             style: ElevatedButton.styleFrom(
-              backgroundColor: _selectedMode == 'private' ? Colors.green : Colors.orange,
+              backgroundColor: selectedAppMode.themeColor,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
             child: _isLoading
                 ? CircularProgressIndicator(color: Colors.white)
                 : Text(
-                    _selectedMode == 'private' ? 'Start Using App' : 'Start App Testing',
+                    _getButtonText(selectedAppMode),
                     style: TextStyle(fontSize: 18, color: Colors.white),
                   ),
           ),
@@ -245,13 +317,30 @@ class _ParticipationSelectionScreenState extends State<ParticipationSelectionScr
     );
   }
 
+  String _getButtonText(AppMode mode) {
+    switch (mode) {
+      case AppMode.private:
+        return 'Start Using App';
+      case AppMode.research:
+        return 'Join Research Study';
+      case AppMode.appTesting:
+        return 'Start App Testing';
+    }
+  }
+
   void _handleContinue() async {
     setState(() {
       _isLoading = true;
     });
 
     try {
-      // Request location permissions first for both modes
+      // Convert selected mode string to AppMode enum
+      final selectedAppMode = _availableModes.firstWhere(
+        (mode) => mode.toString().split('.').last == _selectedMode,
+        orElse: () => AppMode.private,
+      );
+
+      // Request location permissions first for all modes
       print('[ParticipationSelection] Requesting location permissions...');
       bool hasLocationPermission = await LocationService.initializeLocationServices(context: context);
       
@@ -293,12 +382,13 @@ class _ParticipationSelectionScreenState extends State<ParticipationSelectionScr
         return;
       }
 
-      if (_selectedMode == 'private') {
+      // Handle different modes
+      if (selectedAppMode == AppMode.private) {
         // Private use flow - skip consent, go directly to main app
         await AppModeService.setCurrentMode(AppMode.private);
         await _savePrivateUserSettings();
         _navigateToMainApp();
-      } else if (_selectedMode == 'appTesting') {
+      } else if (selectedAppMode == AppMode.appTesting) {
         // App testing flow - go through consent process like research participants
         await AppModeService.setCurrentMode(AppMode.appTesting);
         
@@ -317,6 +407,25 @@ class _ParticipationSelectionScreenState extends State<ParticipationSelectionScr
           _navigateToMainApp();
         }
         // If consent was cancelled or failed, do nothing (stay on current screen)
+      } else if (selectedAppMode == AppMode.research) {
+        // Research participation flow - go through consent process
+        await AppModeService.setCurrentMode(AppMode.research);
+        
+        // Navigate to consent form for research participation
+        final result = await Navigator.of(context).pushNamed(
+          '/consent_form',
+          arguments: {
+            'participantCode': '', // Will be provided through consent form
+            'researchSite': 'gauteng', // Use Gauteng site for research
+            'isTestingMode': false, // This is actual research participation
+          },
+        );
+
+        if (result == true) {
+          // Consent completed for research mode - settings already saved by consent form
+          _navigateToMainApp();
+        }
+        // If consent was cancelled or failed, do nothing (stay on current screen)
       }
     } catch (error) {
       _showErrorDialog('Error setting up app mode: $error');
@@ -325,9 +434,6 @@ class _ParticipationSelectionScreenState extends State<ParticipationSelectionScr
         _isLoading = false;
       });
     }
-    
-    // Note: Research participation flow disabled during beta testing
-    // Future release will restore research mode with consent flow
   }
 
   Future<void> _savePrivateUserSettings() async {
