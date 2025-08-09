@@ -8,6 +8,7 @@ class SurveyNavigationService {
   /// Navigate to initial survey (either hardcoded or Qualtrics)
   static void navigateToInitialSurvey(BuildContext context, {String? locationJson}) {
     if (useQualtricsSurveys) {
+      print('[SurveyNavigation] Attempting Qualtrics initial survey...');
       Navigator.of(context).pushNamed(
         '/qualtrics_initial_survey',
         arguments: <String, String>{
@@ -16,6 +17,7 @@ class SurveyNavigationService {
         },
       );
     } else {
+      print('[SurveyNavigation] Using hardcoded initial survey...');
       Navigator.of(context).pushNamed('/initial_survey');
     }
   }

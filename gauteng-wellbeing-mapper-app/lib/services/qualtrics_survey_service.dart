@@ -8,9 +8,10 @@ class QualtricsSurveyService {
   static const String _participantUuidField = 'participant_uuid'; // New field for UUID
   static const String _locationJsonField = 'locations';
   
-  // Qualtrics survey URLs
-  static const String _initialSurveyUrl = 'https://pretoria.eu.qualtrics.com/jfe/form/SV_2bwK7iJ8xVFaEF0';
-  static const String _biweeklySurveyUrl = 'https://pretoria.eu.qualtrics.com/jfe/form/SV_cwZv97cK2DPlJ38';
+  // Qualtrics survey URLs - UPDATE THESE TO YOUR ACTUAL SURVEY URLS
+  // For testing, these point to working example surveys
+  static const String _initialSurveyUrl = 'https://pretoria.eu.qualtrics.com/jfe/form/SV_byJSMxWDA88icbY';
+  static const String _biweeklySurveyUrl = 'https://pretoria.eu.qualtrics.com/jfe/form/SV_3aNJIQJXHPCyaOi';
   
   /// Get survey URL based on type
   static String getSurveyUrl(SurveyType surveyType) {
