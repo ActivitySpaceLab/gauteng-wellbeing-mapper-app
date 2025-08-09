@@ -6,6 +6,7 @@ import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
 import 'package:webview_flutter_platform_interface/webview_flutter_platform_interface.dart';
 import '../../main.dart';
 import 'dart:convert';
+import '../services/qualtrics_survey_service.dart';
 
 final Set<JavaScriptChannelParams> jsChannels = [
   JavaScriptChannelParams(
@@ -22,12 +23,27 @@ class MyWebView extends StatefulWidget {
   final String locationHistoryJSON;
   final String locationSharingMethod;
   final String surveyElementCode;
-  //String userUUID = '';
-  MyWebView(this.selectedUrl, this.locationHistoryJSON,
-      this.locationSharingMethod, this.surveyElementCode);
+  final SurveyType? surveyType; // Add survey type for Qualtrics
+  final bool isQualtricsSurvey; // Flag to determine survey platform
+  
+  MyWebView(
+    this.selectedUrl, 
+    this.locationHistoryJSON,
+    this.locationSharingMethod, 
+    this.surveyElementCode, {
+    this.surveyType,
+    this.isQualtricsSurvey = false,
+  });
+  
   @override
-  _MyWebViewState createState() => _MyWebViewState(selectedUrl,
-      locationHistoryJSON, locationSharingMethod, surveyElementCode);
+  _MyWebViewState createState() => _MyWebViewState(
+    selectedUrl,
+    locationHistoryJSON, 
+    locationSharingMethod, 
+    surveyElementCode,
+    surveyType: surveyType,
+    isQualtricsSurvey: isQualtricsSurvey,
+  );
 }
 
 class _MyWebViewState extends State<MyWebView> {
@@ -36,13 +52,21 @@ class _MyWebViewState extends State<MyWebView> {
   final String locationHistoryJSON;
   final String locationSharingMethod;
   final String surveyElementCode;
+  final SurveyType? surveyType;
+  final bool isQualtricsSurvey;
   String userUUID = GlobalData.userUUID;
   final Completer<WebViewController> _controller =
       Completer<WebViewController>();
   late WebViewController _webViewcontroller;
 
-  _MyWebViewState(this.selectedUrl, this.locationHistoryJSON,
-      this.locationSharingMethod, this.surveyElementCode);
+  _MyWebViewState(
+    this.selectedUrl, 
+    this.locationHistoryJSON,
+    this.locationSharingMethod, 
+    this.surveyElementCode, {
+    this.surveyType,
+    this.isQualtricsSurvey = false,
+  });
 
   @override
   void initState() {
@@ -69,6 +93,36 @@ class _MyWebViewState extends State<MyWebView> {
       ..setBackgroundColor(const Color(0x00000000))
       //..loadRequest(Uri.parse(selectedUrl))
       ..addJavaScriptChannel(
+        'Print',
+        onMessageReceived: (JavaScriptMessage message) {
+          debugPrint('JavaScript channel message: ${message.message}');
+          // Handle Qualtrics survey completion
+          if (message.message == 'SURVEY_COMPLETED') {
+            debugPrint('Qualtrics survey completed, returning to app');
+            Navigator.pop(context);
+          }
+          // Handle field population feedback for testing
+          else if (message.message.startsWith('FIELDS_POPULATED:')) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Survey fields populated successfully'),
+                duration: Duration(seconds: 2),
+                backgroundColor: Colors.green,
+              ),
+            );
+          }
+          else if (message.message.startsWith('FIELDS_ERROR:')) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Field population issue - check survey setup'),
+                duration: Duration(seconds: 3),
+                backgroundColor: Colors.orange,
+              ),
+            );
+          }
+        },
+      )
+      ..addJavaScriptChannel(
         'Toaster',
         onMessageReceived: (JavaScriptMessage message) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -87,12 +141,19 @@ class _MyWebViewState extends State<MyWebView> {
             }
           },
           onPageFinished: (String url) {
-            if (url != "https://ee.kobotoolbox.org/thanks" &&
-                url != "https://ee-eu.kobotoolbox.org/thanks" &&
-                (locationSharingMethod == '1' ||
-                    locationSharingMethod == '3')) {
-              _setFormLocationHistory();
-              debugPrint('Page finished loading: $url');
+            debugPrint('Page finished loading: $url');
+            
+            if (isQualtricsSurvey) {
+              // Handle Qualtrics survey
+              _setupQualtricsSurvey();
+            } else {
+              // Handle KoboToolbox survey (legacy)
+              if (url != "https://ee.kobotoolbox.org/thanks" &&
+                  url != "https://ee-eu.kobotoolbox.org/thanks" &&
+                  (locationSharingMethod == '1' ||
+                      locationSharingMethod == '3')) {
+                _setFormLocationHistory();
+              }
             }
           },
           onProgress: (int progress) {
@@ -176,6 +237,32 @@ class _MyWebViewState extends State<MyWebView> {
     ''');
     } catch (e) {
       debugPrint('Error executing JavaScript: $e');
+    }
+  }
+
+  void _setupQualtricsSurvey() async {
+    if (surveyType == null) {
+      debugPrint('Survey type not specified for Qualtrics survey');
+      return;
+    }
+
+    try {
+      // Generate and inject hidden fields script (now async due to encryption)
+      String hiddenFieldsScript = await QualtricsSurveyService.generateHiddenFieldScript(
+        surveyType!,
+        locationJson: surveyType == SurveyType.biweekly ? locationHistoryJSON : null,
+      );
+      
+      // Generate and inject completion detection script
+      String completionScript = QualtricsSurveyService.getSurveyCompletionScript();
+      
+      // Execute both scripts
+      await _webViewcontroller.runJavaScript(hiddenFieldsScript);
+      await _webViewcontroller.runJavaScript(completionScript);
+      
+      debugPrint('Qualtrics survey setup completed for ${surveyType.toString()} with encryption');
+    } catch (e) {
+      debugPrint('Error setting up Qualtrics survey: $e');
     }
   }
 }

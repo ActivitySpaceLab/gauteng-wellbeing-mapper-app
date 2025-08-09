@@ -18,6 +18,7 @@ import '../ui/wellbeing_timeline_view.dart';
 import '../ui/change_mode_screen.dart';
 import '../ui/help_screen.dart';
 import '../ui/participant_code_entry_screen.dart';
+import '../services/qualtrics_survey_service.dart';
 
 class GlobalRouteData {
   static String? user_route = "brown";
@@ -66,6 +67,48 @@ class RouteGenerator {
         return MaterialPageRoute(builder: (_) => InitialSurveyScreen());
       case '/recurring_survey':
         return MaterialPageRoute(builder: (_) => RecurringSurveyScreen());
+      case '/qualtrics_initial_survey':
+        if (args is Map<String, String>) {
+          return MaterialPageRoute(
+            builder: (_) => MyWebView(
+              QualtricsSurveyService.getSurveyUrl(SurveyType.initial),
+              args['locationHistoryJSON'] ?? '',
+              args['locationSharingMethod'] ?? '',
+              '', // surveyElementCode not used for Qualtrics
+              surveyType: SurveyType.initial,
+              isQualtricsSurvey: true,
+            ),
+          );
+        }
+        return MaterialPageRoute(
+          builder: (_) => MyWebView(
+            QualtricsSurveyService.getSurveyUrl(SurveyType.initial),
+            '', '', '',
+            surveyType: SurveyType.initial,
+            isQualtricsSurvey: true,
+          ),
+        );
+      case '/qualtrics_biweekly_survey':
+        if (args is Map<String, String>) {
+          return MaterialPageRoute(
+            builder: (_) => MyWebView(
+              QualtricsSurveyService.getSurveyUrl(SurveyType.biweekly),
+              args['locationHistoryJSON'] ?? '',
+              args['locationSharingMethod'] ?? '',
+              '', // surveyElementCode not used for Qualtrics
+              surveyType: SurveyType.biweekly,
+              isQualtricsSurvey: true,
+            ),
+          );
+        }
+        return MaterialPageRoute(
+          builder: (_) => MyWebView(
+            QualtricsSurveyService.getSurveyUrl(SurveyType.biweekly),
+            '', '', '',
+            surveyType: SurveyType.biweekly,
+            isQualtricsSurvey: true,
+          ),
+        );
       case '/survey_list':
         return MaterialPageRoute(builder: (_) => SurveyListScreen());
       case '/participation_selection':

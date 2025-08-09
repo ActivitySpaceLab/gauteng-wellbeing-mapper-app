@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../db/survey_database.dart';
 import '../models/survey_models.dart';
+import '../services/survey_navigation_service.dart';
 
 class SurveyListScreen extends StatefulWidget {
   @override
@@ -84,7 +85,7 @@ class _SurveyListScreenState extends State<SurveyListScreen> {
             : Icon(Icons.arrow_forward_ios),
         onTap: _hasInitialSurvey 
             ? null 
-            : () => Navigator.of(context).pushNamed('/initial_survey'),
+            : () => SurveyNavigationService.navigateToInitialSurvey(context),
       ),
     );
   }
@@ -101,7 +102,7 @@ class _SurveyListScreenState extends State<SurveyListScreen> {
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             ElevatedButton.icon(
-              onPressed: () => Navigator.of(context).pushNamed('/recurring_survey'),
+              onPressed: () => SurveyNavigationService.navigateToBiweeklySurvey(context),
               icon: Icon(Icons.add),
               label: Text('New Survey'),
               style: ElevatedButton.styleFrom(backgroundColor: Colors.green),

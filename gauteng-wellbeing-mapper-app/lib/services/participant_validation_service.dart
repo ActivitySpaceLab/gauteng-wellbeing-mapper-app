@@ -44,12 +44,19 @@ class ParticipantValidationService {
       // Clean and normalize the code
       final cleanCode = participantCode.trim().toUpperCase();
       
-      // For now, return false since no codes are on the list
+      // For development/testing - allow specific test codes
+      if (cleanCode == 'TESTER' || cleanCode == 'TEST123' || cleanCode == 'DEV001') {
+        await _storeValidatedParticipant(cleanCode);
+        print('[ParticipantValidation] Test code accepted: $cleanCode');
+        return ValidationResult(isValid: true);
+      }
+      
+      // For now, return false for other codes since no codes are on the server list
       // TODO: Remove this when server is ready and codes are added
       print('[ParticipantValidation] Code validation attempted: ${cleanCode.substring(0, min(3, cleanCode.length))}*** (No codes in system yet)');
       return ValidationResult(
         isValid: false,
-        error: 'No participant codes are currently active in the system. Please contact the research team.',
+        error: 'No participant codes are currently active in the system. Please contact the research team or use "TESTER" for testing.',
       );
 
       // TODO: When server is ready, uncomment this and remove the above return

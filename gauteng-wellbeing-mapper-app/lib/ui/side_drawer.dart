@@ -6,6 +6,7 @@ import 'package:wellbeing_mapper/models/app_mode.dart';
 import 'package:wellbeing_mapper/services/app_mode_service.dart';
 import 'package:wellbeing_mapper/services/wellbeing_survey_service.dart';
 import 'package:wellbeing_mapper/services/initial_survey_service.dart';
+import 'package:wellbeing_mapper/services/survey_navigation_service.dart';
 import 'package:wellbeing_mapper/theme/south_african_theme.dart';
 // import 'package:wellbeing_mapper/debug/ios_location_debug.dart'; // Commented out with iOS Location Debug menu (August 5, 2025)
 import 'package:flutter/material.dart';
@@ -339,12 +340,11 @@ class _WellbeingMapperSideDrawerState extends State<WellbeingMapperSideDrawer> {
                     ? Icon(Icons.check_circle, color: Colors.green)
                     : Icon(Icons.warning, color: Colors.orange),
                   onTap: () async {
-                    final result = await Navigator.of(context).pushNamed('/initial_survey');
-                    // Refresh status when returning
-                    if (result == true) {
-                      await InitialSurveyService.markInitialSurveyCompleted();
-                      _checkInitialSurveyStatus();
-                    }
+                    // Use the survey navigation service to support both Qualtrics and hardcoded surveys
+                    SurveyNavigationService.navigateToInitialSurvey(context);
+                    // Note: Survey completion tracking will need to be updated for Qualtrics
+                    // For now, we'll keep the existing logic for hardcoded surveys
+                    // TODO: Implement Qualtrics survey completion tracking
                   },
                 ),
               ),
@@ -354,7 +354,8 @@ class _WellbeingMapperSideDrawerState extends State<WellbeingMapperSideDrawer> {
                   title: Text("Wellbeing Survey"),
                   subtitle: Text("Bi-weekly wellbeing check-in"),
                   onTap: () {
-                    Navigator.of(context).pushNamed('/recurring_survey');
+                    // Use the survey navigation service to support both Qualtrics and hardcoded surveys
+                    SurveyNavigationService.navigateToBiweeklySurvey(context);
                   },
                 ),
               ),
