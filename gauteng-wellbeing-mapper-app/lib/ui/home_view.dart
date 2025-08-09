@@ -181,7 +181,7 @@ class HomeViewState extends State<HomeView>
               Navigator.of(context).pop();
               
               // Navigate to initial survey using SurveyNavigationService
-              SurveyNavigationService.navigateToInitialSurvey(context);
+              await SurveyNavigationService.navigateToInitialSurvey(context);
               
               // Note: For Qualtrics surveys, completion tracking will need to be updated
               // The current completion tracking only works for hardcoded surveys
@@ -213,7 +213,7 @@ class HomeViewState extends State<HomeView>
               Navigator.of(context).pop();
               
               // Navigate to initial survey using SurveyNavigationService
-              SurveyNavigationService.navigateToInitialSurvey(context);
+              await SurveyNavigationService.navigateToInitialSurvey(context);
               
               // Note: For Qualtrics surveys, completion tracking will need to be updated
               // The current completion tracking only works for hardcoded surveys

@@ -2,14 +2,15 @@
 
 ## Current Status
 ✅ **FIXED**: Updated survey URLs to working test surveys
-✅ **Ready for Testing**: App should now open Qualtrics surveys without "Survey Not Found" error
+✅ **FIXED**: Internet connectivity checking implemented
+✅ **Ready for Testing**: App now requires internet connection for surveys
 
 ## Immediate Testing
 The app now uses these working test survey URLs:
 - **Initial Survey**: `https://pretoria.eu.qualtrics.com/jfe/form/SV_byJSMxWDA88icbY`
 - **Biweekly Survey**: `https://pretoria.eu.qualtrics.com/jfe/form/SV_3aNJIQJXHPCyaOi`
 
-You can test the app immediately with these URLs to verify the functionality works.
+**Internet Required**: The app now checks for internet connectivity before loading surveys and shows a clear dialog if no connection is available.
 
 ## Setting Up Your Own Qualtrics Surveys
 

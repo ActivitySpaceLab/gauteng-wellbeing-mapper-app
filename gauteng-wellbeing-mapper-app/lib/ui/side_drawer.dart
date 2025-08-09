@@ -341,7 +341,7 @@ class _WellbeingMapperSideDrawerState extends State<WellbeingMapperSideDrawer> {
                     : Icon(Icons.warning, color: Colors.orange),
                   onTap: () async {
                     // Use the survey navigation service to support both Qualtrics and hardcoded surveys
-                    SurveyNavigationService.navigateToInitialSurvey(context);
+                    await SurveyNavigationService.navigateToInitialSurvey(context);
                     // Note: Survey completion tracking will need to be updated for Qualtrics
                     // For now, we'll keep the existing logic for hardcoded surveys
                     // TODO: Implement Qualtrics survey completion tracking
@@ -353,9 +353,9 @@ class _WellbeingMapperSideDrawerState extends State<WellbeingMapperSideDrawer> {
                   leading: const Icon(Icons.assignment_turned_in),
                   title: Text("Wellbeing Survey"),
                   subtitle: Text("Bi-weekly wellbeing check-in"),
-                  onTap: () {
+                  onTap: () async {
                     // Use the survey navigation service to support both Qualtrics and hardcoded surveys
-                    SurveyNavigationService.navigateToBiweeklySurvey(context);
+                    await SurveyNavigationService.navigateToBiweeklySurvey(context);
                   },
                 ),
               ),
