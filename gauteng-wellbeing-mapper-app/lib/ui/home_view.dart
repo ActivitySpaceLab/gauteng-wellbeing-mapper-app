@@ -1,8 +1,8 @@
 import 'package:wellbeing_mapper/services/notification_service.dart';
 import 'package:wellbeing_mapper/services/location_service.dart';
 import 'package:wellbeing_mapper/services/initial_survey_service.dart';
+import 'package:wellbeing_mapper/services/survey_navigation_service.dart';
 import 'package:wellbeing_mapper/ui/side_drawer.dart';
-import 'package:wellbeing_mapper/ui/initial_survey_screen.dart';
 import 'package:wellbeing_mapper/util/env.dart';
 import 'package:wellbeing_mapper/theme/south_african_theme.dart';
 import 'package:wellbeing_mapper/util/onboarding_helper.dart';
@@ -180,19 +180,11 @@ class HomeViewState extends State<HomeView>
             onPressed: () async {
               Navigator.of(context).pop();
               
-              // Navigate to initial survey
-              final result = await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => InitialSurveyScreen(),
-                ),
-              );
+              // Navigate to initial survey using SurveyNavigationService
+              SurveyNavigationService.navigateToInitialSurvey(context);
               
-              // If survey was completed, mark it as completed
-              if (result == true) {
-                await InitialSurveyService.markInitialSurveyCompleted();
-              }
-              // If result == false (skipped), user will get reminders later
+              // Note: For Qualtrics surveys, completion tracking will need to be updated
+              // The current completion tracking only works for hardcoded surveys
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
             child: Text('Yes, complete now', style: TextStyle(color: Colors.white)),
@@ -220,18 +212,11 @@ class HomeViewState extends State<HomeView>
             onPressed: () async {
               Navigator.of(context).pop();
               
-              // Navigate to initial survey
-              final result = await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => InitialSurveyScreen(),
-                ),
-              );
+              // Navigate to initial survey using SurveyNavigationService
+              SurveyNavigationService.navigateToInitialSurvey(context);
               
-              // If survey was completed, mark it as completed
-              if (result == true) {
-                await InitialSurveyService.markInitialSurveyCompleted();
-              }
+              // Note: For Qualtrics surveys, completion tracking will need to be updated
+              // The current completion tracking only works for hardcoded surveys
             },
             child: Text('Complete Now'),
           ),
