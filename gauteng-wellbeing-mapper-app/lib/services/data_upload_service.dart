@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/survey_models.dart';
 import '../models/wellbeing_survey_models.dart';
 import '../db/survey_database.dart';
+import 'qualtrics_api_service.dart';
 
 /// Service for encrypting and uploading research data to study servers
 class DataUploadService {
@@ -391,6 +392,17 @@ class LocationTrack {
       print('Upload completed successfully: $uploadId');
     } catch (e) {
       print('Error marking upload as completed: $e');
+    }
+  }
+
+  /// Sync pending surveys to Qualtrics in the background
+  static Future<void> syncPendingSurveysToQualtrics() async {
+    try {
+      print('🔄 Starting background sync to Qualtrics...');
+      await QualtricsApiService.syncPendingSurveys();
+      print('✅ Background sync to Qualtrics completed');
+    } catch (e) {
+      print('❌ Background sync to Qualtrics failed: $e');
     }
   }
 }

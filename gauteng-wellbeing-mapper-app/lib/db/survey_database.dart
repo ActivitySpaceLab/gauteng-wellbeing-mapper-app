@@ -23,7 +23,7 @@ class SurveyDatabase {
     String path = join(await getDatabasesPath(), 'survey_database.db');
     return await openDatabase(
       path,
-      version: 6, // Bumped version to update wellbeing survey to single happiness question
+      version: 8, // Added expanded fields to initial_survey_responses for baseline measurement
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -59,10 +59,43 @@ class SurveyDatabase {
         sexuality TEXT,
         birth_place TEXT,
         lives_in_barcelona TEXT,
+        suburb TEXT,
         building_type TEXT,
         household_items TEXT,
         education TEXT,
         climate_activism TEXT,
+        general_health TEXT,
+        activities TEXT,
+        living_arrangement TEXT,
+        relationship_status TEXT,
+        cheerful_spirits INTEGER,
+        calm_relaxed INTEGER,
+        active_vigorous INTEGER,
+        woke_up_fresh INTEGER,
+        daily_life_interesting INTEGER,
+        cooperate_with_people INTEGER,
+        improving_skills INTEGER,
+        social_situations INTEGER,
+        family_support INTEGER,
+        family_knows_me INTEGER,
+        access_to_food INTEGER,
+        people_enjoy_time INTEGER,
+        talk_to_family INTEGER,
+        friends_support INTEGER,
+        belong_in_community INTEGER,
+        family_stands_by_me INTEGER,
+        friends_stand_by_me INTEGER,
+        treated_fairly INTEGER,
+        opportunities_responsibility INTEGER,
+        secure_with_family INTEGER,
+        opportunities_abilities INTEGER,
+        enjoy_cultural_traditions INTEGER,
+        environmental_challenges TEXT,
+        challenges_stress_level TEXT,
+        coping_help TEXT,
+        voice_note_urls TEXT,
+        image_urls TEXT,
+        research_site TEXT,
         submitted_at TEXT,
         synced INTEGER DEFAULT 0,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP
@@ -105,6 +138,7 @@ class SurveyDatabase {
         image_urls TEXT,
         submitted_at TEXT,
         synced INTEGER DEFAULT 0,
+        encrypted_location_data TEXT,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP
       )
     ''');
@@ -318,6 +352,93 @@ class SurveyDatabase {
       // Drop backup table
       await db.execute('DROP TABLE wellbeing_backup');
     }
+    
+    if (oldVersion < 7) {
+      // Add encrypted location data column to recurring survey responses
+      await db.execute('ALTER TABLE recurring_survey_responses ADD COLUMN encrypted_location_data TEXT');
+    }
+    
+    if (oldVersion < 8) {
+      // Expand initial survey to include all biweekly questions for baseline measurement
+      // First, backup existing data
+      await db.execute('''
+        CREATE TEMPORARY TABLE initial_survey_backup AS 
+        SELECT * FROM initial_survey_responses
+      ''');
+      
+      // Drop old table
+      await db.execute('DROP TABLE initial_survey_responses');
+      
+      // Create new expanded table
+      await db.execute('''
+        CREATE TABLE initial_survey_responses (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          age INTEGER,
+          ethnicity TEXT,
+          gender TEXT,
+          sexuality TEXT,
+          birth_place TEXT,
+          lives_in_barcelona TEXT,
+          suburb TEXT,
+          building_type TEXT,
+          household_items TEXT,
+          education TEXT,
+          climate_activism TEXT,
+          general_health TEXT,
+          activities TEXT,
+          living_arrangement TEXT,
+          relationship_status TEXT,
+          cheerful_spirits INTEGER,
+          calm_relaxed INTEGER,
+          active_vigorous INTEGER,
+          woke_up_fresh INTEGER,
+          daily_life_interesting INTEGER,
+          cooperate_with_people INTEGER,
+          improving_skills INTEGER,
+          social_situations INTEGER,
+          family_support INTEGER,
+          family_knows_me INTEGER,
+          access_to_food INTEGER,
+          people_enjoy_time INTEGER,
+          talk_to_family INTEGER,
+          friends_support INTEGER,
+          belong_in_community INTEGER,
+          family_stands_by_me INTEGER,
+          friends_stand_by_me INTEGER,
+          treated_fairly INTEGER,
+          opportunities_responsibility INTEGER,
+          secure_with_family INTEGER,
+          opportunities_abilities INTEGER,
+          enjoy_cultural_traditions INTEGER,
+          environmental_challenges TEXT,
+          challenges_stress_level TEXT,
+          coping_help TEXT,
+          voice_note_urls TEXT,
+          image_urls TEXT,
+          research_site TEXT,
+          submitted_at TEXT,
+          synced INTEGER DEFAULT 0,
+          created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        )
+      ''');
+      
+      // Migrate existing data with default values for new fields
+      await db.execute('''
+        INSERT INTO initial_survey_responses (
+          age, ethnicity, gender, sexuality, birth_place, lives_in_barcelona,
+          building_type, household_items, education, climate_activism,
+          submitted_at, synced, created_at, research_site
+        )
+        SELECT 
+          age, ethnicity, gender, sexuality, birth_place, lives_in_barcelona,
+          building_type, household_items, education, climate_activism,
+          submitted_at, synced, created_at, 'barcelona'
+        FROM initial_survey_backup
+      ''');
+      
+      // Drop backup table
+      await db.execute('DROP TABLE initial_survey_backup');
+    }
   }
 
   // Initial Survey Methods
@@ -330,10 +451,44 @@ class SurveyDatabase {
       'sexuality': survey.sexuality,
       'birth_place': survey.birthPlace,
       'lives_in_barcelona': survey.livesInBarcelona,
+      'suburb': survey.suburb,
       'building_type': survey.buildingType,
       'household_items': jsonEncode(survey.householdItems),
       'education': survey.education,
       'climate_activism': survey.climateActivism,
+      'general_health': survey.generalHealth,
+      'activities': jsonEncode(survey.activities),
+      'living_arrangement': survey.livingArrangement,
+      'relationship_status': survey.relationshipStatus,
+      'cheerful_spirits': survey.cheerfulSpirits,
+      'calm_relaxed': survey.calmRelaxed,
+      'active_vigorous': survey.activeVigorous,
+      'woke_up_fresh': survey.wokeUpFresh,
+      'daily_life_interesting': survey.dailyLifeInteresting,
+      'cooperate_with_people': survey.cooperateWithPeople,
+      'improving_skills': survey.improvingSkills,
+      'social_situations': survey.socialSituations,
+      'family_support': survey.familySupport,
+      'family_knows_me': survey.familyKnowsMe,
+      'access_to_food': survey.accessToFood,
+      'people_enjoy_time': survey.peopleEnjoyTime,
+      'talk_to_family': survey.talkToFamily,
+      'friends_support': survey.friendsSupport,
+      'belong_in_community': survey.belongInCommunity,
+      'family_stands_by_me': survey.familyStandsByMe,
+      'friends_stand_by_me': survey.friendsStandByMe,
+      'treated_fairly': survey.treatedFairly,
+      'opportunities_responsibility': survey.opportunitiesResponsibility,
+      'secure_with_family': survey.secureWithFamily,
+      'opportunities_abilities': survey.opportunitiesAbilities,
+      'enjoy_cultural_traditions': survey.enjoyCulturalTraditions,
+      'environmental_challenges': survey.environmentalChallenges,
+      'challenges_stress_level': survey.challengesStressLevel,
+      'coping_help': survey.copingHelp,
+      // TODO: MULTIMEDIA DISABLED - Uncomment to re-enable multimedia support
+      // 'voice_note_urls': survey.voiceNoteUrls != null ? jsonEncode(survey.voiceNoteUrls) : null,
+      // 'image_urls': survey.imageUrls != null ? jsonEncode(survey.imageUrls) : null,
+      'research_site': survey.researchSite,
       'submitted_at': survey.submittedAt.toIso8601String(),
     });
 
@@ -349,17 +504,48 @@ class SurveyDatabase {
     return List.generate(maps.length, (i) {
       return InitialSurveyResponse(
         age: maps[i]['age'] as int?,
-        ethnicity: List<String>.from(jsonDecode(maps[i]['ethnicity'] as String)),
+        ethnicity: List<String>.from(jsonDecode(maps[i]['ethnicity'] as String? ?? '[]')),
         gender: maps[i]['gender'] as String?,
         sexuality: maps[i]['sexuality'] as String?,
         birthPlace: maps[i]['birth_place'] as String?,
         livesInBarcelona: maps[i]['lives_in_barcelona'] as String?,
         suburb: maps[i]['suburb'] as String?,
         buildingType: maps[i]['building_type'] as String?,
-        householdItems: List<String>.from(jsonDecode(maps[i]['household_items'] as String)),
+        householdItems: List<String>.from(jsonDecode(maps[i]['household_items'] as String? ?? '[]')),
         education: maps[i]['education'] as String?,
         climateActivism: maps[i]['climate_activism'] as String?,
         generalHealth: maps[i]['general_health'] as String?,
+        activities: List<String>.from(jsonDecode(maps[i]['activities'] as String? ?? '[]')),
+        livingArrangement: maps[i]['living_arrangement'] as String?,
+        relationshipStatus: maps[i]['relationship_status'] as String?,
+        cheerfulSpirits: maps[i]['cheerful_spirits'] as int?,
+        calmRelaxed: maps[i]['calm_relaxed'] as int?,
+        activeVigorous: maps[i]['active_vigorous'] as int?,
+        wokeUpFresh: maps[i]['woke_up_fresh'] as int?,
+        dailyLifeInteresting: maps[i]['daily_life_interesting'] as int?,
+        cooperateWithPeople: maps[i]['cooperate_with_people'] as int?,
+        improvingSkills: maps[i]['improving_skills'] as int?,
+        socialSituations: maps[i]['social_situations'] as int?,
+        familySupport: maps[i]['family_support'] as int?,
+        familyKnowsMe: maps[i]['family_knows_me'] as int?,
+        accessToFood: maps[i]['access_to_food'] as int?,
+        peopleEnjoyTime: maps[i]['people_enjoy_time'] as int?,
+        talkToFamily: maps[i]['talk_to_family'] as int?,
+        friendsSupport: maps[i]['friends_support'] as int?,
+        belongInCommunity: maps[i]['belong_in_community'] as int?,
+        familyStandsByMe: maps[i]['family_stands_by_me'] as int?,
+        friendsStandByMe: maps[i]['friends_stand_by_me'] as int?,
+        treatedFairly: maps[i]['treated_fairly'] as int?,
+        opportunitiesResponsibility: maps[i]['opportunities_responsibility'] as int?,
+        secureWithFamily: maps[i]['secure_with_family'] as int?,
+        opportunitiesAbilities: maps[i]['opportunities_abilities'] as int?,
+        enjoyCulturalTraditions: maps[i]['enjoy_cultural_traditions'] as int?,
+        environmentalChallenges: maps[i]['environmental_challenges'] as String?,
+        challengesStressLevel: maps[i]['challenges_stress_level'] as String?,
+        copingHelp: maps[i]['coping_help'] as String?,
+        // TODO: MULTIMEDIA DISABLED - Uncomment to re-enable multimedia support
+        // voiceNoteUrls: maps[i]['voice_note_urls'] != null ? List<String>.from(jsonDecode(maps[i]['voice_note_urls'] as String)) : null,
+        // imageUrls: maps[i]['image_urls'] != null ? List<String>.from(jsonDecode(maps[i]['image_urls'] as String)) : null,
         researchSite: maps[i]['research_site'] as String? ?? 'barcelona',
         submittedAt: DateTime.parse(maps[i]['submitted_at'] as String),
       );
@@ -398,9 +584,11 @@ class SurveyDatabase {
       'environmental_challenges': survey.environmentalChallenges,
       'challenges_stress_level': survey.challengesStressLevel,
       'coping_help': survey.copingHelp,
-      'voice_note_urls': survey.voiceNoteUrls != null ? jsonEncode(survey.voiceNoteUrls) : null,
-      'image_urls': survey.imageUrls != null ? jsonEncode(survey.imageUrls) : null,
+      // TODO: MULTIMEDIA DISABLED - Uncomment to re-enable multimedia support
+      // 'voice_note_urls': survey.voiceNoteUrls != null ? jsonEncode(survey.voiceNoteUrls) : null,
+      // 'image_urls': survey.imageUrls != null ? jsonEncode(survey.imageUrls) : null,
       'submitted_at': survey.submittedAt.toIso8601String(),
+      'encrypted_location_data': survey.encryptedLocationData,
     });
 
     // Add to sync queue
@@ -443,14 +631,16 @@ class SurveyDatabase {
         environmentalChallenges: maps[i]['environmental_challenges'] as String?,
         challengesStressLevel: maps[i]['challenges_stress_level'] as String?,
         copingHelp: maps[i]['coping_help'] as String?,
-        voiceNoteUrls: maps[i]['voice_note_urls'] != null 
-            ? List<String>.from(jsonDecode(maps[i]['voice_note_urls'] as String))
-            : null,
-        imageUrls: maps[i]['image_urls'] != null 
-            ? List<String>.from(jsonDecode(maps[i]['image_urls'] as String))
-            : null,
+        // TODO: MULTIMEDIA DISABLED - Uncomment to re-enable multimedia support
+        // voiceNoteUrls: maps[i]['voice_note_urls'] != null 
+        //     ? List<String>.from(jsonDecode(maps[i]['voice_note_urls'] as String))
+        //     : null,
+        // imageUrls: maps[i]['image_urls'] != null 
+        //     ? List<String>.from(jsonDecode(maps[i]['image_urls'] as String))
+        //     : null,
         researchSite: maps[i]['research_site'] as String? ?? 'barcelona',
         submittedAt: DateTime.parse(maps[i]['submitted_at'] as String),
+        encryptedLocationData: maps[i]['encrypted_location_data'] as String?,
       );
     });
   }
@@ -696,5 +886,34 @@ class SurveyDatabase {
   Future<void> close() async {
     final db = await database;
     db.close();
+  }
+
+  // Methods for Qualtrics API sync
+  Future<List<Map<String, dynamic>>> getUnsyncedInitialSurveys() async {
+    final db = await database;
+    return await db.query(
+      'initial_survey_responses', 
+      where: 'synced = ?', 
+      whereArgs: [0],
+      orderBy: 'submitted_at ASC'
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> getUnsyncedRecurringSurveys() async {
+    final db = await database;
+    return await db.query(
+      'recurring_survey_responses', 
+      where: 'synced = ?', 
+      whereArgs: [0],
+      orderBy: 'submitted_at ASC'
+    );
+  }
+
+  Future<void> markInitialSurveySynced(int surveyId) async {
+    await markSurveyAsSynced('initial_survey_responses', surveyId);
+  }
+
+  Future<void> markRecurringSurveySynced(int surveyId) async {
+    await markSurveyAsSynced('recurring_survey_responses', surveyId);
   }
 }

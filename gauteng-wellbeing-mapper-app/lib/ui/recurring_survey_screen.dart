@@ -12,6 +12,7 @@ import '../models/consent_models.dart';
 import '../models/data_sharing_consent.dart';
 import '../models/app_mode.dart';
 import '../services/data_upload_service.dart';
+import '../services/qualtrics_api_service.dart';
 import '../db/survey_database.dart';
 import '../services/app_mode_service.dart';
 import 'interactive_location_privacy_map.dart';
@@ -1436,6 +1437,30 @@ class _RecurringSurveyScreenState extends State<RecurringSurveyScreen> {
   Future<void> _submitSurveyData() async {
     // Extract survey data and save it
     final formData = _formKey.currentState!.value;
+    final submissionTime = DateTime.now();
+    
+    // Get participant UUID for location encryption
+    String? participantUuid;
+    try {
+      final db = SurveyDatabase();
+      final consent = await db.getConsent();
+      participantUuid = consent?.participantUuid;
+    } catch (e) {
+      print('Error getting participant UUID: $e');
+    }
+    
+    // Capture and encrypt location data at submission time
+    String? encryptedLocationData;
+    try {
+      encryptedLocationData = await QualtricsApiService.getEncryptedLocationDataForSubmissionTime(
+        participantUuid, 
+        submissionTime
+      );
+      print('Successfully captured location data for submission time: $submissionTime');
+    } catch (e) {
+      print('Error capturing location data at submission time: $e');
+      // Continue without location data
+    }
       
     final surveyResponse = RecurringSurveyResponse(
       activities: List<String>.from(formData['activities'] ?? []),
@@ -1467,14 +1492,26 @@ class _RecurringSurveyScreenState extends State<RecurringSurveyScreen> {
       environmentalChallenges: formData['environmentalChallenges'],
       challengesStressLevel: formData['challengesStressLevel'],
       copingHelp: formData['copingHelp'],
-      voiceNoteUrls: _voiceNoteFiles.isNotEmpty ? _voiceNoteFiles.map((f) => f.path).toList() : null,
-      imageUrls: _selectedImages.isNotEmpty ? _selectedImages.map((f) => f.path).toList() : null,
+      // TODO: MULTIMEDIA DISABLED - Uncomment to re-enable multimedia support
+      // voiceNoteUrls: _voiceNoteFiles.isNotEmpty ? _voiceNoteFiles.map((f) => f.path).toList() : null,
+      // imageUrls: _selectedImages.isNotEmpty ? _selectedImages.map((f) => f.path).toList() : null,
       researchSite: _researchSite,
-      submittedAt: DateTime.now(),
+      submittedAt: submissionTime,
+      encryptedLocationData: encryptedLocationData, // Store encrypted location data captured at submission time
     );
 
     final db = SurveyDatabase();
-    await db.insertRecurringSurvey(surveyResponse);
+    final surveyId = await db.insertRecurringSurvey(surveyResponse);
+    
+    // Try to sync to Qualtrics immediately if connected
+    try {
+      final surveyData = await db.getUnsyncedRecurringSurveys();
+      final matchingSurvey = surveyData.firstWhere((s) => s['id'] == surveyId);
+      await QualtricsApiService.syncBiweeklySurvey(matchingSurvey);
+    } catch (syncError) {
+      print('Could not sync to Qualtrics immediately, will retry later: $syncError');
+      // Survey is saved locally and will sync when connectivity is available
+    }
   }
 
   void _showBetaTestingSuccessMessage() {

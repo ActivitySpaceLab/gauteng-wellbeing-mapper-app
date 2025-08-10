@@ -6,7 +6,9 @@ import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
 import 'package:webview_flutter_platform_interface/webview_flutter_platform_interface.dart';
 import '../../main.dart';
 import 'dart:convert';
-import '../services/qualtrics_survey_service.dart';
+
+// Simple enum for legacy compatibility
+enum SurveyType { initial, biweekly, wellbeing }
 
 final Set<JavaScriptChannelParams> jsChannels = [
   JavaScriptChannelParams(
@@ -247,20 +249,24 @@ class _MyWebViewState extends State<MyWebView> {
     }
 
     try {
-      // Generate and inject hidden fields script (now async due to encryption)
-      String hiddenFieldsScript = await QualtricsSurveyService.generateHiddenFieldScript(
-        surveyType!,
-        locationJson: surveyType == SurveyType.biweekly ? locationHistoryJSON : null,
-      );
+      // Note: New architecture uses API sync instead of webview injection
+      // This webview is now primarily for display purposes
       
-      // Generate and inject completion detection script
-      String completionScript = QualtricsSurveyService.getSurveyCompletionScript();
+      // Simple embedded data injection for participant ID
+      final surveyJavaScript = '''
+        // Set participant UUID in Qualtrics embedded data
+        if (typeof Qualtrics !== 'undefined' && Qualtrics.SurveyEngine) {
+          Qualtrics.SurveyEngine.setEmbeddedData('participant_uuid', '${GlobalData.userUUID}');
+          console.log('✅ Participant UUID set in Qualtrics embedded data');
+        } else {
+          console.log('⚠️ Qualtrics not available for embedded data');
+        }
+      ''';
+
+      // Execute the simplified script
+      await _webViewcontroller.runJavaScript(surveyJavaScript);
       
-      // Execute both scripts
-      await _webViewcontroller.runJavaScript(hiddenFieldsScript);
-      await _webViewcontroller.runJavaScript(completionScript);
-      
-      debugPrint('Qualtrics survey setup completed for ${surveyType.toString()} with encryption');
+      debugPrint('Qualtrics survey setup completed with embedded data API');
     } catch (e) {
       debugPrint('Error setting up Qualtrics survey: $e');
     }

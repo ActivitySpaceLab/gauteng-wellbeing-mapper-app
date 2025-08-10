@@ -18,7 +18,12 @@ import '../ui/wellbeing_timeline_view.dart';
 import '../ui/change_mode_screen.dart';
 import '../ui/help_screen.dart';
 import '../ui/participant_code_entry_screen.dart';
-import '../services/qualtrics_survey_service.dart';
+
+// Survey URLs for direct access
+class SurveyUrls {
+  static const String initialSurvey = 'https://pretoria.eu.qualtrics.com/jfe/form/SV_byJSMxWDA88icbY';
+  static const String biweeklySurvey = 'https://pretoria.eu.qualtrics.com/jfe/form/SV_3aNJIQJXHPCyaOi';
+}
 
 class GlobalRouteData {
   static String? user_route = "brown";
@@ -71,7 +76,7 @@ class RouteGenerator {
         if (args is Map<String, String>) {
           return MaterialPageRoute(
             builder: (_) => MyWebView(
-              QualtricsSurveyService.getSurveyUrl(SurveyType.initial),
+              SurveyUrls.initialSurvey,
               args['locationHistoryJSON'] ?? '',
               args['locationSharingMethod'] ?? '',
               '', // surveyElementCode not used for Qualtrics
@@ -82,7 +87,7 @@ class RouteGenerator {
         }
         return MaterialPageRoute(
           builder: (_) => MyWebView(
-            QualtricsSurveyService.getSurveyUrl(SurveyType.initial),
+            SurveyUrls.initialSurvey,
             '', '', '',
             surveyType: SurveyType.initial,
             isQualtricsSurvey: true,
@@ -92,7 +97,7 @@ class RouteGenerator {
         if (args is Map<String, String>) {
           return MaterialPageRoute(
             builder: (_) => MyWebView(
-              QualtricsSurveyService.getSurveyUrl(SurveyType.biweekly),
+              SurveyUrls.biweeklySurvey,
               args['locationHistoryJSON'] ?? '',
               args['locationSharingMethod'] ?? '',
               '', // surveyElementCode not used for Qualtrics
@@ -103,7 +108,7 @@ class RouteGenerator {
         }
         return MaterialPageRoute(
           builder: (_) => MyWebView(
-            QualtricsSurveyService.getSurveyUrl(SurveyType.biweekly),
+            SurveyUrls.biweeklySurvey,
             '', '', '',
             surveyType: SurveyType.biweekly,
             isQualtricsSurvey: true,

@@ -1,4 +1,5 @@
 class InitialSurveyResponse {
+  // Demographics (original initial survey fields)
   final int? age;
   final List<String> ethnicity;
   final String? gender;
@@ -11,6 +12,47 @@ class InitialSurveyResponse {
   final String? education;
   final String? climateActivism;
   final String? generalHealth; // For Gauteng site only
+  
+  // Additional fields from biweekly survey (for baseline measurement)
+  final List<String> activities;
+  final String? livingArrangement;
+  final String? relationshipStatus;
+  
+  // Wellbeing questions (0-5 scale) - baseline measurement
+  final int? cheerfulSpirits;
+  final int? calmRelaxed;
+  final int? activeVigorous;
+  final int? wokeUpFresh;
+  final int? dailyLifeInteresting;
+  
+  // Personal characteristics (1-5 scale) - baseline measurement
+  final int? cooperateWithPeople;
+  final int? improvingSkills;
+  final int? socialSituations;
+  final int? familySupport;
+  final int? familyKnowsMe;
+  final int? accessToFood;
+  final int? peopleEnjoyTime;
+  final int? talkToFamily;
+  final int? friendsSupport;
+  final int? belongInCommunity;
+  final int? familyStandsByMe;
+  final int? friendsStandByMe;
+  final int? treatedFairly;
+  final int? opportunitiesResponsibility;
+  final int? secureWithFamily;
+  final int? opportunitiesAbilities;
+  final int? enjoyCulturalTraditions;
+  
+  // Digital diary - baseline (no location data for initial survey)
+  final String? environmentalChallenges;
+  final String? challengesStressLevel;
+  final String? copingHelp;
+  
+  // TODO: MULTIMEDIA DISABLED - Uncomment to re-enable multimedia support
+  // final List<String>? voiceNoteUrls; // URLs to uploaded audio files
+  // final List<String>? imageUrls; // URLs to uploaded image files
+  
   final String researchSite; // 'barcelona' or 'gauteng'
   final DateTime submittedAt;
 
@@ -27,6 +69,37 @@ class InitialSurveyResponse {
     this.education,
     this.climateActivism,
     this.generalHealth,
+    required this.activities,
+    this.livingArrangement,
+    this.relationshipStatus,
+    this.cheerfulSpirits,
+    this.calmRelaxed,
+    this.activeVigorous,
+    this.wokeUpFresh,
+    this.dailyLifeInteresting,
+    this.cooperateWithPeople,
+    this.improvingSkills,
+    this.socialSituations,
+    this.familySupport,
+    this.familyKnowsMe,
+    this.accessToFood,
+    this.peopleEnjoyTime,
+    this.talkToFamily,
+    this.friendsSupport,
+    this.belongInCommunity,
+    this.familyStandsByMe,
+    this.friendsStandByMe,
+    this.treatedFairly,
+    this.opportunitiesResponsibility,
+    this.secureWithFamily,
+    this.opportunitiesAbilities,
+    this.enjoyCulturalTraditions,
+    this.environmentalChallenges,
+    this.challengesStressLevel,
+    this.copingHelp,
+    // TODO: MULTIMEDIA DISABLED - Uncomment to re-enable multimedia support
+    // this.voiceNoteUrls,
+    // this.imageUrls,
     required this.researchSite,
     required this.submittedAt,
   });
@@ -45,6 +118,37 @@ class InitialSurveyResponse {
       'education': education,
       'climateActivism': climateActivism,
       'generalHealth': generalHealth,
+      'activities': activities,
+      'livingArrangement': livingArrangement,
+      'relationshipStatus': relationshipStatus,
+      'cheerfulSpirits': cheerfulSpirits,
+      'calmRelaxed': calmRelaxed,
+      'activeVigorous': activeVigorous,
+      'wokeUpFresh': wokeUpFresh,
+      'dailyLifeInteresting': dailyLifeInteresting,
+      'cooperateWithPeople': cooperateWithPeople,
+      'improvingSkills': improvingSkills,
+      'socialSituations': socialSituations,
+      'familySupport': familySupport,
+      'familyKnowsMe': familyKnowsMe,
+      'accessToFood': accessToFood,
+      'peopleEnjoyTime': peopleEnjoyTime,
+      'talkToFamily': talkToFamily,
+      'friendsSupport': friendsSupport,
+      'belongInCommunity': belongInCommunity,
+      'familyStandsByMe': familyStandsByMe,
+      'friendsStandByMe': friendsStandByMe,
+      'treatedFairly': treatedFairly,
+      'opportunitiesResponsibility': opportunitiesResponsibility,
+      'secureWithFamily': secureWithFamily,
+      'opportunitiesAbilities': opportunitiesAbilities,
+      'enjoyCulturalTraditions': enjoyCulturalTraditions,
+      'environmentalChallenges': environmentalChallenges,
+      'challengesStressLevel': challengesStressLevel,
+      'copingHelp': copingHelp,
+      // TODO: MULTIMEDIA DISABLED - Uncomment to re-enable multimedia support
+      // 'voiceNoteUrls': voiceNoteUrls,
+      // 'imageUrls': imageUrls,
       'researchSite': researchSite,
       'submittedAt': submittedAt.toIso8601String(),
     };
@@ -64,6 +168,37 @@ class InitialSurveyResponse {
       education: json['education'],
       climateActivism: json['climateActivism'],
       generalHealth: json['generalHealth'],
+      activities: List<String>.from(json['activities'] ?? []),
+      livingArrangement: json['livingArrangement'],
+      relationshipStatus: json['relationshipStatus'],
+      cheerfulSpirits: json['cheerfulSpirits'],
+      calmRelaxed: json['calmRelaxed'],
+      activeVigorous: json['activeVigorous'],
+      wokeUpFresh: json['wokeUpFresh'],
+      dailyLifeInteresting: json['dailyLifeInteresting'],
+      cooperateWithPeople: json['cooperateWithPeople'],
+      improvingSkills: json['improvingSkills'],
+      socialSituations: json['socialSituations'],
+      familySupport: json['familySupport'],
+      familyKnowsMe: json['familyKnowsMe'],
+      accessToFood: json['accessToFood'],
+      peopleEnjoyTime: json['peopleEnjoyTime'],
+      talkToFamily: json['talkToFamily'],
+      friendsSupport: json['friendsSupport'],
+      belongInCommunity: json['belongInCommunity'],
+      familyStandsByMe: json['familyStandsByMe'],
+      friendsStandByMe: json['friendsStandByMe'],
+      treatedFairly: json['treatedFairly'],
+      opportunitiesResponsibility: json['opportunitiesResponsibility'],
+      secureWithFamily: json['secureWithFamily'],
+      opportunitiesAbilities: json['opportunitiesAbilities'],
+      enjoyCulturalTraditions: json['enjoyCulturalTraditions'],
+      environmentalChallenges: json['environmentalChallenges'],
+      challengesStressLevel: json['challengesStressLevel'],
+      copingHelp: json['copingHelp'],
+      // TODO: MULTIMEDIA DISABLED - Uncomment to re-enable multimedia support
+      // voiceNoteUrls: json['voiceNoteUrls'] != null ? List<String>.from(json['voiceNoteUrls']) : null,
+      // imageUrls: json['imageUrls'] != null ? List<String>.from(json['imageUrls']) : null,
       researchSite: json['researchSite'] ?? 'barcelona',
       submittedAt: DateTime.parse(json['submittedAt']),
     );
@@ -106,11 +241,13 @@ class RecurringSurveyResponse {
   final String? environmentalChallenges;
   final String? challengesStressLevel;
   final String? copingHelp;
-  final List<String>? voiceNoteUrls;
-  final List<String>? imageUrls;
+  // TODO: MULTIMEDIA DISABLED - Uncomment to re-enable multimedia support
+  // final List<String>? voiceNoteUrls;
+  // final List<String>? imageUrls;
   
   final String researchSite; // 'barcelona' or 'gauteng'
   final DateTime submittedAt;
+  final String? encryptedLocationData; // Encrypted location data captured at submission time
 
   RecurringSurveyResponse({
     required this.activities,
@@ -142,10 +279,12 @@ class RecurringSurveyResponse {
     this.environmentalChallenges,
     this.challengesStressLevel,
     this.copingHelp,
-    this.voiceNoteUrls,
-    this.imageUrls,
+    // TODO: MULTIMEDIA DISABLED - Uncomment to re-enable multimedia support
+    // this.voiceNoteUrls,
+    // this.imageUrls,
     required this.researchSite,
     required this.submittedAt,
+    this.encryptedLocationData,
   });
 
   Map<String, dynamic> toJson() {
@@ -179,10 +318,12 @@ class RecurringSurveyResponse {
       'environmentalChallenges': environmentalChallenges,
       'challengesStressLevel': challengesStressLevel,
       'copingHelp': copingHelp,
-      'voiceNoteUrls': voiceNoteUrls,
-      'imageUrls': imageUrls,
+      // TODO: MULTIMEDIA DISABLED - Uncomment to re-enable multimedia support
+      // 'voiceNoteUrls': voiceNoteUrls,
+      // 'imageUrls': imageUrls,
       'researchSite': researchSite,
       'submittedAt': submittedAt.toIso8601String(),
+      'encryptedLocationData': encryptedLocationData,
     };
   }
 
@@ -217,10 +358,12 @@ class RecurringSurveyResponse {
       environmentalChallenges: json['environmentalChallenges'],
       challengesStressLevel: json['challengesStressLevel'],
       copingHelp: json['copingHelp'],
-      voiceNoteUrls: json['voiceNoteUrls'] != null ? List<String>.from(json['voiceNoteUrls']) : null,
-      imageUrls: json['imageUrls'] != null ? List<String>.from(json['imageUrls']) : null,
+      // TODO: MULTIMEDIA DISABLED - Uncomment to re-enable multimedia support
+      // voiceNoteUrls: json['voiceNoteUrls'] != null ? List<String>.from(json['voiceNoteUrls']) : null,
+      // imageUrls: json['imageUrls'] != null ? List<String>.from(json['imageUrls']) : null,
       researchSite: json['researchSite'] ?? 'barcelona',
       submittedAt: DateTime.parse(json['submittedAt']),
+      encryptedLocationData: json['encryptedLocationData'],
     );
   }
 }

@@ -6,6 +6,7 @@ import '../models/survey_models.dart';
 import '../models/consent_models.dart';
 import '../models/app_mode.dart';
 import '../services/app_mode_service.dart';
+import '../services/qualtrics_api_service.dart';
 import '../db/survey_database.dart';
 
 class InitialSurveyScreen extends StatefulWidget {
@@ -645,6 +646,8 @@ class _InitialSurveyScreenState extends State<InitialSurveyScreen> {
         education: formData['education'],
         climateActivism: formData['climateActivism'],
         generalHealth: formData['generalHealth'],
+        // Add empty baseline activities for now - TODO: collect from form if needed
+        activities: <String>[],
         researchSite: _researchSite,
         submittedAt: DateTime.now(),
       );
@@ -671,8 +674,18 @@ class _InitialSurveyScreenState extends State<InitialSurveyScreen> {
   Future<void> _saveSurveyResponse(InitialSurveyResponse response) async {
     try {
       final db = SurveyDatabase();
-      await db.insertInitialSurvey(response);
-      print('Initial survey saved to local database');
+      final surveyId = await db.insertInitialSurvey(response);
+      print('Initial survey saved to local database with ID: $surveyId');
+      
+      // Try to sync to Qualtrics immediately if connected
+      try {
+        final surveyData = await db.getUnsyncedInitialSurveys();
+        final matchingSurvey = surveyData.firstWhere((s) => s['id'] == surveyId);
+        await QualtricsApiService.syncInitialSurvey(matchingSurvey);
+      } catch (syncError) {
+        print('Could not sync to Qualtrics immediately, will retry later: $syncError');
+        // Survey is saved locally and will sync when connectivity is available
+      }
     } catch (e) {
       print('Error saving initial survey: $e');
       rethrow;

@@ -170,14 +170,15 @@ class _SurveyListScreenState extends State<SurveyListScreen> {
                   if (survey.copingHelp?.isNotEmpty == true)
                     _buildSurveyDetail('Coping Help', survey.copingHelp!),
                 ],
-                if (survey.imageUrls?.isNotEmpty == true) ...[
-                  SizedBox(height: 8),
-                  Text('Photos: ${survey.imageUrls!.length}', style: TextStyle(fontWeight: FontWeight.bold)),
-                ],
-                if (survey.voiceNoteUrls?.isNotEmpty == true) ...[
-                  SizedBox(height: 8),
-                  Text('Voice Notes: ${survey.voiceNoteUrls!.length}', style: TextStyle(fontWeight: FontWeight.bold)),
-                ],
+                // TODO: MULTIMEDIA DISABLED - Uncomment to re-enable multimedia display
+                // if (survey.imageUrls?.isNotEmpty == true) ...[
+                //   SizedBox(height: 8),
+                //   Text('Photos: ${survey.imageUrls!.length}', style: TextStyle(fontWeight: FontWeight.bold)),
+                // ],
+                // if (survey.voiceNoteUrls?.isNotEmpty == true) ...[
+                //   SizedBox(height: 8),
+                //   Text('Voice Notes: ${survey.voiceNoteUrls!.length}', style: TextStyle(fontWeight: FontWeight.bold)),
+                // ],
               ],
             ),
           ),
