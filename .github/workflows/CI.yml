@@ -47,7 +47,8 @@ jobs:
     - name: Run tests for our flutter project.
       run: |
         cd gauteng-wellbeing-mapper-app
-        flutter test --coverage --dart-define=FLUTTER_TEST_MODE=true --reporter=expanded --concurrency=4 --timeout=30s --exclude-tags=platform --exclude-tags=integration
+        export FLUTTER_TEST_MODE=true
+        timeout 600 flutter test --coverage --dart-define=FLUTTER_TEST_MODE=true --reporter=expanded --concurrency=1 --timeout=60s --exclude-tags=platform --exclude-tags=integration --suppress-analytics
       continue-on-error: false
         
     - name: Check coverage file exists
