@@ -2,6 +2,9 @@
 android/key.properties
 *.pem
 
+example_data
+original_survey
+
 # Specific directories ignored
 gauteng-wellbeing-mapper-app/android/key.properties
 
