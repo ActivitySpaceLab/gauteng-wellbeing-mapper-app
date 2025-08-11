@@ -165,7 +165,7 @@ class _ParticipationSelectionScreenState extends State<ParticipationSelectionScr
       case AppMode.private:
         return 'Personal Use Only';
       case AppMode.research:
-        return 'Research Participation';
+        return 'Gauteng Research Study';
       case AppMode.appTesting:
         return 'App Testing';
     }
@@ -179,10 +179,10 @@ class _ParticipationSelectionScreenState extends State<ParticipationSelectionScr
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Participate in research studies and help advance scientific knowledge.'),
+            Text('For selected research participants in Gauteng Province, South Africa only.'),
             SizedBox(height: 4),
             Text(
-              '• Anonymous data shared with researchers\n• Contribute to mental wellbeing research\n• Secure and privacy-protected',
+              '• Use only if you have been recruited for this study\n• Requires valid participant code',
               style: TextStyle(fontSize: 12, color: Colors.grey[600]),
             ),
           ],
@@ -311,10 +311,10 @@ class _ParticipationSelectionScreenState extends State<ParticipationSelectionScr
           ),
         ),
         SizedBox(height: 12),
-        TextButton(
-          onPressed: _showContactInfo,
-          child: Text('Contact Development Team'),
-        ),
+        // TextButton(
+        //   onPressed: _showContactInfo,
+        //   child: Text('Contact Development Team'),
+        // ),
       ],
     );
   }
@@ -324,7 +324,7 @@ class _ParticipationSelectionScreenState extends State<ParticipationSelectionScr
       case AppMode.private:
         return 'Start Using App';
       case AppMode.research:
-        return 'Join Research Study';
+        return 'Continue as Participant';
       case AppMode.appTesting:
         return 'Start App Testing';
     }
@@ -468,63 +468,63 @@ class _ParticipationSelectionScreenState extends State<ParticipationSelectionScr
     Navigator.of(context).pushReplacementNamed('/');
   }
 
-  void _showContactInfo() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Contact Development Team'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Beta notice - only show for beta builds
-            if (AppModeService.isBetaBuild) ...[
-              Container(
-                padding: EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.orange.shade50,
-                  border: Border.all(color: Colors.orange),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.info, color: Colors.orange),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'This is a beta testing version. For questions about the app:',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.orange.shade800,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: 16),
-            ],
-            Text('Development Team:', style: TextStyle(fontWeight: FontWeight.bold)),
-            SizedBox(height: 8),
-            Text('• John Palmer: john.palmer@upf.edu'),
-            SizedBox(height: 16),
-            Text(
-              'For future research participation information:',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-            ),
-            Text('• Linda Theron: linda.theron@up.ac.za', style: TextStyle(fontSize: 12)),
-            Text('• Caradee Wright: Caradee.Wright@mrc.ac.za', style: TextStyle(fontSize: 12)),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text('Close'),
-          ),
-        ],
-      ),
-    );
-  }
+  // void _showContactInfo() {
+  //   showDialog(
+  //     context: context,
+  //     builder: (context) => AlertDialog(
+  //       title: Text('Contact Development Team'),
+  //       content: Column(
+  //         mainAxisSize: MainAxisSize.min,
+  //         crossAxisAlignment: CrossAxisAlignment.start,
+  //         children: [
+  //           // Beta notice - only show for beta builds
+  //           if (AppModeService.isBetaBuild) ...[
+  //             Container(
+  //               padding: EdgeInsets.all(12),
+  //               decoration: BoxDecoration(
+  //                 color: Colors.orange.shade50,
+  //                 border: Border.all(color: Colors.orange),
+  //                 borderRadius: BorderRadius.circular(8),
+  //               ),
+  //               child: Row(
+  //                 children: [
+  //                   Icon(Icons.info, color: Colors.orange),
+  //                   SizedBox(width: 8),
+  //                   Expanded(
+  //                     child: Text(
+  //                       'This is a beta testing version. For questions about the app:',
+  //                       style: TextStyle(
+  //                         fontWeight: FontWeight.bold,
+  //                         color: Colors.orange.shade800,
+  //                       ),
+  //                     ),
+  //                   ),
+  //                 ],
+  //               ),
+  //             ),
+  //             SizedBox(height: 16),
+  //           ],
+  //           Text('Development Team:', style: TextStyle(fontWeight: FontWeight.bold)),
+  //           SizedBox(height: 8),
+  //           Text('• John Palmer: john.palmer@upf.edu'),
+  //           SizedBox(height: 16),
+  //           Text(
+  //             'For future research participation information:',
+  //             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+  //           ),
+  //           Text('• Linda Theron: linda.theron@up.ac.za', style: TextStyle(fontSize: 12)),
+  //           Text('• Caradee Wright: Caradee.Wright@mrc.ac.za', style: TextStyle(fontSize: 12)),
+  //         ],
+  //       ),
+  //       actions: [
+  //         TextButton(
+  //           onPressed: () => Navigator.of(context).pop(),
+  //           child: Text('Close'),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   void _showErrorDialog(String message) {
     showDialog(
