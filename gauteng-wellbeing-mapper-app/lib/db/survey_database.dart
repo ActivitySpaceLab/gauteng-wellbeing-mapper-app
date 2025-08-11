@@ -23,7 +23,7 @@ class SurveyDatabase {
     String path = join(await getDatabasesPath(), 'survey_database.db');
     return await openDatabase(
       path,
-      version: 9, // Added Gauteng-specific consent fields to consent_responses table
+      version: 10, // Fixed consent_responses schema inconsistencies
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -455,6 +455,94 @@ class SurveyDatabase {
       await db.execute('ALTER TABLE consent_responses ADD COLUMN consent_public_repository INTEGER DEFAULT 1');
       await db.execute('ALTER TABLE consent_responses ADD COLUMN consent_followup_contact INTEGER DEFAULT 0');
     }
+    
+    if (oldVersion < 10) {
+      // Fix any schema inconsistencies with consent_responses table
+      // Check if all required columns exist and add them if missing
+      try {
+        final List<Map<String, dynamic>> columns = await db.rawQuery("PRAGMA table_info(consent_responses)");
+        final Set<String> existingColumns = columns.map((col) => col['name'] as String).toSet();
+        
+        final Map<String, String> requiredColumns = {
+          'consent_participate': 'ALTER TABLE consent_responses ADD COLUMN consent_participate INTEGER DEFAULT 1',
+          'consent_qualtrics_data': 'ALTER TABLE consent_responses ADD COLUMN consent_qualtrics_data INTEGER DEFAULT 1',
+          'consent_race_ethnicity': 'ALTER TABLE consent_responses ADD COLUMN consent_race_ethnicity INTEGER DEFAULT 1',
+          'consent_health': 'ALTER TABLE consent_responses ADD COLUMN consent_health INTEGER DEFAULT 1',
+          'consent_sexual_orientation': 'ALTER TABLE consent_responses ADD COLUMN consent_sexual_orientation INTEGER DEFAULT 1',
+          'consent_location_mobility': 'ALTER TABLE consent_responses ADD COLUMN consent_location_mobility INTEGER DEFAULT 1',
+          'consent_data_transfer': 'ALTER TABLE consent_responses ADD COLUMN consent_data_transfer INTEGER DEFAULT 1',
+          'consent_public_reporting': 'ALTER TABLE consent_responses ADD COLUMN consent_public_reporting INTEGER DEFAULT 1',
+          'consent_researcher_sharing': 'ALTER TABLE consent_responses ADD COLUMN consent_researcher_sharing INTEGER DEFAULT 1',
+          'consent_further_research': 'ALTER TABLE consent_responses ADD COLUMN consent_further_research INTEGER DEFAULT 1',
+          'consent_public_repository': 'ALTER TABLE consent_responses ADD COLUMN consent_public_repository INTEGER DEFAULT 1',
+          'consent_followup_contact': 'ALTER TABLE consent_responses ADD COLUMN consent_followup_contact INTEGER DEFAULT 0',
+        };
+        
+        for (final entry in requiredColumns.entries) {
+          if (!existingColumns.contains(entry.key)) {
+            await db.execute(entry.value);
+            print('[Database] Added missing column: ${entry.key}');
+          }
+        }
+      } catch (e) {
+        print('[Database] Error checking consent_responses schema: $e');
+        // If there's an error, try to recreate the table
+        await _recreateConsentResponsesTable(db);
+      }
+    }
+  }
+  
+  Future<void> _recreateConsentResponsesTable(Database db) async {
+    print('[Database] Recreating consent_responses table with correct schema');
+    
+    // Backup existing data
+    List<Map<String, dynamic>> existingData = [];
+    try {
+      existingData = await db.query('consent_responses');
+    } catch (e) {
+      print('[Database] No existing consent data to backup: $e');
+    }
+    
+    // Drop and recreate table
+    await db.execute('DROP TABLE IF EXISTS consent_responses');
+    await db.execute('''
+      CREATE TABLE consent_responses (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        participant_uuid TEXT NOT NULL UNIQUE,
+        informed_consent INTEGER NOT NULL,
+        data_processing INTEGER NOT NULL,
+        location_data INTEGER NOT NULL,
+        survey_data INTEGER NOT NULL,
+        data_retention INTEGER NOT NULL,
+        data_sharing INTEGER NOT NULL,
+        voluntary_participation INTEGER NOT NULL,
+        consented_at TEXT NOT NULL,
+        participant_signature TEXT NOT NULL,
+        synced INTEGER DEFAULT 0,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        consent_participate INTEGER DEFAULT 1,
+        consent_qualtrics_data INTEGER DEFAULT 1,
+        consent_race_ethnicity INTEGER DEFAULT 1,
+        consent_health INTEGER DEFAULT 1,
+        consent_sexual_orientation INTEGER DEFAULT 1,
+        consent_location_mobility INTEGER DEFAULT 1,
+        consent_data_transfer INTEGER DEFAULT 1,
+        consent_public_reporting INTEGER DEFAULT 1,
+        consent_researcher_sharing INTEGER DEFAULT 1,
+        consent_further_research INTEGER DEFAULT 1,
+        consent_public_repository INTEGER DEFAULT 1,
+        consent_followup_contact INTEGER DEFAULT 0
+      )
+    ''');
+    
+    // Restore data if any existed
+    for (final row in existingData) {
+      try {
+        await db.insert('consent_responses', row);
+      } catch (e) {
+        print('[Database] Could not restore consent row: $e');
+      }
+    }
   }
 
   // Initial Survey Methods
@@ -716,41 +804,86 @@ class SurveyDatabase {
   Future<int> getRecurringSurveyCount() async {
     final db = await database;
     final result = await db.rawQuery('SELECT COUNT(*) FROM recurring_survey_responses');
-    return Sqflite.firstIntValue(result) ?? 0;
+    return result.first.values.first as int? ?? 0;
   }
 
   // Consent methods
   Future<int> insertConsent(ConsentResponse consent) async {
     final db = await database;
-    return await db.insert(
-      'consent_responses',
-      {
-        'participant_uuid': consent.participantUuid,
-        'informed_consent': consent.informedConsent ? 1 : 0,
-        'data_processing': consent.dataProcessing ? 1 : 0,
-        'location_data': consent.locationData ? 1 : 0,
-        'survey_data': consent.surveyData ? 1 : 0,
-        'data_retention': consent.dataRetention ? 1 : 0,
-        'data_sharing': consent.dataSharing ? 1 : 0,
-        'voluntary_participation': consent.voluntaryParticipation ? 1 : 0,
-        'consented_at': consent.consentedAt.toIso8601String(),
-        'participant_signature': consent.participantSignature,
-        'synced': 0,
-        // New Gauteng-specific consent fields
-        'consent_participate': consent.consentParticipate ? 1 : 0,
-        'consent_qualtrics_data': consent.consentQualtricsData ? 1 : 0,
-        'consent_race_ethnicity': consent.consentRaceEthnicity ? 1 : 0,
-        'consent_health': consent.consentHealth ? 1 : 0,
-        'consent_sexual_orientation': consent.consentSexualOrientation ? 1 : 0,
-        'consent_location_mobility': consent.consentLocationMobility ? 1 : 0,
-        'consent_data_transfer': consent.consentDataTransfer ? 1 : 0,
-        'consent_public_reporting': consent.consentPublicReporting ? 1 : 0,
-        'consent_researcher_sharing': consent.consentResearcherSharing ? 1 : 0,
-        'consent_further_research': consent.consentFurtherResearch ? 1 : 0,
-        'consent_public_repository': consent.consentPublicRepository ? 1 : 0,
-        'consent_followup_contact': consent.consentFollowupContact ? 1 : 0,
-      },
-    );
+    
+    try {
+      return await db.insert(
+        'consent_responses',
+        {
+          'participant_uuid': consent.participantUuid,
+          'informed_consent': consent.informedConsent ? 1 : 0,
+          'data_processing': consent.dataProcessing ? 1 : 0,
+          'location_data': consent.locationData ? 1 : 0,
+          'survey_data': consent.surveyData ? 1 : 0,
+          'data_retention': consent.dataRetention ? 1 : 0,
+          'data_sharing': consent.dataSharing ? 1 : 0,
+          'voluntary_participation': consent.voluntaryParticipation ? 1 : 0,
+          'consented_at': consent.consentedAt.toIso8601String(),
+          'participant_signature': consent.participantSignature,
+          'synced': 0,
+          // New Gauteng-specific consent fields
+          'consent_participate': consent.consentParticipate ? 1 : 0,
+          'consent_qualtrics_data': consent.consentQualtricsData ? 1 : 0,
+          'consent_race_ethnicity': consent.consentRaceEthnicity ? 1 : 0,
+          'consent_health': consent.consentHealth ? 1 : 0,
+          'consent_sexual_orientation': consent.consentSexualOrientation ? 1 : 0,
+          'consent_location_mobility': consent.consentLocationMobility ? 1 : 0,
+          'consent_data_transfer': consent.consentDataTransfer ? 1 : 0,
+          'consent_public_reporting': consent.consentPublicReporting ? 1 : 0,
+          'consent_researcher_sharing': consent.consentResearcherSharing ? 1 : 0,
+          'consent_further_research': consent.consentFurtherResearch ? 1 : 0,
+          'consent_public_repository': consent.consentPublicRepository ? 1 : 0,
+          'consent_followup_contact': consent.consentFollowupContact ? 1 : 0,
+        },
+      );
+    } catch (e) {
+      print('[Database] Error inserting consent, attempting to fix schema: $e');
+      
+      // If the insert fails due to missing columns, recreate the table
+      if (e.toString().contains('no column named') || e.toString().contains('SQLITE_ERROR')) {
+        print('[Database] Recreating consent_responses table due to schema error');
+        await _recreateConsentResponsesTable(db);
+        
+        // Retry the insert after fixing the schema
+        return await db.insert(
+          'consent_responses',
+          {
+            'participant_uuid': consent.participantUuid,
+            'informed_consent': consent.informedConsent ? 1 : 0,
+            'data_processing': consent.dataProcessing ? 1 : 0,
+            'location_data': consent.locationData ? 1 : 0,
+            'survey_data': consent.surveyData ? 1 : 0,
+            'data_retention': consent.dataRetention ? 1 : 0,
+            'data_sharing': consent.dataSharing ? 1 : 0,
+            'voluntary_participation': consent.voluntaryParticipation ? 1 : 0,
+            'consented_at': consent.consentedAt.toIso8601String(),
+            'participant_signature': consent.participantSignature,
+            'synced': 0,
+            // New Gauteng-specific consent fields
+            'consent_participate': consent.consentParticipate ? 1 : 0,
+            'consent_qualtrics_data': consent.consentQualtricsData ? 1 : 0,
+            'consent_race_ethnicity': consent.consentRaceEthnicity ? 1 : 0,
+            'consent_health': consent.consentHealth ? 1 : 0,
+            'consent_sexual_orientation': consent.consentSexualOrientation ? 1 : 0,
+            'consent_location_mobility': consent.consentLocationMobility ? 1 : 0,
+            'consent_data_transfer': consent.consentDataTransfer ? 1 : 0,
+            'consent_public_reporting': consent.consentPublicReporting ? 1 : 0,
+            'consent_researcher_sharing': consent.consentResearcherSharing ? 1 : 0,
+            'consent_further_research': consent.consentFurtherResearch ? 1 : 0,
+            'consent_public_repository': consent.consentPublicRepository ? 1 : 0,
+            'consent_followup_contact': consent.consentFollowupContact ? 1 : 0,
+          },
+        );
+      } else {
+        // Re-throw the error if it's not schema-related
+        rethrow;
+      }
+    }
   }
 
   Future<ConsentResponse?> getConsent() async {
@@ -946,6 +1079,19 @@ class SurveyDatabase {
     await markSurveyAsSynced('recurring_survey_responses', surveyId);
   }
 
+  Future<List<Map<String, dynamic>>> getUnsyncedConsentForms() async {
+    final db = await database;
+    return await db.query(
+      'consent_responses',
+      where: 'synced = 0',
+      orderBy: 'consented_at ASC'
+    );
+  }
+
+  Future<void> markConsentFormSynced(int consentId) async {
+    await markSurveyAsSynced('consent_responses', consentId);
+  }
+
   // Location data management methods
   Future<void> cleanupOldLocationData(DateTime cutoffDate) async {
     final db = await database;
@@ -975,7 +1121,7 @@ class SurveyDatabase {
     try {
       // Get location tracks count
       final tracksResult = await db.rawQuery('SELECT COUNT(*) as count FROM location_tracks');
-      stats['totalLocationTracks'] = Sqflite.firstIntValue(tracksResult) ?? 0;
+      stats['totalLocationTracks'] = tracksResult.first['count'] as int? ?? 0;
       
       // Get oldest and newest location tracks
       final oldestResult = await db.rawQuery(

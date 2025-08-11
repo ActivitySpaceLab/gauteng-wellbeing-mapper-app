@@ -9,6 +9,7 @@ import '../db/survey_database.dart';
 import '../services/app_mode_service.dart';
 import '../models/app_mode.dart';
 import '../services/participant_validation_service.dart';
+import '../services/qualtrics_api_service.dart';
 
 class ConsentFormScreen extends StatefulWidget {
   final String participantCode;
@@ -872,8 +873,13 @@ class _ConsentFormScreenState extends State<ConsentFormScreen> {
       // Create consent response
       final consent = ConsentResponse(
         participantUuid: uuid,
-        informedConsent: _hasReadInformation && _understands && _fulfillsCriteria,
-        dataProcessing: _generalConsent,
+        // For Gauteng, since all checkboxes must be checked to submit, these should be true
+        informedConsent: widget.researchSite == 'gauteng' ? 
+          true : // All Gauteng checkboxes must be checked to reach this point
+          (_hasReadInformation && _understands && _fulfillsCriteria),
+        dataProcessing: widget.researchSite == 'gauteng' ? 
+          true : // All Gauteng checkboxes must be checked to reach this point
+          _generalConsent,
         locationData: _locationConsent,
         surveyData: _generalConsent,
         dataRetention: _generalConsent,
@@ -898,7 +904,47 @@ class _ConsentFormScreenState extends State<ConsentFormScreen> {
 
       // Save consent to database
       final db = SurveyDatabase();
-      await db.insertConsent(consent);
+      final consentId = await db.insertConsent(consent);
+
+      // Sync consent form to Qualtrics (if not in testing mode)
+      if (!widget.isTestingMode) {
+        try {
+          print('[ConsentForm] Syncing consent to Qualtrics...');
+          // Convert consent to the format expected by Qualtrics API
+          final consentData = {
+            'id': consentId, // Include the database ID for marking as synced
+            'participant_uuid': consent.participantUuid,
+            'participant_code': widget.participantCode,
+            'informed_consent': consent.informedConsent,
+            'data_processing_consent': consent.dataProcessing,
+            'race_ethnicity_consent': consent.consentRaceEthnicity,
+            'health_consent': consent.consentHealth,
+            'sexual_orientation_consent': consent.consentSexualOrientation,
+            'location_mobility_consent': consent.consentLocationMobility,
+            'data_transfer_consent': consent.consentDataTransfer,
+            'public_reporting_consent': consent.consentPublicReporting,
+            'data_sharing_researchers_consent': consent.consentResearcherSharing,
+            'further_research_consent': consent.consentFurtherResearch,
+            'public_repository_consent': consent.consentPublicRepository,
+            'followup_contact_consent': consent.consentFollowupContact,
+            'participant_signature': consent.participantSignature,
+            'consented_at': consent.consentedAt.toIso8601String(),
+            'research_site': widget.researchSite,
+          };
+          
+          final syncSuccess = await QualtricsApiService.syncConsentForm(consentData);
+          if (syncSuccess) {
+            print('[ConsentForm] ✅ Consent form synced to Qualtrics successfully');
+          } else {
+            print('[ConsentForm] ⚠️ Failed to sync consent form to Qualtrics');
+          }
+        } catch (e) {
+          print('[ConsentForm] ❌ Error syncing consent to Qualtrics: $e');
+          // Don't fail the whole process - consent is still saved locally
+        }
+      } else {
+        print('[ConsentForm] Skipping Qualtrics sync in testing mode');
+      }
 
       // Record consent with participant validation service (for research participants)
       if (!widget.isTestingMode && widget.participantCode.isNotEmpty) {

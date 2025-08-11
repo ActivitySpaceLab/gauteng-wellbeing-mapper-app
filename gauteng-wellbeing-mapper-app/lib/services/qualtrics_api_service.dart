@@ -18,7 +18,7 @@ class QualtricsApiService {
   // Survey IDs for the simple text-field surveys (updated 2025-08-11)
   static const String _initialSurveyId = 'SV_8pudN8qTI6iQKY6'; // Simple Initial Survey (Text Fields) - PUBLISHED
   static const String _biweeklySurveyId = 'SV_aXmfOtAIRmIVdfU'; // Simple Biweekly Survey (Text Fields) - PUBLISHED  
-  static const String _consentSurveyId = 'SV_0rIPhMu3seGA1tY'; // Simple Consent Survey (Text Fields) - PUBLISHED
+  static const String _consentSurveyId = 'SV_eWjaIVtwRLEMNGS'; // Blueprint Consent Survey (16 Questions QID1-QID16) - PUBLISHED
 
   /// Sync a completed initial survey to Qualtrics
   static Future<bool> syncInitialSurvey(Map<String, dynamic> surveyData) async {
@@ -110,6 +110,11 @@ class QualtricsApiService {
       
       if (success) {
         debugPrint('✅ Consent form synced to Qualtrics successfully');
+        // Mark as synced in local database if we have an ID
+        if (consentData.containsKey('id')) {
+          final db = SurveyDatabase();
+          await db.markConsentFormSynced(consentData['id'] as int);
+        }
       }
       
       return success;
@@ -136,6 +141,14 @@ class QualtricsApiService {
       final pendingBiweekly = await db.getUnsyncedRecurringSurveys();
       for (final survey in pendingBiweekly) {
         await syncBiweeklySurvey(survey);
+        // Add small delay to avoid API rate limits
+        await Future.delayed(const Duration(milliseconds: 500));
+      }
+      
+      // Sync pending consent forms
+      final pendingConsent = await db.getUnsyncedConsentForms();
+      for (final consent in pendingConsent) {
+        await syncConsentForm(consent);
         // Add small delay to avoid API rate limits
         await Future.delayed(const Duration(milliseconds: 500));
       }

@@ -165,7 +165,7 @@ class _ParticipationSelectionScreenState extends State<ParticipationSelectionScr
       case AppMode.private:
         return 'Personal Use Only';
       case AppMode.research:
-        return 'Gauteng Research Study';
+        return 'Gauteng Study';
       case AppMode.appTesting:
         return 'App Testing';
     }
