@@ -8,7 +8,8 @@ import 'package:wellbeing_mapper/models/wellbeing_survey_models.dart';
 
 void main() {
   // Skip all SharedPreferences tests in CI to avoid platform channel segmentation faults
-  if (const bool.fromEnvironment('FLUTTER_TEST_MODE', defaultValue: false)) {
+  if (const bool.fromEnvironment('CI', defaultValue: false) || 
+      const bool.fromEnvironment('FLUTTER_TEST_MODE', defaultValue: false)) {
     test('Data privacy protection tests skipped in CI environment', () {
       expect(true, isTrue, reason: 'Platform channel tests skipped to prevent segmentation faults');
     });
