@@ -3,7 +3,7 @@ import 'internet_connectivity_service.dart';
 
 class SurveyNavigationService {
   // Feature flag to control survey type (set to false to use hardcoded surveys, true for Qualtrics)
-  static const bool useQualtricsSurveys = true; // TODO: Make this configurable
+  static const bool useQualtricsSurveys = false; // Changed to false to use native Flutter surveys with expanded initial survey
   
   /// Navigate to initial survey (either hardcoded or Qualtrics)
   static Future<void> navigateToInitialSurvey(BuildContext context, {String? locationJson}) async {
@@ -113,11 +113,15 @@ class SurveyNavigationService {
   
   /// Get survey URLs for external use
   static String getInitialSurveyUrl() {
-    return 'https://pretoria.eu.qualtrics.com/jfe/form/SV_byJSMxWDA88icbY';
+    return 'https://pretoria.eu.qualtrics.com/jfe/form/SV_02r8X8ePu0b2WNw';
   }
   
   static String getBiweeklySurveyUrl() {
-    return 'https://pretoria.eu.qualtrics.com/jfe/form/SV_3aNJIQJXHPCyaOi';
+    return 'https://pretoria.eu.qualtrics.com/jfe/form/SV_88oXgY81cCwIxvw';
+  }
+  
+  static String getConsentSurveyUrl() {
+    return 'https://pretoria.eu.qualtrics.com/jfe/form/SV_eYdj4iL3W8ydWJ0';
   }
   
   /// Check if Qualtrics surveys are enabled

@@ -408,9 +408,10 @@ class _RecurringSurveyScreenState extends State<RecurringSurveyScreen> {
             ),
             
             SizedBox(height: 20),
-            _buildVoiceNotesSection(),
-            SizedBox(height: 16),
-            _buildImageSection(),
+            // TODO: Voice notes and photos sections temporarily disabled
+            // _buildVoiceNotesSection(),
+            // SizedBox(height: 16),
+            // _buildImageSection(),
           ],
         ),
       ),

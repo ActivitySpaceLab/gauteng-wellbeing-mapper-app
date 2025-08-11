@@ -61,6 +61,76 @@ class QualtricsSurveyCreator {
     return await _createSurvey(surveyDefinition);
   }
 
+  /// Update the existing consent survey with all consent questions
+  static Future<void> updateConsentSurveyQuestions() async {
+    const String consentSurveyId = 'SV_eYdj4iL3W8ydWJ0';
+    
+    print('🔄 Updating consent survey with complete consent questions...');
+    
+    try {
+      // First, clear existing questions (except required ones)
+      await _clearSurveyQuestions(consentSurveyId);
+      
+      // Add all the consent questions
+      await addQuestionsToSurvey(consentSurveyId, _getConsentSurveyQuestions());
+      
+      print('✅ Consent survey updated successfully with all ${_getConsentSurveyQuestions().length} questions');
+    } catch (e) {
+      print('❌ Error updating consent survey: $e');
+      rethrow;
+    }
+  }
+
+  /// Clear existing questions from a survey (keeping required system questions)
+  static Future<void> _clearSurveyQuestions(String surveyId) async {
+    try {
+      // Get existing questions
+      final url = Uri.parse('$_baseUrl/surveys/$surveyId/questions');
+      final response = await http.get(
+        url,
+        headers: {
+          'X-API-TOKEN': _apiToken,
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final questions = data['result']['elements'] as List;
+        
+        // Delete non-system questions
+        for (var question in questions) {
+          final questionId = question['QuestionID'];
+          // Keep system questions, delete custom ones
+          if (!questionId.startsWith('QID_')) {
+            await _deleteQuestion(surveyId, questionId);
+          }
+        }
+        
+        print('🧹 Cleared existing questions from survey $surveyId');
+      }
+    } catch (e) {
+      print('⚠️ Warning: Could not clear existing questions: $e');
+      // Continue anyway - we'll just add new questions
+    }
+  }
+
+  /// Delete a specific question from a survey
+  static Future<void> _deleteQuestion(String surveyId, String questionId) async {
+    try {
+      final url = Uri.parse('$_baseUrl/surveys/$surveyId/questions/$questionId');
+      await http.delete(
+        url,
+        headers: {
+          'X-API-TOKEN': _apiToken,
+          'Content-Type': 'application/json',
+        },
+      );
+    } catch (e) {
+      print('⚠️ Warning: Could not delete question $questionId: $e');
+    }
+  }
+
   /// Generic method to create a survey in Qualtrics
   static Future<String> _createSurvey(Map<String, dynamic> surveyDefinition) async {
     final url = Uri.parse('$_baseUrl/survey-definitions');
@@ -109,38 +179,237 @@ class QualtricsSurveyCreator {
     }
   }
 
+  /// Add questions to an existing survey
+  static Future<void> addQuestionsToSurvey(String surveyId, List<Map<String, dynamic>> questions) async {
+    print('📝 Adding ${questions.length} questions to survey $surveyId');
+    
+    for (int i = 0; i < questions.length; i++) {
+      final question = questions[i];
+      try {
+        await _addSingleQuestion(surveyId, question);
+        print('✅ Added question ${i + 1}/${questions.length}: ${question['QuestionText']}');
+      } catch (e) {
+        print('❌ Failed to add question ${i + 1}: ${question['QuestionText']} - Error: $e');
+        // Continue with other questions even if one fails
+      }
+    }
+  }
+
+  /// Add a single question to a survey
+  static Future<void> _addSingleQuestion(String surveyId, Map<String, dynamic> questionData) async {
+    final url = Uri.parse('$_baseUrl/survey-definitions/$surveyId/questions');
+    
+    final response = await http.post(
+      url,
+      headers: {
+        'X-API-TOKEN': _apiToken,
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode(questionData),
+    );
+
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw Exception('Failed to add question: ${response.statusCode} - ${response.body}');
+    }
+  }
+
+  /// Complete setup: Create survey and add all questions
+  static Future<String> createCompleteSurvey(String surveyType) async {
+    try {
+      // Step 1: Create the basic survey
+      String surveyId;
+      List<Map<String, dynamic>> questions;
+      
+      switch (surveyType.toLowerCase()) {
+        case 'initial':
+          surveyId = await createInitialSurvey();
+          questions = _getInitialSurveyQuestions();
+          break;
+        case 'biweekly':
+          surveyId = await createBiweeklySurvey();
+          questions = _getBiweeklySurveyQuestions();
+          break;
+        case 'consent':
+          surveyId = await createConsentSurvey();
+          questions = _getConsentSurveyQuestions();
+          break;
+        default:
+          throw Exception('Unknown survey type: $surveyType');
+      }
+      
+      // Step 2: Add all questions to the survey
+      await addQuestionsToSurvey(surveyId, questions);
+      
+      print('🎉 Complete survey created successfully: $surveyId');
+      return surveyId;
+      
+    } catch (e) {
+      print('❌ Error creating complete survey: $e');
+      rethrow;
+    }
+  }
+
+  /// Fix existing surveys by adding questions to them
+  static Future<void> fixExistingSurveys() async {
+    print('🔧 Fixing existing surveys by adding questions...');
+    
+    // Use the survey IDs that were previously created
+    const String initialSurveyId = 'SV_74i4mEa6ZTwCGQm';
+    const String biweeklySurveyId = 'SV_baxJiGnctafu1TM';
+    const String consentSurveyId = 'SV_bqtbNF1KVmujr9A';
+    
+    try {
+      // Fix Initial Survey
+      print('🔧 Adding questions to Initial Survey...');
+      await addQuestionsToSurvey(initialSurveyId, _getInitialSurveyQuestions());
+      
+      // Fix Biweekly Survey  
+      print('🔧 Adding questions to Biweekly Survey...');
+      await addQuestionsToSurvey(biweeklySurveyId, _getBiweeklySurveyQuestions());
+      
+      // Fix Consent Survey
+      print('🔧 Adding questions to Consent Survey...');
+      await addQuestionsToSurvey(consentSurveyId, _getConsentSurveyQuestions());
+      
+      print('✅ All surveys have been fixed with proper questions!');
+      
+    } catch (e) {
+      print('❌ Error fixing surveys: $e');
+      rethrow;
+    }
+  }
+
+  /// Create simple surveys with basic text questions that work with Qualtrics API
+  static Future<String> createSimpleInitialSurvey() async {
+    final surveyDefinition = {
+      'SurveyName': 'Gauteng Wellbeing Mapper - Initial Survey (Complete)',
+      'Language': 'EN',
+      'ProjectCategory': 'CORE',
+    };
+    
+    final surveyId = await _createSurvey(surveyDefinition);
+    
+    // Add simplified questions
+    final questions = [
+      {'QuestionText': 'Participant UUID', 'QuestionType': 'TE', 'DataExportTag': 'participant_uuid'},
+      {'QuestionText': 'Age', 'QuestionType': 'TE', 'DataExportTag': 'age'},
+      {'QuestionText': 'Ethnicity', 'QuestionType': 'TE', 'DataExportTag': 'ethnicity'},
+      {'QuestionText': 'Gender', 'QuestionType': 'TE', 'DataExportTag': 'gender'},
+      {'QuestionText': 'Sexuality', 'QuestionType': 'TE', 'DataExportTag': 'sexuality'},
+      {'QuestionText': 'Birth Place', 'QuestionType': 'TE', 'DataExportTag': 'birth_place'},
+      {'QuestionText': 'Suburb', 'QuestionType': 'TE', 'DataExportTag': 'suburb'},
+      {'QuestionText': 'Years in Gauteng', 'QuestionType': 'TE', 'DataExportTag': 'years_in_gauteng'},
+      {'QuestionText': 'Income', 'QuestionType': 'TE', 'DataExportTag': 'income'},
+      {'QuestionText': 'Education', 'QuestionType': 'TE', 'DataExportTag': 'education'},
+      {'QuestionText': 'Employment', 'QuestionType': 'TE', 'DataExportTag': 'employment'},
+      {'QuestionText': 'Household Size', 'QuestionType': 'TE', 'DataExportTag': 'household_size'},
+      {'QuestionText': 'Housing Type', 'QuestionType': 'TE', 'DataExportTag': 'housing_type'},
+      {'QuestionText': 'Transport Mode', 'QuestionType': 'TE', 'DataExportTag': 'transport_mode'},
+      // Baseline wellbeing questions
+      {'QuestionText': 'Life Satisfaction (1-10)', 'QuestionType': 'TE', 'DataExportTag': 'life_satisfaction'},
+      {'QuestionText': 'Happiness Level (1-10)', 'QuestionType': 'TE', 'DataExportTag': 'happiness_level'},
+      {'QuestionText': 'Stress Level (1-10)', 'QuestionType': 'TE', 'DataExportTag': 'stress_level'},
+      {'QuestionText': 'Physical Health (1-10)', 'QuestionType': 'TE', 'DataExportTag': 'physical_health'},
+      {'QuestionText': 'Mental Health (1-10)', 'QuestionType': 'TE', 'DataExportTag': 'mental_health'},
+      {'QuestionText': 'Social Connections (1-10)', 'QuestionType': 'TE', 'DataExportTag': 'social_connections'},
+      {'QuestionText': 'Activities and Interests', 'QuestionType': 'TE', 'DataExportTag': 'activities'},
+      {'QuestionText': 'Research Site', 'QuestionType': 'TE', 'DataExportTag': 'research_site'},
+      {'QuestionText': 'Submitted At', 'QuestionType': 'TE', 'DataExportTag': 'submitted_at'},
+      {'QuestionText': 'Location Data', 'QuestionType': 'TE', 'DataExportTag': 'location_data'},
+    ];
+    
+    await addQuestionsToSurvey(surveyId, questions);
+    return surveyId;
+  }
+
+  static Future<String> createSimpleBiweeklySurvey() async {
+    final surveyDefinition = {
+      'SurveyName': 'Gauteng Wellbeing Mapper - Biweekly Survey (Complete)',
+      'Language': 'EN',
+      'ProjectCategory': 'CORE',
+    };
+    
+    final surveyId = await _createSurvey(surveyDefinition);
+    
+    // Add simplified questions
+    final questions = [
+      {'QuestionText': 'Participant UUID', 'QuestionType': 'TE', 'DataExportTag': 'participant_uuid'},
+      {'QuestionText': 'Life Satisfaction (1-10)', 'QuestionType': 'TE', 'DataExportTag': 'life_satisfaction'},
+      {'QuestionText': 'Happiness Level (1-10)', 'QuestionType': 'TE', 'DataExportTag': 'happiness_level'},
+      {'QuestionText': 'Stress Level (1-10)', 'QuestionType': 'TE', 'DataExportTag': 'stress_level'},
+      {'QuestionText': 'Physical Health (1-10)', 'QuestionType': 'TE', 'DataExportTag': 'physical_health'},
+      {'QuestionText': 'Mental Health (1-10)', 'QuestionType': 'TE', 'DataExportTag': 'mental_health'},
+      {'QuestionText': 'Social Connections (1-10)', 'QuestionType': 'TE', 'DataExportTag': 'social_connections'},
+      {'QuestionText': 'Sleep Quality (1-10)', 'QuestionType': 'TE', 'DataExportTag': 'sleep_quality'},
+      {'QuestionText': 'Energy Level (1-10)', 'QuestionType': 'TE', 'DataExportTag': 'energy_level'},
+      {'QuestionText': 'Opportunities and Abilities (1-10)', 'QuestionType': 'TE', 'DataExportTag': 'opportunities_abilities'},
+      {'QuestionText': 'Enjoy Cultural Traditions (1-10)', 'QuestionType': 'TE', 'DataExportTag': 'enjoy_cultural_traditions'},
+      {'QuestionText': 'Environmental Challenges', 'QuestionType': 'TE', 'DataExportTag': 'environmental_challenges'},
+      {'QuestionText': 'Challenges Stress Level', 'QuestionType': 'TE', 'DataExportTag': 'challenges_stress_level'},
+      {'QuestionText': 'Coping Help', 'QuestionType': 'TE', 'DataExportTag': 'coping_help'},
+      {'QuestionText': 'Research Site', 'QuestionType': 'TE', 'DataExportTag': 'research_site'},
+      {'QuestionText': 'Submitted At', 'QuestionType': 'TE', 'DataExportTag': 'submitted_at'},
+      {'QuestionText': 'Location Data', 'QuestionType': 'TE', 'DataExportTag': 'location_data'},
+    ];
+    
+    await addQuestionsToSurvey(surveyId, questions);
+    return surveyId;
+  }
+
+  static Future<String> createSimpleConsentSurvey() async {
+    final surveyDefinition = {
+      'SurveyName': 'Gauteng Wellbeing Mapper - Consent Survey (Complete)',
+      'Language': 'EN',
+      'ProjectCategory': 'CORE',
+    };
+    
+    final surveyId = await _createSurvey(surveyDefinition);
+    
+    // Add simplified questions
+    final questions = [
+      {'QuestionText': 'Participant UUID', 'QuestionType': 'TE', 'DataExportTag': 'participant_uuid'},
+      {'QuestionText': 'Data Sharing Consent', 'QuestionType': 'TE', 'DataExportTag': 'data_sharing_consent'},
+      {'QuestionText': 'Location Sharing Consent', 'QuestionType': 'TE', 'DataExportTag': 'location_sharing_consent'},
+      {'QuestionText': 'Participant Signature', 'QuestionType': 'TE', 'DataExportTag': 'participant_signature'},
+      {'QuestionText': 'Consented At', 'QuestionType': 'TE', 'DataExportTag': 'consented_at'},
+    ];
+    
+    await addQuestionsToSurvey(surveyId, questions);
+    return surveyId;
+  }
+
   /// Define Initial Survey questions - now includes all biweekly questions for baseline measurement
   static List<Map<String, dynamic>> _getInitialSurveyQuestions() {
     return [
       // Demographics section (original initial survey)
       {
-        'QuestionID': 'QID_PARTICIPANT_UUID',
         'QuestionText': 'Participant UUID',
         'QuestionType': 'TE',
+        'DataExportTag': 'participant_uuid',
       },
       {
-        'QuestionID': 'QID_AGE',
         'QuestionText': 'What is your age?',
         'QuestionType': 'TE',
+        'DataExportTag': 'age',
       },
       {
-        'QuestionID': 'QID_ETHNICITY',
         'QuestionText': 'How do you describe your ethnicity? (Select all that apply)',
         'QuestionType': 'MC',
         'Selector': 'MAVR',
+        'DataExportTag': 'ethnicity',
         'Choices': {
-          '1': 'Black African',
-          '2': 'Coloured',
-          '3': 'Indian/Asian',
-          '4': 'White',
-          '5': 'Other',
+          '1': {'Display': 'African'},
+          '2': {'Display': 'Coloured'},
+          '3': {'Display': 'Indian/Asian'},
+          '4': {'Display': 'White'},
+          '5': {'Display': 'Other'},
         },
       },
       {
-        'QuestionID': 'QID_GENDER',
         'QuestionText': 'How do you describe your gender?',
         'QuestionType': 'MC',
         'Selector': 'SAVR',
+        'DataExportTag': 'gender',
         'Choices': {
           '1': 'Male',
           '2': 'Female',
@@ -1047,94 +1316,154 @@ class QualtricsSurveyCreator {
   static List<Map<String, dynamic>> _getConsentSurveyQuestions() {
     return [
       {
-        'QuestionID': 'QID_PARTICIPANT_CODE',
+        'QuestionID': 'QID1',
         'QuestionText': 'Participant Code',
         'QuestionType': 'TE',
+        'DataExportTag': 'PARTICIPANT_CODE',
       },
       {
-        'QuestionID': 'QID_PARTICIPANT_UUID',
+        'QuestionID': 'QID2',
         'QuestionText': 'Participant UUID',
         'QuestionType': 'TE',
+        'DataExportTag': 'PARTICIPANT_UUID',
       },
       {
-        'QuestionID': 'QID_INFORMED_CONSENT',
-        'QuestionText': 'I understand the purpose and procedures of this research study',
+        'QuestionID': 'QID3',
+        'QuestionText': 'I GIVE MY CONSENT to participate in this study.',
         'QuestionType': 'MC',
         'Selector': 'SAVR',
+        'DataExportTag': 'CONSENT_PARTICIPATE',
         'Choices': {
-          '1': 'Agree',
-          '0': 'Disagree',
+          '1': {'Display': 'I give my consent'},
+          '0': {'Display': 'I do not give my consent'},
         },
       },
       {
-        'QuestionID': 'QID_DATA_PROCESSING',
-        'QuestionText': 'I consent to the processing of my personal data for research purposes',
+        'QuestionID': 'QID4',
+        'QuestionText': 'I GIVE MY CONSENT for my personal data to be processed by Qualtrics, under their terms and conditions (https://www.qualtrics.com/privacy-statement/).',
         'QuestionType': 'MC',
         'Selector': 'SAVR',
+        'DataExportTag': 'CONSENT_QUALTRICS_DATA',
         'Choices': {
-          '1': 'Agree',
-          '0': 'Disagree',
+          '1': {'Display': 'I give my consent'},
+          '0': {'Display': 'I do not give my consent'},
         },
       },
       {
-        'QuestionID': 'QID_LOCATION_DATA',
-        'QuestionText': 'I consent to the collection and use of my location data',
+        'QuestionID': 'QID5',
+        'QuestionText': 'I GIVE MY CONSENT to being asked about my race/ethnicity.',
         'QuestionType': 'MC',
         'Selector': 'SAVR',
+        'DataExportTag': 'CONSENT_RACE_ETHNICITY',
         'Choices': {
-          '1': 'Agree',
-          '0': 'Disagree',
+          '1': {'Display': 'I give my consent'},
+          '0': {'Display': 'I do not give my consent'},
         },
       },
       {
-        'QuestionID': 'QID_SURVEY_DATA',
-        'QuestionText': 'I consent to the collection and use of my survey responses',
+        'QuestionID': 'QID6',
+        'QuestionText': 'I GIVE MY CONSENT to being asked about my health.',
         'QuestionType': 'MC',
         'Selector': 'SAVR',
+        'DataExportTag': 'CONSENT_HEALTH',
         'Choices': {
-          '1': 'Agree',
-          '0': 'Disagree',
+          '1': {'Display': 'I give my consent'},
+          '0': {'Display': 'I do not give my consent'},
         },
       },
       {
-        'QuestionID': 'QID_DATA_RETENTION',
-        'QuestionText': 'I understand how my data will be stored and for how long',
+        'QuestionID': 'QID7',
+        'QuestionText': 'I GIVE MY CONSENT to being asked about my sexual orientation.',
         'QuestionType': 'MC',
         'Selector': 'SAVR',
+        'DataExportTag': 'CONSENT_SEXUAL_ORIENTATION',
         'Choices': {
-          '1': 'Agree',
-          '0': 'Disagree',
+          '1': {'Display': 'I give my consent'},
+          '0': {'Display': 'I do not give my consent'},
         },
       },
       {
-        'QuestionID': 'QID_DATA_SHARING',
-        'QuestionText': 'I consent to my anonymized data being shared for research purposes',
+        'QuestionID': 'QID8',
+        'QuestionText': 'I GIVE MY CONSENT to being asked about my location and mobility.',
         'QuestionType': 'MC',
         'Selector': 'SAVR',
+        'DataExportTag': 'CONSENT_LOCATION_MOBILITY',
         'Choices': {
-          '1': 'Agree',
-          '0': 'Disagree',
+          '1': {'Display': 'I give my consent'},
+          '0': {'Display': 'I do not give my consent'},
         },
       },
       {
-        'QuestionID': 'QID_VOLUNTARY_PARTICIPATION',
-        'QuestionText': 'I understand that my participation is voluntary and I can withdraw at any time',
+        'QuestionID': 'QID9',
+        'QuestionText': 'I GIVE MY CONSENT to transferring my personal data to countries outside South Africa.',
         'QuestionType': 'MC',
         'Selector': 'SAVR',
+        'DataExportTag': 'CONSENT_DATA_TRANSFER',
         'Choices': {
-          '1': 'Agree',
-          '0': 'Disagree',
+          '1': {'Display': 'I give my consent'},
+          '0': {'Display': 'I do not give my consent'},
         },
       },
       {
-        'QuestionID': 'QID_PARTICIPANT_SIGNATURE',
-        'QuestionText': 'Digital Signature (Name)',
-        'QuestionType': 'TE',
+        'QuestionID': 'QID10',
+        'QuestionText': 'I GIVE MY CONSENT to researchers reporting what I contribute (what I answer) publicly (e.g., in reports, books, magazines, websites) without my full name being included.',
+        'QuestionType': 'MC',
+        'Selector': 'SAVR',
+        'DataExportTag': 'CONSENT_PUBLIC_REPORTING',
+        'Choices': {
+          '1': {'Display': 'I give my consent'},
+          '0': {'Display': 'I do not give my consent'},
+        },
       },
       {
-        'QuestionID': 'QID_CONSENTED_AT',
+        'QuestionID': 'QID11',
+        'QuestionText': 'I GIVE MY CONSENT to what I contribute being shared with national and international researchers and partners involved in this project.',
+        'QuestionType': 'MC',
+        'Selector': 'SAVR',
+        'DataExportTag': 'CONSENT_RESEARCHER_SHARING',
+        'Choices': {
+          '1': {'Display': 'I give my consent'},
+          '0': {'Display': 'I do not give my consent'},
+        },
+      },
+      {
+        'QuestionID': 'QID12',
+        'QuestionText': 'I GIVE MY CONSENT to what I contribute being used for further research or teaching purposes by the University of Pretoria and project partners.',
+        'QuestionType': 'MC',
+        'Selector': 'SAVR',
+        'DataExportTag': 'CONSENT_FURTHER_RESEARCH',
+        'Choices': {
+          '1': {'Display': 'I give my consent'},
+          '0': {'Display': 'I do not give my consent'},
+        },
+      },
+      {
+        'QuestionID': 'QID13',
+        'QuestionText': 'I GIVE MY CONSENT to what I contribute being placed in a public repository in a deidentified or anonymised form once the project is complete.',
+        'QuestionType': 'MC',
+        'Selector': 'SAVR',
+        'DataExportTag': 'CONSENT_PUBLIC_REPOSITORY',
+        'Choices': {
+          '1': {'Display': 'I give my consent'},
+          '0': {'Display': 'I do not give my consent'},
+        },
+      },
+      {
+        'QuestionID': 'QID14',
+        'QuestionText': 'I GIVE MY CONSENT to being contacted about participation in possible follow-up studies.',
+        'QuestionType': 'MC',
+        'Selector': 'SAVR',
+        'DataExportTag': 'CONSENT_FOLLOWUP_CONTACT',
+        'Choices': {
+          '1': {'Display': 'I give my consent'},
+          '0': {'Display': 'I do not give my consent'},
+        },
+      },
+      {
+        'QuestionID': 'QID15',
         'QuestionText': 'Consent Timestamp',
         'QuestionType': 'TE',
+        'DataExportTag': 'CONSENTED_AT',
       },
     ];
   }

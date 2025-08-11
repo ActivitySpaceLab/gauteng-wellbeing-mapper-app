@@ -800,6 +800,7 @@ class _ConsentFormScreenState extends State<ConsentFormScreen> {
           _healthConsent2 && _sexualOrientationConsent2 && _locationConsent2 && 
           _dataTransferConsent2 && _publicReportingConsent && _dataShareConsent && 
           _futureResearchConsent && _repositoryConsent
+          // Note: _followUpConsent is intentionally NOT required (it's optional)
         : _voluntaryParticipation && _generalConsent && _raceEthnicityConsent && 
           _healthConsent && _sexualOrientationConsent && _locationConsent && 
           _dataTransferConsent;
@@ -872,6 +873,19 @@ class _ConsentFormScreenState extends State<ConsentFormScreen> {
         voluntaryParticipation: _voluntaryParticipation,
         consentedAt: DateTime.now(),
         participantSignature: widget.participantCode, // Using participant code as signature
+        // Map Gauteng-specific consent questions correctly
+        consentParticipate: widget.researchSite == 'gauteng' ? _healthConsent : _generalConsent,
+        consentQualtricsData: widget.researchSite == 'gauteng' ? _sexualOrientationConsent : _generalConsent,
+        consentRaceEthnicity: widget.researchSite == 'gauteng' ? _locationConsent : _raceEthnicityConsent,
+        consentHealth: widget.researchSite == 'gauteng' ? _healthConsent2 : _healthConsent,
+        consentSexualOrientation: widget.researchSite == 'gauteng' ? _sexualOrientationConsent2 : _sexualOrientationConsent,
+        consentLocationMobility: widget.researchSite == 'gauteng' ? _locationConsent2 : _locationConsent,
+        consentDataTransfer: widget.researchSite == 'gauteng' ? _dataTransferConsent2 : _dataTransferConsent,
+        consentPublicReporting: widget.researchSite == 'gauteng' ? _publicReportingConsent : false,
+        consentResearcherSharing: widget.researchSite == 'gauteng' ? _dataShareConsent : false,
+        consentFurtherResearch: widget.researchSite == 'gauteng' ? _futureResearchConsent : false,
+        consentPublicRepository: widget.researchSite == 'gauteng' ? _repositoryConsent : false,
+        consentFollowupContact: widget.researchSite == 'gauteng' ? _followUpConsent : false,
       );
 
       // Save consent to database

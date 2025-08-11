@@ -55,9 +55,7 @@ dependencies:
   
   # WebView and Payment Dependencies (Testing next batch)
   webview_flutter: ^4.10.0
-  iamport_webview_flutter: ^3.1.0
-  
-  # RISKY PLUGINS - Adding carefully one by one (THESE CAUSED ORIGINAL CRASHES)
+  iamport_webview_flutter: ^3.1.0  # RISKY PLUGINS - Adding carefully one by one (THESE CAUSED ORIGINAL CRASHES)
   # Testing permission_handler first ✅ WORKING!
   permission_handler: ^11.0.1
   

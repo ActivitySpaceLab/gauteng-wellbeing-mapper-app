@@ -21,8 +21,19 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA1234567890...
     'gauteng': ResearchServerConfig(
       baseUrl: 'https://api.planet4health.up.ac.za',
       publicKeyPem: '''-----BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0987654321...
------END PUBLIC KEY-----''', // Gauteng public key placeholder
+MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEA0J5sRl93JHb16BSzkkDu
+phMMne8Yv/qAtLxGl2yHGZ1dFsMY7xJU+9epEN6DPA5PFbo+NwumQ17aAw7IDm8A
+Pyis7gryWDtaGUNjapvQdq+Kfx1Z0D+yx569KjWxAwQpGL6PxOdW0RKwsV3QKgCo
+RJxQqtr9QJHQ/FIBrfzuh+MmCie9JSFE3nrRBEjOQszI72AUx4xxE1RauQnwgvGx
+HrJoue9tFAAQfWzv95VigRHKqAlzRbZkmNQJOWGng3xAbfgf3v+wSnin51lp5H1/
+qMeBmv0ABEMRWpcgsfhd9pIwX13paq766GFYFZMh0n9UDscXA5y2/p4YbgjEINPF
+f7vFuRwiFjS4j+0ZiuOLi2DbF9DWYh2jX1ZVxMUMbv2t0cdcCnXsYSqxzAfKODf7
+xxTKffLKxP5xEaR8bnrwMS2YaAB3CRAi7ZYSp7OvS/PCM2HeWV9WaCSYZJsv+VJI
+0A2bVvauok8Odzmd3z9RZarVowfpc1MyGABrlp52lp1Q6nGuHrIXaUSil/SYP9yD
+PwkY+fa6X6hUpSMUmPfgZkS5IAiWPRpbqe6OJ4N+uelyVn+rvmRz/SgJ3g89L6dh
+vzgBHEl3b7c051V8daNVoOmadjWYVzVyC7ViXf5Qtzl0Zg2bfyD0MGNUh/gwGgcu
+AKr5gbTqca/dY/+Or3Ha/sECAwEAAQ==
+-----END PUBLIC KEY-----''', // Gauteng public key - University of Pretoria
     ),
   };
 

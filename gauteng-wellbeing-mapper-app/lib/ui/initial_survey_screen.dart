@@ -246,6 +246,11 @@ class _InitialSurveyScreenState extends State<InitialSurveyScreen> {
                 SizedBox(height: 24),
               ],
               _buildClimateActivismField(),
+              SizedBox(height: 24),
+              // Add wellbeing questions (from biweekly survey)
+              _buildWellbeingSection(),
+              SizedBox(height: 24),
+              _buildPersonalCharacteristicsSection(),
               SizedBox(height: 32),
               _buildActionButtons(),
               SizedBox(height: 24),
@@ -789,6 +794,101 @@ class _InitialSurveyScreenState extends State<InitialSurveyScreen> {
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
             child: Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWellbeingSection() {
+    return _buildSectionCard(
+      title: 'Wellbeing Questions',
+      subtitle: 'Over the past two weeks, how much of the time... (Scale: 0=Never, 5=All the time)',
+      child: Column(
+        children: [
+          _buildRatingQuestion('cheerfulSpirits', 'Have you been in good spirits?', 0, 5),
+          _buildRatingQuestion('calmRelaxed', 'Have you felt calm and relaxed?', 0, 5),
+          _buildRatingQuestion('activeVigorous', 'Have you felt active and vigorous?', 0, 5),
+          _buildRatingQuestion('wokeUpFresh', 'Did you wake up feeling fresh and rested?', 0, 5),
+          _buildRatingQuestion('dailyLifeInteresting', 'Has your daily life been filled with things that interest you?', 0, 5),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPersonalCharacteristicsSection() {
+    return _buildSectionCard(
+      title: 'Personal Characteristics',
+      subtitle: 'Please rate how well each statement describes you (Scale: 1=Not at all, 5=Completely)',
+      child: Column(
+        children: [
+          _buildRatingQuestion('cooperateWithPeople', 'I find it easy to cooperate with people', 1, 5),
+          _buildRatingQuestion('improvingSkills', 'I am always improving my skills', 1, 5),
+          _buildRatingQuestion('socialSituations', 'I feel comfortable in social situations', 1, 5),
+          _buildRatingQuestion('familySupport', 'There is always someone in my family who can give me support', 1, 5),
+          _buildRatingQuestion('familyKnowsMe', 'There is always someone in my family who really knows me', 1, 5),
+          _buildRatingQuestion('accessToFood', 'I have access to the food I need', 1, 5),
+          _buildRatingQuestion('peopleEnjoyTime', 'There are people with whom I enjoy spending time', 1, 5),
+          _buildRatingQuestion('talkToFamily', 'I can talk about my problems with my family', 1, 5),
+          _buildRatingQuestion('friendsSupport', 'My friends really try to help me', 1, 5),
+          _buildRatingQuestion('belongInCommunity', 'I really feel like I belong in my community', 1, 5),
+          _buildRatingQuestion('familyStandsByMe', 'My family really tries to stand by me', 1, 5),
+          _buildRatingQuestion('friendsStandByMe', 'My friends really try to stand by me', 1, 5),
+          _buildRatingQuestion('treatedFairly', 'I am treated fairly in my community', 1, 5),
+          _buildRatingQuestion('opportunitiesResponsibility', 'I have opportunities to take responsibility', 1, 5),
+          _buildRatingQuestion('secureWithFamily', 'I feel secure with my family', 1, 5),
+          _buildRatingQuestion('opportunitiesAbilities', 'I have opportunities to show my abilities', 1, 5),
+          _buildRatingQuestion('enjoyCulturalTraditions', 'I enjoy my community\'s cultural and traditional events', 1, 5),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRatingQuestion(String name, String question, int min, int max) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(question, style: TextStyle(fontSize: 16)),
+              ),
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.orange[50],
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.orange[200]!),
+                ),
+                child: Text(
+                  'Optional',
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: Colors.orange[700],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 4),
+          Text(
+            'Current position is just a placeholder - move the slider if you want to provide a rating',
+            style: TextStyle(fontSize: 11, color: Colors.grey[600], fontStyle: FontStyle.italic),
+          ),
+          SizedBox(height: 8),
+          FormBuilderSlider(
+            name: name,
+            min: min.toDouble(),
+            max: max.toDouble(),
+            initialValue: ((min + max) / 2).toDouble(), // Start at middle, but user knows it's just placeholder
+            divisions: max - min,
+            decoration: InputDecoration(
+              border: InputBorder.none,
+              labelText: '$min - $max',
+            ),
           ),
         ],
       ),

@@ -1,5 +1,7 @@
 # Keys
 android/key.properties
+*.pem
+
 # Specific directories ignored
 gauteng-wellbeing-mapper-app/android/key.properties
 

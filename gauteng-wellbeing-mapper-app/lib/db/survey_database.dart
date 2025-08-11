@@ -23,7 +23,7 @@ class SurveyDatabase {
     String path = join(await getDatabasesPath(), 'survey_database.db');
     return await openDatabase(
       path,
-      version: 8, // Added expanded fields to initial_survey_responses for baseline measurement
+      version: 9, // Added Gauteng-specific consent fields to consent_responses table
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -439,6 +439,22 @@ class SurveyDatabase {
       // Drop backup table
       await db.execute('DROP TABLE initial_survey_backup');
     }
+    
+    if (oldVersion < 9) {
+      // Add Gauteng-specific consent fields to consent_responses table
+      await db.execute('ALTER TABLE consent_responses ADD COLUMN consent_participate INTEGER DEFAULT 1');
+      await db.execute('ALTER TABLE consent_responses ADD COLUMN consent_qualtrics_data INTEGER DEFAULT 1');
+      await db.execute('ALTER TABLE consent_responses ADD COLUMN consent_race_ethnicity INTEGER DEFAULT 1');
+      await db.execute('ALTER TABLE consent_responses ADD COLUMN consent_health INTEGER DEFAULT 1');
+      await db.execute('ALTER TABLE consent_responses ADD COLUMN consent_sexual_orientation INTEGER DEFAULT 1');
+      await db.execute('ALTER TABLE consent_responses ADD COLUMN consent_location_mobility INTEGER DEFAULT 1');
+      await db.execute('ALTER TABLE consent_responses ADD COLUMN consent_data_transfer INTEGER DEFAULT 1');
+      await db.execute('ALTER TABLE consent_responses ADD COLUMN consent_public_reporting INTEGER DEFAULT 1');
+      await db.execute('ALTER TABLE consent_responses ADD COLUMN consent_researcher_sharing INTEGER DEFAULT 1');
+      await db.execute('ALTER TABLE consent_responses ADD COLUMN consent_further_research INTEGER DEFAULT 1');
+      await db.execute('ALTER TABLE consent_responses ADD COLUMN consent_public_repository INTEGER DEFAULT 1');
+      await db.execute('ALTER TABLE consent_responses ADD COLUMN consent_followup_contact INTEGER DEFAULT 0');
+    }
   }
 
   // Initial Survey Methods
@@ -720,6 +736,19 @@ class SurveyDatabase {
         'consented_at': consent.consentedAt.toIso8601String(),
         'participant_signature': consent.participantSignature,
         'synced': 0,
+        // New Gauteng-specific consent fields
+        'consent_participate': consent.consentParticipate ? 1 : 0,
+        'consent_qualtrics_data': consent.consentQualtricsData ? 1 : 0,
+        'consent_race_ethnicity': consent.consentRaceEthnicity ? 1 : 0,
+        'consent_health': consent.consentHealth ? 1 : 0,
+        'consent_sexual_orientation': consent.consentSexualOrientation ? 1 : 0,
+        'consent_location_mobility': consent.consentLocationMobility ? 1 : 0,
+        'consent_data_transfer': consent.consentDataTransfer ? 1 : 0,
+        'consent_public_reporting': consent.consentPublicReporting ? 1 : 0,
+        'consent_researcher_sharing': consent.consentResearcherSharing ? 1 : 0,
+        'consent_further_research': consent.consentFurtherResearch ? 1 : 0,
+        'consent_public_repository': consent.consentPublicRepository ? 1 : 0,
+        'consent_followup_contact': consent.consentFollowupContact ? 1 : 0,
       },
     );
   }
