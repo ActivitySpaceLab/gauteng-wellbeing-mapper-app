@@ -30,32 +30,28 @@ description: Data security implementation for the Gauteng Wellbeing Mapper
 
 ## Step 1: Generate RSA Key Pairs
 
-### For Gauteng Research Site
-
 ```bash
-# Create directory for Gauteng keys
-mkdir -p /secure/keys/gauteng
-cd /secure/keys/gauteng
+# Navidate to the directory where you want to store the keys
 
-# Generate 4096-bit RSA private key
-openssl genrsa -out gauteng_private_key.pem 4096
+# Generate 4096-bit RSA private key. Choose and confirm password when prompted
+openssl genpkey -algorithm RSA -aes256 -out private_key.pem -pkeyopt rsa_keygen_bits:4096
 
 # Extract public key
-openssl rsa -in gauteng_private_key.pem -pubout -out gauteng_public_key.pem
+openssl rsa -pubout -in private_key.pem -out public_key.pem
 
 # Verify key generation
-openssl rsa -in gauteng_private_key.pem -noout -text | head -20
+openssl rsa -in private_key.pem -noout -text | head -20
 
 # Set secure permissions
-chmod 600 gauteng_private_key.pem
-chmod 644 gauteng_public_key.pem
+chmod 600 private_key.pem
+chmod 644 public_key.pem
 ```
 
 ### Key Verification
 
 ```bash
 # Test encryption/decryption with generated keys
-echo "Test message" | openssl rsautl -encrypt -pubin -inkey barcelona_public_key.pem | openssl rsautl -decrypt -inkey barcelona_private_key.pem
+echo "Test message" | openssl rsautl -encrypt -pubin -inkey public_key.pem | openssl rsautl -decrypt -inkey private_key.pem
 ```
 
 ## Step 2: Configure Mobile App
@@ -70,9 +66,7 @@ static const Map<String, ServerConfig> _serverConfigs = {
     baseUrl: 'https://barcelona-research.your-domain.com',
     uploadEndpoint: '/api/v1/participant-data',
     publicKey: '''-----BEGIN PUBLIC KEY-----
-MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEA1234567890abcdef...
-[PASTE YOUR BARCELONA PUBLIC KEY CONTENT HERE - ALL LINES]
-...1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef
+YOUR_PUBLIC_KEY
 -----END PUBLIC KEY-----''',
   ),
   'gauteng': ServerConfig(

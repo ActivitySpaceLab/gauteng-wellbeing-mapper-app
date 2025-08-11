@@ -2,6 +2,7 @@ import 'package:wellbeing_mapper/services/notification_service.dart';
 import 'package:wellbeing_mapper/services/location_service.dart';
 import 'package:wellbeing_mapper/services/initial_survey_service.dart';
 import 'package:wellbeing_mapper/services/survey_navigation_service.dart';
+import 'package:wellbeing_mapper/services/storage_settings_service.dart';
 import 'package:wellbeing_mapper/ui/side_drawer.dart';
 import 'package:wellbeing_mapper/util/env.dart';
 import 'package:wellbeing_mapper/theme/south_african_theme.dart';
@@ -22,6 +23,7 @@ import 'package:permission_handler/permission_handler.dart';
 
 import 'map_view.dart';
 import '../services/ios_location_fix_service.dart';
+import '../db/survey_database.dart';
 
 import '../util/dialog.dart' as util;
 
@@ -376,6 +378,11 @@ class HomeViewState extends State<HomeView>
         // Location permissions are already requested above, no need to call again
       }
       print('[home_view.dart] initPlatformState completed successfully');
+      
+      // Perform automatic cleanup if needed
+      StorageSettingsService.performAutoCleanupIfNeeded().catchError((error) {
+        print('[home_view.dart] Error during auto cleanup: $error');
+      });
     } catch (error) {
       print('[home_view.dart] Error in initPlatformState: $error');
     }
@@ -832,6 +839,9 @@ class HomeViewState extends State<HomeView>
 //    SendDataToAPI sender = SendDataToAPI();
 //    sender.submitData(location, "location");
 
+    // Save location to database for survey data collection
+    _saveLocationToDatabase(location);
+
     setState(() {
       //_odometer = (location.odometer / 1000.0).toStringAsFixed(1);
     });
@@ -847,6 +857,33 @@ class HomeViewState extends State<HomeView>
     setState(() {
       //_isMoving = location.isMoving;
     });
+  }
+
+  /// Save location data to database for survey data collection
+  Future<void> _saveLocationToDatabase(bg.Location location) async {
+    try {
+      // Parse timestamp - location.timestamp is a String in ISO format
+      final timestamp = DateTime.parse(location.timestamp);
+      
+      // Create location data map for database insertion
+      final locationData = {
+        'timestamp': timestamp.toIso8601String(),
+        'latitude': location.coords.latitude,
+        'longitude': location.coords.longitude,
+        'accuracy': location.coords.accuracy,
+        'altitude': location.coords.altitude,
+        'speed': location.coords.speed,
+        'activity': location.activity.type,
+      };
+      
+      // Save to database
+      final db = SurveyDatabase();
+      await db.insertLocationTrack(locationData);
+      
+      print('[LocationTracker] ✅ Saved location to database: ${timestamp.toIso8601String()}');
+    } catch (e) {
+      print('[LocationTracker] ❌ Error saving location to database: $e');
+    }
   }
 
 //  void _onActivityChange(bg.ActivityChangeEvent event) {

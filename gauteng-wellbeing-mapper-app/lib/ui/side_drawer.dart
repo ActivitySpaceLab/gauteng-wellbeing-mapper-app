@@ -253,7 +253,7 @@ class _WellbeingMapperSideDrawerState extends State<WellbeingMapperSideDrawer> {
   }
 
   _launchProjectURL() async {
-    final Uri url = Uri.parse('https://planet4health.eu/mental-wellbeing-in-environmental-climate-context/');
+    final Uri url = Uri.parse('https://activityspacelab.github.io/gauteng-wellbeing-mapper-app/');
     if (await canLaunchUrl(url)) {
       await launchUrl(url, mode: LaunchMode.externalApplication);
     } else {
@@ -380,21 +380,11 @@ class _WellbeingMapperSideDrawerState extends State<WellbeingMapperSideDrawer> {
               ),
               Card(
                 child: ListTile(
-                  leading: const Icon(Icons.cloud_upload),
-                  title: Text("Research Data Upload"),
-                  subtitle: Text("Upload encrypted data to research servers"),
+                  leading: const Icon(Icons.storage),
+                  title: Text("Storage Settings"),
+                  subtitle: Text("Manage location data storage"),
                   onTap: () {
-                    Navigator.of(context).pushNamed('/data_upload');
-                  },
-                ),
-              ),
-              Card(
-                child: ListTile(
-                  leading: const Icon(Icons.privacy_tip),
-                  title: Text("Data Sharing Preferences"),
-                  subtitle: Text("Manage your data sharing consent choices"),
-                  onTap: () {
-                    Navigator.of(context).pushNamed('/data_sharing_preferences');
+                    Navigator.of(context).pushNamed('/storage_settings');
                   },
                 ),
               ),

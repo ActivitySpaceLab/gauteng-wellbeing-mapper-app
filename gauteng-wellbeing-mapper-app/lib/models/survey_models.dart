@@ -53,7 +53,7 @@ class InitialSurveyResponse {
   // final List<String>? voiceNoteUrls; // URLs to uploaded audio files
   // final List<String>? imageUrls; // URLs to uploaded image files
   
-  final String researchSite; // 'barcelona' or 'gauteng'
+  final String researchSite; // Currently only 'gauteng'
   final DateTime submittedAt;
 
   InitialSurveyResponse({
@@ -245,7 +245,7 @@ class RecurringSurveyResponse {
   // final List<String>? voiceNoteUrls;
   // final List<String>? imageUrls;
   
-  final String researchSite; // 'barcelona' or 'gauteng'
+  final String researchSite; // Currently only 'gauteng'
   final DateTime submittedAt;
   final String? encryptedLocationData; // Encrypted location data captured at submission time
 

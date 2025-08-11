@@ -17,7 +17,7 @@ class InitialSurveyScreen extends StatefulWidget {
 class _InitialSurveyScreenState extends State<InitialSurveyScreen> {
   final _formKey = GlobalKey<FormBuilderState>();
   bool _isSubmitting = false;
-  String _researchSite = 'barcelona'; // Default to Barcelona
+  String _researchSite = 'gauteng'; // Default to Gauteng
 
   @override
   void initState() {
@@ -37,13 +37,13 @@ class _InitialSurveyScreenState extends State<InitialSurveyScreen> {
         
         final settings = ParticipationSettings.fromJson(participationData);
         setState(() {
-          _researchSite = settings.researchSite ?? 'barcelona';
+          _researchSite = settings.researchSite ?? 'gauteng';
         });
       }
     } catch (e) {
-      // Default to Barcelona if any error
+      // Default to Gauteng if any error
       setState(() {
-        _researchSite = 'barcelona';
+        _researchSite = 'gauteng';
       });
     }
   }

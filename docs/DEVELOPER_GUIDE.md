@@ -24,10 +24,12 @@ This application supports the Planet4Health research initiative "[Mental wellbei
 ## Table of Contents
 
 1. [Architecture Overview](#architecture-overview)
-2. [Research Participation System](#research-participation-system)
-3. [Encryption & Security](#encryption--security)
-4. [Flutter Background Geolocation - Critical Implementation Notes](#flutter-background-geolocation---critical-implementation-notes)
-5. [Core Components](#core-components)
+2. [API Reference](#api-reference)
+3. [Notification System](#notification-system)
+4. [Research Participation System](#research-participation-system)
+5. [Encryption & Security](#encryption--security)
+6. [Flutter Background Geolocation - Critical Implementation Notes](#flutter-background-geolocation---critical-implementation-notes)
+7. [Core Components](#core-components)
 6. [Data Flow](#data-flow)
 7. [File Structure](#file-structure)
 8. [Getting Started](#getting-started)
@@ -66,6 +68,39 @@ Wellbeing Mapper follows a modular Flutter architecture with clear separation of
 - **WebView**: For surveys and external content
 - **SharedPreferences**: User settings and simple data storage
 - **HTTP**: Encrypted data uploads to research servers
+
+## API Reference
+
+For complete API documentation including all classes, methods, and interfaces, see:
+- **[API Reference](API_REFERENCE.md)** - Complete API documentation
+- **Core Services**: Data upload, encryption, location tracking
+- **Models**: Survey data, consent models, location models
+- **UI Components**: Custom widgets and screens
+
+### Key API Classes
+
+- `DataUploadService` - Handles encrypted data transmission
+- `LocationTrackingService` - Background location collection
+- `SurveyService` - Survey data management
+- `EncryptionService` - RSA+AES encryption implementation
+- `AppModeService` - App mode and configuration management
+
+## Notification System
+
+The app includes a comprehensive notification system for survey reminders and research coordination:
+
+- **[Notification Feature Summary](NOTIFICATION_FEATURE_SUMMARY.md)** - Complete notification system documentation
+- **Biweekly Survey Reminders** - Automated survey scheduling
+- **Configurable Timing** - Customizable reminder schedules for testing
+- **Google Play Compliance** - Uses inexact alarms for battery efficiency
+- **Cross-Platform Support** - Works on both iOS and Android
+
+### Notification Features
+
+- **Smart Scheduling** - Respects user preferences and device settings
+- **Battery Optimization** - Uses efficient alarm scheduling
+- **User Control** - Full notification management in settings
+- **Testing Capabilities** - Fast scheduling for beta testing
 
 ## App Mode System
 

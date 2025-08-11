@@ -6,6 +6,7 @@ import 'package:flutter_map/flutter_map.dart';
 //import 'package:flutter_map/plugin_api.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:wellbeing_mapper/services/test_service.dart';
+import '../services/storage_settings_service.dart';
 
 class MapView extends StatefulWidget {
   @override
@@ -64,8 +65,11 @@ class MapViewState extends State<MapView>
       return;
     }
     
-    List allLocations = await bg.BackgroundGeolocation.locations;
-    for (var thisLocation in allLocations) {
+    // Use filtered location data to improve performance
+    List filteredLocations = await StorageSettingsService.getFilteredLocationDataForMap();
+    print('[map_view] Displaying ${filteredLocations.length} filtered location points');
+    
+    for (var thisLocation in filteredLocations) {
       _onLocation(bg.Location(thisLocation));
     }
   }

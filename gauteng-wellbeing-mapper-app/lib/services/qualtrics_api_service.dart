@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_background_geolocation/flutter_background_geolocation.dart' as bg;
@@ -14,11 +15,10 @@ class QualtricsApiService {
   static const String _baseUrl = 'https://pretoria.eu.qualtrics.com/API/v3';
   static const String _apiToken = 'WxyQMBmQvkPrL3H9YuKPCGhpCtccT7Z28KKwkMVt';
   
-  // Survey IDs for different survey types
-  // These are the published surveys with all questions included
-  static const String _initialSurveyId = 'SV_bsb8iq0UiATXRJQ'; // Published Initial Survey (Proper - Complete)
-  static const String _biweeklySurveyId = 'SV_eUJstaSWQeKykBM'; // Published Biweekly Survey (Proper - Complete)
-  static const String _consentSurveyId = 'SV_4I7j91aabspz5YO'; // Published Consent Survey (Proper - Complete)
+  // Survey IDs for the simple text-field surveys (updated 2025-08-11)
+  static const String _initialSurveyId = 'SV_8pudN8qTI6iQKY6'; // Simple Initial Survey (Text Fields) - PUBLISHED
+  static const String _biweeklySurveyId = 'SV_aXmfOtAIRmIVdfU'; // Simple Biweekly Survey (Text Fields) - PUBLISHED  
+  static const String _consentSurveyId = 'SV_0rIPhMu3seGA1tY'; // Simple Consent Survey (Text Fields) - PUBLISHED
 
   /// Sync a completed initial survey to Qualtrics
   static Future<bool> syncInitialSurvey(Map<String, dynamic> surveyData) async {
@@ -54,13 +54,25 @@ class QualtricsApiService {
   /// Sync a completed biweekly survey to Qualtrics
   static Future<bool> syncBiweeklySurvey(Map<String, dynamic> surveyData) async {
     try {
+      print('[QualtricsApiService] ===== BIWEEKLY SURVEY SYNC START =====');
+      print('[QualtricsApiService] Survey data keys: ${surveyData.keys.toList()}');
+      
       // Use the encrypted location data that was stored at submission time
       final encryptedLocationData = surveyData['encrypted_location_data'] as String?;
+      print('[QualtricsApiService] Encrypted location data found: ${encryptedLocationData != null}');
+      
+      if (encryptedLocationData != null) {
+        print('[QualtricsApiService] Encrypted location data length: ${encryptedLocationData.length} characters');
+        print('[QualtricsApiService] First 100 chars of encrypted data: ${encryptedLocationData.substring(0, encryptedLocationData.length > 100 ? 100 : encryptedLocationData.length)}');
+      }
       
       // Add location data to survey data if available
       final enhancedSurveyData = Map<String, dynamic>.from(surveyData);
       if (encryptedLocationData != null) {
         enhancedSurveyData['locationJson'] = encryptedLocationData;
+        print('[QualtricsApiService] ✅ Added encrypted location data to survey data as locationJson');
+      } else {
+        print('[QualtricsApiService] ⚠️ No encrypted location data to add');
       }
       
       final responseData = _mapBiweeklySurveyToQualtrics(enhancedSurveyData);
@@ -137,14 +149,11 @@ class QualtricsApiService {
   /// Create a survey response in Qualtrics
   static Future<bool> _createSurveyResponse(String surveyId, Map<String, dynamic> responseData, DateTime submissionTime) async {
     try {
+      // Use the correct Qualtrics API v3 format based on official documentation
       final payload = {
-        'responses': [
-          {
-            'responseId': DateTime.now().millisecondsSinceEpoch.toString(),
-            'values': responseData,
-            'recordedDate': submissionTime.toIso8601String(),
-          }
-        ]
+        'values': responseData,
+        'finished': true,  // Mark survey as completed
+        'recordedDate': submissionTime.toIso8601String(),
       };
 
       debugPrint('📤 Sending payload to Qualtrics:');
@@ -167,8 +176,12 @@ class QualtricsApiService {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final responseJson = jsonDecode(response.body);
-        final responseId = responseJson['result']['id'];
+        final responseId = responseJson['result']['responseId'];
         debugPrint('✅ Survey response created with ID: $responseId');
+        
+        // Verify data was stored (optional debug check)
+        await _verifyResponseData(surveyId, responseId, responseData);
+        
         return true;
       } else {
         debugPrint('❌ Qualtrics API error: ${response.statusCode} - ${response.body}');
@@ -180,84 +193,144 @@ class QualtricsApiService {
     }
   }
 
-  /// Map initial survey data to Qualtrics format
+  /// Verify that submitted data was actually stored (debug helper)
+  static Future<void> _verifyResponseData(String surveyId, String responseId, Map<String, dynamic> originalData) async {
+    try {
+      await Future.delayed(Duration(seconds: 2)); // Wait for processing
+      
+      final response = await http.get(
+        Uri.parse('$_baseUrl/surveys/$surveyId/responses/$responseId'),
+        headers: {
+          'X-API-TOKEN': _apiToken,
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final responseJson = jsonDecode(response.body);
+        final storedValues = responseJson['result']['values'] as Map<String, dynamic>;
+        
+        // Check if our data appears in the stored response
+        int matchedFields = 0;
+        for (var key in originalData.keys) {
+          if (storedValues.containsKey(key) && storedValues[key] != null && storedValues[key].toString().isNotEmpty) {
+            matchedFields++;
+            debugPrint('✅ Verified field $key: "${storedValues[key]}"');
+          } else {
+            debugPrint('❌ Missing field $key (expected: "${originalData[key]}")');
+          }
+        }
+        
+        if (matchedFields == 0) {
+          debugPrint('❌ CRITICAL: No submitted data found in Qualtrics response!');
+          debugPrint('   This suggests the survey may not be properly configured for API submissions.');
+        } else {
+          debugPrint('✅ Data verification: $matchedFields/${originalData.length} fields stored correctly');
+        }
+      } else {
+        debugPrint('⚠️ Could not verify response data: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('⚠️ Error verifying response data: $e');
+    }
+  }
+
+  /// Map initial survey data to Qualtrics format using simple text fields
   static Map<String, dynamic> _mapInitialSurveyToQualtrics(Map<String, dynamic> survey) {
     final data = <String, dynamic>{};
     
-    // Add participant UUID from global data
-    data['QID_PARTICIPANT_UUID'] = GlobalData.userUUID;
-    
-    // Demographics
-    if (survey['age'] != null) data['QID_AGE'] = survey['age'].toString();
+    // Simple text field mapping - all fields as text for maximum reliability
+    // Using GlobalData.userUUID for participant_uuid
+    data['QID1_TEXT'] = GlobalData.userUUID;
+
+    if (survey['age'] != null) data['QID2_TEXT'] = survey['age'].toString();
+    if (survey['suburb'] != null) data['QID3_TEXT'] = survey['suburb'].toString();
+
+    // Handle ethnicity (could be JSON array)
     if (survey['ethnicity'] != null) {
-      final ethnicity = jsonDecode(survey['ethnicity'] as String) as List;
-      data['QID_ETHNICITY'] = ethnicity.join(',');
+      if (survey['ethnicity'] is String) {
+        try {
+          final ethnicityList = jsonDecode(survey['ethnicity'] as String) as List;
+          data['QID4_TEXT'] = ethnicityList.join(',');
+        } catch (e) {
+          data['QID4_TEXT'] = survey['ethnicity'].toString();
+        }
+      } else {
+        data['QID4_TEXT'] = survey['ethnicity'].toString();
+      }
     }
-    if (survey['gender'] != null) data['QID_GENDER'] = survey['gender'];
-    if (survey['sexuality'] != null) data['QID_SEXUALITY'] = survey['sexuality'];
-    if (survey['birth_place'] != null) data['QID_BIRTH_PLACE'] = survey['birth_place'];
-    if (survey['suburb'] != null) data['QID_SUBURB'] = survey['suburb'];
-    if (survey['building_type'] != null) data['QID_BUILDING_TYPE'] = survey['building_type'];
+
+    if (survey['gender'] != null) data['QID5_TEXT'] = survey['gender'].toString();
+    if (survey['sexuality'] != null) data['QID6_TEXT'] = survey['sexuality'].toString();
+    if (survey['birth_place'] != null) data['QID7_TEXT'] = survey['birth_place'].toString();
+    if (survey['building_type'] != null) data['QID8_TEXT'] = survey['building_type'].toString();
+
+    // Household items as text (JSON array converted to comma-separated)
     if (survey['household_items'] != null) {
-      final items = jsonDecode(survey['household_items'] as String) as List;
-      data['QID_HOUSEHOLD_ITEMS'] = items.join(',');
+      if (survey['household_items'] is String) {
+        try {
+          final items = jsonDecode(survey['household_items'] as String) as List;
+          data['QID9_TEXT'] = items.join(',');
+        } catch (e) {
+          data['QID9_TEXT'] = survey['household_items'].toString();
+        }
+      } else {
+        data['QID9_TEXT'] = survey['household_items'].toString();
+      }
     }
-    if (survey['education'] != null) data['QID_EDUCATION'] = survey['education'];
-    if (survey['climate_activism'] != null) data['QID_CLIMATE_ACTIVISM'] = survey['climate_activism'];
-    if (survey['general_health'] != null) data['QID_GENERAL_HEALTH'] = survey['general_health'];
-    
-    // Activities and living situation
+
+    if (survey['education'] != null) data['QID10_TEXT'] = survey['education'].toString();
+    if (survey['climate_activism'] != null) data['QID11_TEXT'] = survey['climate_activism'].toString();
+    if (survey['employment_status'] != null) data['QID12_TEXT'] = survey['employment_status'].toString();
+    if (survey['income'] != null) data['QID13_TEXT'] = survey['income'].toString();
+
+    // Activities as text (JSON array converted to comma-separated)
     if (survey['activities'] != null) {
-      final activities = jsonDecode(survey['activities'] as String) as List;
-      data['QID_ACTIVITIES'] = activities.join(',');
+      if (survey['activities'] is String) {
+        try {
+          final activities = jsonDecode(survey['activities'] as String) as List;
+          data['QID14_TEXT'] = activities.join(',');
+        } catch (e) {
+          data['QID14_TEXT'] = survey['activities'].toString();
+        }
+      } else {
+        data['QID14_TEXT'] = survey['activities'].toString();
+      }
     }
-    if (survey['living_arrangement'] != null) data['QID_LIVING_ARRANGEMENT'] = survey['living_arrangement'];
-    if (survey['relationship_status'] != null) data['QID_RELATIONSHIP_STATUS'] = survey['relationship_status'];
-    
-    // Wellbeing questions
-    if (survey['cheerful_spirits'] != null) data['QID_CHEERFUL_SPIRITS'] = survey['cheerful_spirits'].toString();
-    if (survey['calm_relaxed'] != null) data['QID_CALM_RELAXED'] = survey['calm_relaxed'].toString();
-    if (survey['active_vigorous'] != null) data['QID_ACTIVE_VIGOROUS'] = survey['active_vigorous'].toString();
-    if (survey['woke_up_fresh'] != null) data['QID_WOKE_UP_FRESH'] = survey['woke_up_fresh'].toString();
-    if (survey['daily_life_interesting'] != null) data['QID_DAILY_LIFE_INTERESTING'] = survey['daily_life_interesting'].toString();
-    
-    // Personal characteristics
-    if (survey['cooperate_with_people'] != null) data['QID_COOPERATE_WITH_PEOPLE'] = survey['cooperate_with_people'].toString();
-    if (survey['improving_skills'] != null) data['QID_IMPROVING_SKILLS'] = survey['improving_skills'].toString();
-    if (survey['social_situations'] != null) data['QID_SOCIAL_SITUATIONS'] = survey['social_situations'].toString();
-    if (survey['family_support'] != null) data['QID_FAMILY_SUPPORT'] = survey['family_support'].toString();
-    if (survey['family_knows_me'] != null) data['QID_FAMILY_KNOWS_ME'] = survey['family_knows_me'].toString();
-    if (survey['access_to_food'] != null) data['QID_ACCESS_TO_FOOD'] = survey['access_to_food'].toString();
-    if (survey['people_enjoy_time'] != null) data['QID_PEOPLE_ENJOY_TIME'] = survey['people_enjoy_time'].toString();
-    if (survey['talk_to_family'] != null) data['QID_TALK_TO_FAMILY'] = survey['talk_to_family'].toString();
-    if (survey['friends_support'] != null) data['QID_FRIENDS_SUPPORT'] = survey['friends_support'].toString();
-    if (survey['belong_in_community'] != null) data['QID_BELONG_IN_COMMUNITY'] = survey['belong_in_community'].toString();
-    if (survey['family_stands_by_me'] != null) data['QID_FAMILY_STANDS_BY_ME'] = survey['family_stands_by_me'].toString();
-    if (survey['friends_stand_by_me'] != null) data['QID_FRIENDS_STAND_BY_ME'] = survey['friends_stand_by_me'].toString();
-    if (survey['treated_fairly'] != null) data['QID_TREATED_FAIRLY'] = survey['treated_fairly'].toString();
-    if (survey['opportunities_responsibility'] != null) data['QID_OPPORTUNITIES_RESPONSIBILITY'] = survey['opportunities_responsibility'].toString();
-    if (survey['secure_with_family'] != null) data['QID_SECURE_WITH_FAMILY'] = survey['secure_with_family'].toString();
-    if (survey['opportunities_abilities'] != null) data['QID_OPPORTUNITIES_ABILITIES'] = survey['opportunities_abilities'].toString();
-    if (survey['enjoy_cultural_traditions'] != null) data['QID_ENJOY_CULTURAL_TRADITIONS'] = survey['enjoy_cultural_traditions'].toString();
-    
-    // Digital diary
-    if (survey['environmental_challenges'] != null) data['QID_ENVIRONMENTAL_CHALLENGES'] = survey['environmental_challenges'];
-    if (survey['challenges_stress_level'] != null) data['QID_CHALLENGES_STRESS_LEVEL'] = survey['challenges_stress_level'];
-    if (survey['coping_help'] != null) data['QID_COPING_HELP'] = survey['coping_help'];
-    
-    // Media files (store as comma-separated URLs)
-    if (survey['voice_note_urls'] != null) {
-      final voiceUrls = jsonDecode(survey['voice_note_urls'] as String) as List;
-      data['QID_VOICE_NOTE_URLS'] = voiceUrls.join(',');
+
+    if (survey['living_arrangement'] != null) data['QID15_TEXT'] = survey['living_arrangement'].toString();
+    if (survey['relationship_status'] != null) data['QID16_TEXT'] = survey['relationship_status'].toString();
+    if (survey['general_health'] != null) data['QID17_TEXT'] = survey['general_health'].toString();
+
+    // WHO-5 Wellbeing questions as text
+    if (survey['cheerful_spirits'] != null) data['QID18_TEXT'] = survey['cheerful_spirits'].toString();
+    if (survey['calm_relaxed'] != null) data['QID19_TEXT'] = survey['calm_relaxed'].toString();
+    if (survey['active_vigorous'] != null) data['QID20_TEXT'] = survey['active_vigorous'].toString();
+    if (survey['woke_up_fresh'] != null) data['QID21_TEXT'] = survey['woke_up_fresh'].toString();
+    if (survey['daily_life_interesting'] != null) data['QID22_TEXT'] = survey['daily_life_interesting'].toString();
+
+    // Personal characteristics as text
+    if (survey['cooperate_with_people'] != null) data['QID23_TEXT'] = survey['cooperate_with_people'].toString();
+    if (survey['improving_skills'] != null) data['QID24_TEXT'] = survey['improving_skills'].toString();
+    if (survey['social_situations'] != null) data['QID25_TEXT'] = survey['social_situations'].toString();
+    if (survey['family_support'] != null) data['QID26_TEXT'] = survey['family_support'].toString();
+    if (survey['family_knows_me'] != null) data['QID27_TEXT'] = survey['family_knows_me'].toString();
+    if (survey['access_to_food'] != null) data['QID28_TEXT'] = survey['access_to_food'].toString();
+    if (survey['people_enjoy_time'] != null) data['QID29_TEXT'] = survey['people_enjoy_time'].toString();
+    if (survey['talk_to_family'] != null) data['QID30_TEXT'] = survey['talk_to_family'].toString();
+    if (survey['friends_support'] != null) data['QID31_TEXT'] = survey['friends_support'].toString();
+    if (survey['belong_in_community'] != null) data['QID32_TEXT'] = survey['belong_in_community'].toString();
+
+    // Hidden fields
+    if (survey['locationJson'] != null) data['QID33_TEXT'] = survey['locationJson'].toString();
+
+    // Timestamp
+    if (survey['submitted_at'] != null) {
+      data['QID34_TEXT'] = survey['submitted_at'].toString();
+    } else {
+      data['QID34_TEXT'] = DateTime.now().toIso8601String();
     }
-    if (survey['image_urls'] != null) {
-      final imageUrls = jsonDecode(survey['image_urls'] as String) as List;
-      data['QID_IMAGE_URLS'] = imageUrls.join(',');
-    }
-    
-    // Metadata
-    if (survey['submitted_at'] != null) data['QID_SUBMITTED_AT'] = survey['submitted_at'];
-    
+
     return data;
   }
 
@@ -265,129 +338,182 @@ class QualtricsApiService {
   static Map<String, dynamic> _mapBiweeklySurveyToQualtrics(Map<String, dynamic> survey) {
     final data = <String, dynamic>{};
     
-    // Add participant UUID
-    data['QID_PARTICIPANT_UUID'] = GlobalData.userUUID;
-    
-    // Map survey fields to Qualtrics question IDs
+    // Based on actual CSV export: Only 19 questions (Q1-Q19)
+    // QID1 → participant_uuid (Hidden)
+    data['QID1_TEXT'] = GlobalData.userUUID;
+
+    // QID2 → activities (Select all that apply)
     if (survey['activities'] != null) {
       final activities = jsonDecode(survey['activities'] as String) as List;
-      data['QID_ACTIVITIES'] = activities.join(',');
+      data['QID2_TEXT'] = activities.join(',');
     }
-    if (survey['living_arrangement'] != null) data['QID_LIVING_ARRANGEMENT'] = survey['living_arrangement'];
-    if (survey['relationship_status'] != null) data['QID_RELATIONSHIP_STATUS'] = survey['relationship_status'];
-    if (survey['general_health'] != null) data['QID_GENERAL_HEALTH'] = survey['general_health'];
-    
-    // Wellbeing questions
-    if (survey['cheerful_spirits'] != null) data['QID_CHEERFUL_SPIRITS'] = survey['cheerful_spirits'].toString();
-    if (survey['calm_relaxed'] != null) data['QID_CALM_RELAXED'] = survey['calm_relaxed'].toString();
-    if (survey['active_vigorous'] != null) data['QID_ACTIVE_VIGOROUS'] = survey['active_vigorous'].toString();
-    if (survey['woke_up_fresh'] != null) data['QID_WOKE_UP_FRESH'] = survey['woke_up_fresh'].toString();
-    if (survey['daily_life_interesting'] != null) data['QID_DAILY_LIFE_INTERESTING'] = survey['daily_life_interesting'].toString();
-    
-    // Personal characteristics
-    if (survey['cooperate_with_people'] != null) data['QID_COOPERATE_WITH_PEOPLE'] = survey['cooperate_with_people'].toString();
-    if (survey['improving_skills'] != null) data['QID_IMPROVING_SKILLS'] = survey['improving_skills'].toString();
-    if (survey['social_situations'] != null) data['QID_SOCIAL_SITUATIONS'] = survey['social_situations'].toString();
-    if (survey['family_support'] != null) data['QID_FAMILY_SUPPORT'] = survey['family_support'].toString();
-    if (survey['family_knows_me'] != null) data['QID_FAMILY_KNOWS_ME'] = survey['family_knows_me'].toString();
-    if (survey['access_to_food'] != null) data['QID_ACCESS_TO_FOOD'] = survey['access_to_food'].toString();
-    if (survey['people_enjoy_time'] != null) data['QID_PEOPLE_ENJOY_TIME'] = survey['people_enjoy_time'].toString();
-    if (survey['talk_to_family'] != null) data['QID_TALK_TO_FAMILY'] = survey['talk_to_family'].toString();
-    if (survey['friends_support'] != null) data['QID_FRIENDS_SUPPORT'] = survey['friends_support'].toString();
-    if (survey['belong_in_community'] != null) data['QID_BELONG_IN_COMMUNITY'] = survey['belong_in_community'].toString();
-    if (survey['family_stands_by_me'] != null) data['QID_FAMILY_STANDS_BY_ME'] = survey['family_stands_by_me'].toString();
-    if (survey['friends_stand_by_me'] != null) data['QID_FRIENDS_STAND_BY_ME'] = survey['friends_stand_by_me'].toString();
-    if (survey['treated_fairly'] != null) data['QID_TREATED_FAIRLY'] = survey['treated_fairly'].toString();
-    if (survey['opportunities_responsibility'] != null) data['QID_OPPORTUNITIES_RESPONSIBILITY'] = survey['opportunities_responsibility'].toString();
-    if (survey['secure_with_family'] != null) data['QID_SECURE_WITH_FAMILY'] = survey['secure_with_family'].toString();
-    if (survey['opportunities_abilities'] != null) data['QID_OPPORTUNITIES_ABILITIES'] = survey['opportunities_abilities'].toString();
-    if (survey['enjoy_cultural_traditions'] != null) data['QID_ENJOY_CULTURAL_TRADITIONS'] = survey['enjoy_cultural_traditions'].toString();
-    
-    // Digital diary
-    if (survey['environmental_challenges'] != null) data['QID_ENVIRONMENTAL_CHALLENGES'] = survey['environmental_challenges'];
-    if (survey['challenges_stress_level'] != null) data['QID_CHALLENGES_STRESS_LEVEL'] = survey['challenges_stress_level'];
-    if (survey['coping_help'] != null) data['QID_COPING_HELP'] = survey['coping_help'];
-    
-    // Media files (store as comma-separated URLs)
-    if (survey['voice_note_urls'] != null) {
-      final voiceUrls = jsonDecode(survey['voice_note_urls'] as String) as List;
-      data['QID_VOICE_NOTE_URLS'] = voiceUrls.join(',');
+
+    // QID3 → living_arrangement
+    if (survey['living_arrangement'] != null) data['QID3_TEXT'] = survey['living_arrangement'];
+
+    // QID4 → relationship_status
+    if (survey['relationship_status'] != null) data['QID4_TEXT'] = survey['relationship_status'];
+
+    // QID5 → general_health
+    if (survey['general_health'] != null) {
+      data['QID5_TEXT'] = survey['general_health'];
+      debugPrint('🔍 General health data for QID5_TEXT: ${survey['general_health']}');
     }
-    if (survey['image_urls'] != null) {
-      final imageUrls = jsonDecode(survey['image_urls'] as String) as List;
-      data['QID_IMAGE_URLS'] = imageUrls.join(',');
+
+    // WHO-5 Wellbeing Index Questions
+    // QID6 → cheerful_spirits (Have you been in good spirits?)
+    if (survey['cheerful_spirits'] != null) data['QID6_TEXT'] = survey['cheerful_spirits'].toString();
+
+    // QID7 → calm_relaxed (Have you felt calm and relaxed?)
+    if (survey['calm_relaxed'] != null) data['QID7_TEXT'] = survey['calm_relaxed'].toString();
+
+    // QID8 → active_vigorous (Have you felt active and vigorous?)
+    if (survey['active_vigorous'] != null) data['QID8_TEXT'] = survey['active_vigorous'].toString();
+
+    // QID9 → woke_up_fresh (Did you wake up feeling fresh and rested?)
+    if (survey['woke_up_fresh'] != null) data['QID9_TEXT'] = survey['woke_up_fresh'].toString();
+
+    // QID10 → daily_life_interesting (Has your daily life been filled with things that interest you?)
+    if (survey['daily_life_interesting'] != null) data['QID10_TEXT'] = survey['daily_life_interesting'].toString();
+
+    // Personal characteristics and social support
+    // QID11 → cooperate_with_people
+    if (survey['cooperate_with_people'] != null) data['QID11_TEXT'] = survey['cooperate_with_people'].toString();
+
+    // QID12 → improving_skills
+    if (survey['improving_skills'] != null) data['QID12_TEXT'] = survey['improving_skills'].toString();
+
+    // QID13 → social_situations
+    if (survey['social_situations'] != null) data['QID13_TEXT'] = survey['social_situations'].toString();
+
+    // QID14 → family_support
+    if (survey['family_support'] != null) data['QID14_TEXT'] = survey['family_support'].toString();
+
+    // QID15 → environmental_challenges (Text)
+    if (survey['environmental_challenges'] != null) data['QID15_TEXT'] = survey['environmental_challenges'];
+
+    // QID16 → challenges_stress_level
+    if (survey['challenges_stress_level'] != null) data['QID16_TEXT'] = survey['challenges_stress_level'];
+
+    // QID17 → coping_help (Text)
+    if (survey['coping_help'] != null) data['QID17_TEXT'] = survey['coping_help'];
+
+    // QID18 → location_data (Encrypted Location Data - Hidden)
+    if (survey['locationJson'] != null) {
+      data['QID18_TEXT'] = survey['locationJson'];
+      debugPrint('🔍 Location data for QID18_TEXT: ${survey['locationJson'].toString().substring(0, 50)}...');
+    } else {
+      debugPrint('⚠️ No locationJson data found in survey data');
     }
-    
-    // Metadata
-    if (survey['submitted_at'] != null) data['QID_SUBMITTED_AT'] = survey['submitted_at'];
-    
-    // Location data (encrypted)
-    if (survey['locationJson'] != null) data['QID_LOCATION_DATA'] = survey['locationJson'];
-    
+
+    // QID19 → submitted_at (Submission Timestamp - Hidden)
+    if (survey['submitted_at'] != null) {
+      data['QID19_TEXT'] = survey['submitted_at'];
+    } else {
+      data['QID19_TEXT'] = DateTime.now().toIso8601String();
+    }
+
+    debugPrint('🔍 Complete biweekly survey mapping:');
+    data.forEach((key, value) {
+      debugPrint('   $key: $value');
+    });
+
     return data;
   }
 
-  /// Map consent form data to Qualtrics format
+  /// Map consent form data to Qualtrics format using simple text fields
+  /// Based on Planet4Health Consent Form 2025 PILOT blueprint
   static Map<String, dynamic> _mapConsentToQualtrics(Map<String, dynamic> consent) {
     final data = <String, dynamic>{};
     
-    // Add participant identifiers
-    if (consent['participant_code'] != null) data['QID_PARTICIPANT_CODE'] = consent['participant_code'];
-    if (consent['participant_uuid'] != null) data['QID_PARTICIPANT_UUID'] = consent['participant_uuid'];
-    
-    // Map consent checkboxes (1 = checked, 0 = unchecked)
-    data['QID_INFORMED_CONSENT'] = (consent['informed_consent'] == true) ? '1' : '0';
-    data['QID_DATA_PROCESSING'] = (consent['data_processing'] == true) ? '1' : '0';
-    data['QID_LOCATION_DATA'] = (consent['location_data'] == true) ? '1' : '0';
-    data['QID_SURVEY_DATA'] = (consent['survey_data'] == true) ? '1' : '0';
-    data['QID_DATA_RETENTION'] = (consent['data_retention'] == true) ? '1' : '0';
-    data['QID_DATA_SHARING'] = (consent['data_sharing'] == true) ? '1' : '0';
-    data['QID_VOLUNTARY_PARTICIPATION'] = (consent['voluntary_participation'] == true) ? '1' : '0';
-    
-    // Add signature and timestamp
-    if (consent['participant_signature'] != null) data['QID_PARTICIPANT_SIGNATURE'] = consent['participant_signature'];
-    if (consent['consented_at'] != null) data['QID_CONSENTED_AT'] = consent['consented_at'];
-    
+    // Participant identifiers
+    if (consent['participant_code'] != null) data['QID1_TEXT'] = consent['participant_code'].toString();
+    data['QID2_TEXT'] = GlobalData.userUUID; // participant_uuid
+
+    // Main consent checkboxes (1 = checked, 0 = unchecked) based on blueprint
+    data['QID3_TEXT'] = (consent['informed_consent'] == true) ? '1' : '0'; // I GIVE MY CONSENT to participate in this pilot study
+    data['QID4_TEXT'] = (consent['data_processing_consent'] == true) ? '1' : '0'; // I GIVE MY CONSENT for my personal data to be processed by Qualtrics
+    data['QID5_TEXT'] = (consent['race_ethnicity_consent'] == true) ? '1' : '0'; // I GIVE MY CONSENT to being asked about by race/ethnicity
+    data['QID6_TEXT'] = (consent['health_consent'] == true) ? '1' : '0'; // I GIVE MY CONSENT to being asked about my health
+    data['QID7_TEXT'] = (consent['sexual_orientation_consent'] == true) ? '1' : '0'; // I GIVE MY CONSENT to being asked about my sexual orientation
+    data['QID8_TEXT'] = (consent['location_mobility_consent'] == true) ? '1' : '0'; // I GIVE MY CONSENT to being asked about my location and mobility
+    data['QID9_TEXT'] = (consent['data_transfer_consent'] == true) ? '1' : '0'; // I GIVE MY CONSENT to transferring my personal data to countries outside South Africa
+    data['QID10_TEXT'] = (consent['public_reporting_consent'] == true) ? '1' : '0'; // I GIVE MY CONSENT to researchers reporting what I contribute publicly without my full name
+    data['QID11_TEXT'] = (consent['data_sharing_researchers_consent'] == true) ? '1' : '0'; // I GIVE MY CONSENT to what I contribute being shared with national and international researchers
+    data['QID12_TEXT'] = (consent['further_research_consent'] == true) ? '1' : '0'; // I GIVE MY CONSENT to what I contribute being used for further research or teaching purposes
+    data['QID13_TEXT'] = (consent['public_repository_consent'] == true) ? '1' : '0'; // I GIVE MY CONSENT to what I contribute being placed in a public repository in deidentified form
+    data['QID14_TEXT'] = (consent['followup_contact_consent'] == true) ? '1' : '0'; // I GIVE MY CONSENT to being contacted about participation in possible follow-up studies
+
+    // Signature and timestamp
+    if (consent['participant_signature'] != null) data['QID15_TEXT'] = consent['participant_signature'].toString();
+
+    if (consent['consented_at'] != null) {
+      data['QID16_TEXT'] = consent['consented_at'].toString();
+    } else {
+      data['QID16_TEXT'] = DateTime.now().toIso8601String();
+    }
+
     return data;
   }
 
   /// Get encrypted location data for a specific submission time (public method for use during survey submission)
   static Future<String?> getEncryptedLocationDataForSubmissionTime(String? participantUuid, DateTime submissionTime) async {
-    if (participantUuid == null) return null;
+    print('[QualtricsApiService] ===== LOCATION DATA CAPTURE START =====');
+    print('[QualtricsApiService] Participant UUID: $participantUuid');
+    print('[QualtricsApiService] Submission time: $submissionTime');
+    
+    if (participantUuid == null) {
+      print('[QualtricsApiService] ❌ No participant UUID - returning null');
+      return null;
+    }
     
     try {
       final db = SurveyDatabase();
       
       // Get user's latest consent decision
       final consent = await db.getLatestDataSharingConsent(participantUuid);
+      print('[QualtricsApiService] Location consent: ${consent?.locationSharingOption}');
+      
       if (consent == null || consent.locationSharingOption == LocationSharingOption.surveyOnly) {
-        print('[QualtricsApiService] No location consent or survey-only mode - skipping location data');
+        print('[QualtricsApiService] ❌ No location consent or survey-only mode - skipping location data');
         return null;
       }
       
       // Get location data based on consent for the 2 weeks prior to submission time
+      final startTime = submissionTime.subtract(Duration(days: 14));
+      print('[QualtricsApiService] ===== DATE RANGE DEBUG =====');
+      print('[QualtricsApiService] Submission time (NOW): ${submissionTime.toIso8601String()}');
+      print('[QualtricsApiService] Start time (14 days ago): ${startTime.toIso8601String()}');
+      print('[QualtricsApiService] Time range span: ${submissionTime.difference(startTime).inDays} days');
+      print('[QualtricsApiService] Looking for location data from $startTime to $submissionTime');
+      
       List<LocationTrack> locationTracks = [];
       
       switch (consent.locationSharingOption) {
         case LocationSharingOption.fullData:
           // Get all location data from 2 weeks before submission time
-          locationTracks = await _getLocationTracksForTimeRange(submissionTime.subtract(Duration(days: 14)), submissionTime);
+          locationTracks = await _getLocationTracksForTimeRange(startTime, submissionTime);
+          print('[QualtricsApiService] Full data mode: Found ${locationTracks.length} location tracks');
           break;
           
         case LocationSharingOption.partialData:
           // Get filtered location data based on user's selection for the time range
-          locationTracks = await _getPartialLocationDataForTimeRange(consent, submissionTime.subtract(Duration(days: 14)), submissionTime);
+          locationTracks = await _getPartialLocationDataForTimeRange(consent, startTime, submissionTime);
+          print('[QualtricsApiService] Partial data mode: Found ${locationTracks.length} location tracks');
           break;
           
         case LocationSharingOption.surveyOnly:
           // No location data
+          print('[QualtricsApiService] ❌ Survey-only mode - no location data');
           return null;
       }
       
       if (locationTracks.isEmpty) {
-        print('[QualtricsApiService] No location data available for encryption (submission time: $submissionTime)');
+        print('[QualtricsApiService] ❌ No location data available for encryption (submission time: $submissionTime)');
         return null;
       }
+      
+      print('[QualtricsApiService] ✅ Found ${locationTracks.length} location tracks for encryption');
       
       // Convert location tracks to JSON format
       final locationData = locationTracks.map((track) => {
@@ -401,15 +527,22 @@ class QualtricsApiService {
       }).toList();
       
       final locationJson = jsonEncode(locationData);
+      print('[QualtricsApiService] Location JSON length: ${locationJson.length} characters');
       
-      // Encrypt the location data using the same encryption service
-      final encryptedLocation = await LocationEncryptionService.encryptLocationData(locationJson);
+      // Get the research site and encrypt the location data
+      final researchSite = await LocationEncryptionService.getCurrentResearchSite();
+      final encryptedLocation = await LocationEncryptionService.encryptLocationData(
+        locationJson, 
+        researchSite: researchSite
+      );
       
-      print('[QualtricsApiService] Successfully encrypted ${locationTracks.length} location records for submission time: $submissionTime');
+      print('[QualtricsApiService] ✅ Successfully encrypted ${locationTracks.length} location records for submission time: $submissionTime');
+      print('[QualtricsApiService] Encrypted data length: ${encryptedLocation.length} characters');
+      print('[QualtricsApiService] ===== LOCATION DATA CAPTURE END =====');
       return encryptedLocation;
       
     } catch (e) {
-      print('[QualtricsApiService] Error getting encrypted location data for submission time: $e');
+      print('[QualtricsApiService] ❌ Error getting encrypted location data for submission time: $e');
       return null;
     }
   }
@@ -419,8 +552,62 @@ class QualtricsApiService {
     if (kIsWeb) return [];
     
     try {
+      print('[QualtricsApiService] ===== LOCATION RETRIEVAL DEBUG =====');
+      print('[QualtricsApiService] Fetching location tracks from database for time range $startTime to $endTime');
+      print('[QualtricsApiService] Time range span: ${endTime.difference(startTime).inDays} days, ${endTime.difference(startTime).inHours} hours');
+      
+      // Try database first - this is more reliable than background geolocation plugin storage
+      final db = SurveyDatabase();
+      
+      // First, let's check what's actually in the database
+      final allLocationTracks = await db.getAllLocationTracks();
+      print('[QualtricsApiService] Total location tracks in database: ${allLocationTracks.length}');
+      
+      if (allLocationTracks.isNotEmpty) {
+        print('[QualtricsApiService] Database date range:');
+        print('[QualtricsApiService]   Earliest: ${allLocationTracks.first.timestamp.toIso8601String()}');
+        print('[QualtricsApiService]   Latest: ${allLocationTracks.last.timestamp.toIso8601String()}');
+        
+        // Show tracks from last few days
+        final recentCutoff = DateTime.now().subtract(Duration(days: 3));
+        final recentTracks = allLocationTracks.where((track) => track.timestamp.isAfter(recentCutoff)).toList();
+        print('[QualtricsApiService] Recent tracks (last 3 days): ${recentTracks.length}');
+      }
+      
+      final dbLocationTracks = await db.getLocationTracksSince(startTime);
+      
+      print('[QualtricsApiService] Raw database query returned ${dbLocationTracks.length} tracks since $startTime');
+      
+      // Show some sample timestamps from database if we have data
+      if (dbLocationTracks.isNotEmpty) {
+        print('[QualtricsApiService] Database sample timestamps:');
+        for (int i = 0; i < min(5, dbLocationTracks.length); i++) {
+          print('[QualtricsApiService]   Track ${i+1}: ${dbLocationTracks[i].timestamp.toIso8601String()}');
+        }
+        if (dbLocationTracks.length > 5) {
+          print('[QualtricsApiService]   ... and ${dbLocationTracks.length - 5} more tracks');
+        }
+        print('[QualtricsApiService] Latest track: ${dbLocationTracks.last.timestamp.toIso8601String()}');
+        print('[QualtricsApiService] Earliest track: ${dbLocationTracks.first.timestamp.toIso8601String()}');
+      }
+      
+      // Filter to end time
+      final filteredDbTracks = dbLocationTracks.where((track) => 
+        track.timestamp.isAfter(startTime) && track.timestamp.isBefore(endTime)
+      ).toList();
+      
+      print('[QualtricsApiService] After filtering to end time: ${filteredDbTracks.length} location tracks');
+      
+      if (filteredDbTracks.isNotEmpty) {
+        return filteredDbTracks;
+      }
+      
+      // Fallback to background geolocation plugin storage if database is empty
+      print('[QualtricsApiService] Database empty, trying background geolocation plugin...');
       final bgLocations = await bg.BackgroundGeolocation.locations;
       final locationTracks = <LocationTrack>[];
+      
+      print('[QualtricsApiService] Found ${bgLocations.length} records in background geolocation plugin');
       
       for (var bgLocation in bgLocations) {
         try {
@@ -460,7 +647,7 @@ class QualtricsApiService {
       print('[QualtricsApiService] Retrieved ${locationTracks.length} location tracks for time range ${startTime.toIso8601String()} to ${endTime.toIso8601String()}');
       return locationTracks;
     } catch (e) {
-      print('[QualtricsApiService] Error getting background locations for time range: $e');
+      print('[QualtricsApiService] Error getting location tracks for time range: $e');
       return [];
     }
   }

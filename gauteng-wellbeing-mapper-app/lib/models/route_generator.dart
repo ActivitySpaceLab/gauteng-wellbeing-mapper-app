@@ -1,4 +1,5 @@
 import 'package:wellbeing_mapper/ui/notification_settings_view.dart';
+import 'package:wellbeing_mapper/ui/storage_settings_view.dart';
 import 'package:flutter/material.dart';
 
 import '../ui/home_view.dart';
@@ -69,6 +70,8 @@ class RouteGenerator {
         return _errorRoute();
       case '/notification_settings':
         return MaterialPageRoute(builder: (_) => NotificationSettingsView());
+      case '/storage_settings':
+        return MaterialPageRoute(builder: (_) => StorageSettingsView());
       case '/initial_survey':
         return MaterialPageRoute(builder: (_) => InitialSurveyScreen());
       case '/recurring_survey':
@@ -124,7 +127,7 @@ class RouteGenerator {
           return MaterialPageRoute(
             builder: (_) => ConsentFormScreen(
               participantCode: args['participantCode'] ?? '',
-              researchSite: args['researchSite'] ?? 'barcelona',
+              researchSite: args['researchSite'] ?? 'gauteng',
               isTestingMode: args['isTestingMode'] ?? false,
             ),
           );

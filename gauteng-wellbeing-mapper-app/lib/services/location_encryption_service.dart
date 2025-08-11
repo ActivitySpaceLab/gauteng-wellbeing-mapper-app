@@ -4,19 +4,41 @@ import 'package:fast_rsa/fast_rsa.dart';
 
 /// Service for encrypting location data before inserting into Qualtrics surveys
 class LocationEncryptionService {
-  // Research site public keys - using same keys as data upload service
+  // Research site public keys - using production key for Gauteng
   static const Map<String, String> _publicKeys = {
     'barcelona': '''-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA1234567890...
 -----END PUBLIC KEY-----''', // Barcelona public key placeholder
     'gauteng': '''-----BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0987654321...
------END PUBLIC KEY-----''', // Gauteng public key placeholder
+MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEA0J5sRl93JHb16BSzkkDu
+phMMne8Yv/qAtLxGl2yHGZ1dFsMY7xJU+9epEN6DPA5PFbo+NwumQ17aAw7IDm8A
+Pyis7gryWDtaGUNjapvQdq+Kfx1Z0D+yx569KjWxAwQpGL6PxOdW0RKwsV3QKgCo
+RJxQqtr9QJHQ/FIBrfzuh+MmCie9JSFE3nrRBEjOQszI72AUx4xxE1RauQnwgvGx
+HrJoue9tFAAQfWzv95VigRHKqAlzRbZkmNQJOWGng3xAbfgf3v+wSnin51lp5H1/
+qMeBmv0ABEMRWpcgsfhd9pIwX13paq766GFYFZMh0n9UDscXA5y2/p4YbgjEINPF
+f7vFuRwiFjS4j+0ZiuOLi2DbF9DWYh2jX1ZVxMUMbv2t0cdcCnXsYSqxzAfKODf7
+xxTKffLKxP5xEaR8bnrwMS2YaAB3CRAi7ZYSp7OvS/PCM2HeWV9WaCSYZJsv+VJI
+0A2bVvauok8Odzmd3z9RZarVowfpc1MyGABrlp52lp1Q6nGuHrIXaUSil/SYP9yD
+PwkY+fa6X6hUpSMUmPfgZkS5IAiWPRpbqe6OJ4N+uelyVn+rvmRz/SgJ3g89L6dh
+vzgBHEl3b7c051V8daNVoOmadjWYVzVyC7ViXf5Qtzl0Zg2bfyD0MGNUh/gwGgcu
+AKr5gbTqca/dY/+Or3Ha/sECAwEAAQ==
+-----END PUBLIC KEY-----''', // Gauteng production public key
   };
 
-  // For testing - you can generate a real key pair and replace this
-  static const String _testPublicKey = '''-----BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyX1234Test567Key890Example1234567890Test1234567890Test1234567890Test1234567890Test1234567890Test1234567890Test1234567890Test1234567890Test1234567890Test1234567890Test1234567890Test1234567890Test1234567890Test1234567890Test1234567890Test1234567890Test1234567890Test1234567890Test1234567890Test1234567890Test1234567890Test1234567890TestExample
+  // Production public key for encryption
+  static const String _productionPublicKey = '''-----BEGIN PUBLIC KEY-----
+MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEA0J5sRl93JHb16BSzkkDu
+phMMne8Yv/qAtLxGl2yHGZ1dFsMY7xJU+9epEN6DPA5PFbo+NwumQ17aAw7IDm8A
+Pyis7gryWDtaGUNjapvQdq+Kfx1Z0D+yx569KjWxAwQpGL6PxOdW0RKwsV3QKgCo
+RJxQqtr9QJHQ/FIBrfzuh+MmCie9JSFE3nrRBEjOQszI72AUx4xxE1RauQnwgvGx
+HrJoue9tFAAQfWzv95VigRHKqAlzRbZkmNQJOWGng3xAbfgf3v+wSnin51lp5H1/
+qMeBmv0ABEMRWpcgsfhd9pIwX13paq766GFYFZMh0n9UDscXA5y2/p4YbgjEINPF
+f7vFuRwiFjS4j+0ZiuOLi2DbF9DWYh2jX1ZVxMUMbv2t0cdcCnXsYSqxzAfKODf7
+xxTKffLKxP5xEaR8bnrwMS2YaAB3CRAi7ZYSp7OvS/PCM2HeWV9WaCSYZJsv+VJI
+0A2bVvauok8Odzmd3z9RZarVowfpc1MyGABrlp52lp1Q6nGuHrIXaUSil/SYP9yD
+PwkY+fa6X6hUpSMUmPfgZkS5IAiWPRpbqe6OJ4N+uelyVn+rvmRz/SgJ3g89L6dh
+vzgBHEl3b7c051V8daNVoOmadjWYVzVyC7ViXf5Qtzl0Zg2bfyD0MGNUh/gwGgcu
+AKr5gbTqca/dY/+Or3Ha/sECAwEAAQ==
 -----END PUBLIC KEY-----''';
 
   /// Encrypt location JSON data before inserting into survey
@@ -31,8 +53,8 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyX1234Test567Key890Example1234567890
       if (researchSite != null && _publicKeys.containsKey(researchSite)) {
         publicKey = _publicKeys[researchSite]!;
       } else {
-        // Use test key for testing or when research site is unknown
-        publicKey = _testPublicKey;
+        // Use production key for all encryption
+        publicKey = _productionPublicKey;
       }
 
       // Create encryption metadata
@@ -115,15 +137,11 @@ MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyX1234Test567Key890Example1234567890
   /// Get appropriate research site from stored participant data or app settings
   static Future<String?> getCurrentResearchSite() async {
     try {
-      // TODO: Implement logic to determine research site
-      // This could be based on:
-      // - Participant code validation result
-      // - App settings
-      // - Geographic location
-      // For now, return null to use test key
-      return null;
+      // This is the Gauteng Wellbeing Mapper app, so return 'gauteng'
+      // This ensures we use the correct public key for encryption
+      return 'gauteng';
     } catch (e) {
-      return null;
+      return 'gauteng'; // Fallback to gauteng
     }
   }
 

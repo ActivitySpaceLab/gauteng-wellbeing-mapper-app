@@ -33,7 +33,7 @@ class _DataUploadScreenState extends State<DataUploadScreen> {
         // Parse participation settings to get research site
         // This is a simplified parsing - in production, use proper JSON parsing
         setState(() {
-          _researchSite = 'barcelona'; // Default, should be parsed from JSON
+          _researchSite = 'gauteng'; // Default, should be parsed from JSON
         });
         
         // Get participant UUID from consent
@@ -153,7 +153,7 @@ class _DataUploadScreenState extends State<DataUploadScreen> {
             ),
             SizedBox(height: 12),
             if (_researchSite != null) ...[
-              Text('Study Site: ${_researchSite == 'barcelona' ? 'Barcelona, Spain' : 'Gauteng, South Africa'}'),
+              Text('Study Site: Gauteng, South Africa'),
               SizedBox(height: 8),
             ],
             if (_participantUuid != null) ...[

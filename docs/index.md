@@ -6,103 +6,29 @@ description: A mobile app for studying mental wellbeing in environmental & clima
 
 Welcome to the **Wellbeing Mapper** documentation website. Wellbeing Mapper is a mobile app for studying mental wellbeing in environmental & climate context. It has been developed as part of the [Planet4Health project](https://planet4health.eu), funded by the European Union. 
 
-## 🧪 Current Status: Beta Testing
+## 🧪 Current Status: Pilot Testing
 
-The app is currently in **beta testing phase** with the following modes available:
+The app is currently in **pilot testing phase** with research participants in Gauteng, South Africa.
 
-- **🔒 Private Mode**: Use the app for personal wellbeing tracking
-- **🧪 App Testing Mode**: Test all research features safely (no real data collection)
+### Available App Modes
+- **🔒 Private Mode**: Use the app for personal wellbeing tracking (all data stays on your device)
+- **🔬 Research Mode**: Participate in the Planet4Health study with anonymous, encrypted data sharing
 
-Full research participation will be available in the next release for volunteers in Gauteng, South Africa, and Barcelona, Spain.
-
-### Beta Testing Information
-- All features are available for testing
-- No real research data is collected in testing mode
-- Can be used to explore the app's capabilities
-- Feedback welcome via our development team
+For pilot testing, participants should use **Research Mode** with their assigned participant codes.
 
 ---
 
-This site contains documentation for beta testers, app users, developers, and researchers.
+This site contains documentation for users, developers, and researchers.
 
-## 🧪 For Beta Testers
+## 🏠 [Home](index.md)
 
-### Quick Start
-- **[Beta User Guide](BETA_USER_GUIDE.md)** - Complete beta testing guide
-- **[Getting Started](BETA_USER_GUIDE.md#getting-started)** - Choose your mode and start testing
-- **[Feedback Guidelines](BETA_USER_GUIDE.md#how-to-provide-feedback)** - How to report issues and suggestions
+## 📱 [User Guide](USER_GUIDE.md)
+Complete guide for both pilot test participants and regular research participants:
+- **[Getting Started](USER_GUIDE.md#getting-started)** - Choose your mode and start
+- **[Research Participation](USER_GUIDE.md#research-participation)** - How to participate in the study
+- **[Privacy & Data Control](USER_GUIDE.md#privacy-data-control)** - Understanding your data rights
 
-### Testing Focus Areas
-- **App Functionality**: Location tracking, surveys, notifications
-- **User Experience**: Interface clarity, onboarding flow
-- **Technical Issues**: Performance, battery usage, crashes
-- **Privacy Features**: Data handling, permission controls
-
-## � For Future App Users
-
-### When Research Mode is Available
-- **[User Guide](USER_GUIDE.md)** - Complete guide to using the app for research
-- **[Privacy Policy](PRIVACY.md)** - How we protect your data  
-- **[Download](https://github.com/ActivitySpaceLab/gauteng-wellbeing-mapper-app/releases)** - Get the latest version
-
-### Research Participation
-- **Participant Codes**: Required from research team
-- **Consent Process**: Full research consent and information sheets
-- **Data Security**: End-to-end encryption for all research data
-- **Study Locations**: Gauteng, South Africa and Barcelona, Spain
-- **Validation System**: Secure participant code verification system
-
-## 💻 For Developers
-
-### Development Resources
-- **[Developer Guide](DEVELOPER_GUIDE.md)** - Technical documentation and architecture
-- **[Beta Testing Guide](BETA_TESTING_GUIDE.md)** - Release preparation instructions
-- **[Research Mode Activation](RESEARCH_MODE_ACTIVATION.md)** - Guide for activating research participation
-- **[API Reference](API_REFERENCE.md)** - Complete API documentation
-- **[Architecture Overview](ARCHITECTURE.md)** - System design and data flow
-
-### Build & Release Management
-- **[Git Flow + Build Flavors Guide](GIT_FLOW_BUILD_FLAVORS_GUIDE.md)** - Production vs beta build system
-- **[GitHub Releases Guide](GITHUB_RELEASES_GUIDE.md)** - Automated release deployment system
-- **[Implementation Complete](IMPLEMENTATION_COMPLETE.md)** - Latest implementation status
-- **[Release Guide](RELEASE_GUIDE.md)** - Complete release and deployment process
-- **[Release Checklist](RELEASE_CHECKLIST.md)** - Pre-release validation steps
-- **[CI Performance Improvements](CI_PERFORMANCE_IMPROVEMENTS.md)** - Build optimization notes
-
-### Platform-Specific Guides
-- **[iOS Location Fix Summary](iOS_LOCATION_FIX_SUMMARY.md)** - iOS location permission implementation
-- **[iOS Location Debug Status](iOS_LOCATION_DEBUG_STATUS.md)** - iOS debugging and testing notes
-- **[iOS Location Debug Notes](IOS_LOCATION_DEBUG_NOTES.md)** - Additional iOS troubleshooting
-- **[iOS Location Prevention System](iOS_LOCATION_PREVENTION_SYSTEM.md)** - iOS location permission prevention
-- **[Tablet Screenshot Guide](manual_tablet_screenshot_guide.md)** - App Store screenshot generation
-- **[Cloud Testing Options](CLOUD_TESTING_OPTIONS.md)** - Remote testing configurations
-
-### Feature Implementation
-- **[Voice Notes and Photos](VOICE_NOTES_AND_PHOTOS_IMPLEMENTATION.md)** - Media capture features
-- **[Wellbeing Map Feature](WELLBEING_MAP_FEATURE.md)** - Interactive mapping functionality
-- **[Wellbeing Timeline Feature](WELLBEING_TIMELINE_FEATURE.md)** - Timeline visualization system
-- **[Participant Validation System](PARTICIPANT_VALIDATION_SYSTEM.md)** - Secure research access control
-- **[Export Data Fix Summary](EXPORT_DATA_FIX_SUMMARY.md)** - Data export improvements
-- **[Location Selection Testing](LOCATION_SELECTION_TESTING_SUMMARY.md)** - Location feature testing
-- **[Consent System](CONSENT_SYSTEM.md)** - User consent and privacy implementation
-
-### Recent Updates
-- **[App Mode System](DEVELOPER_GUIDE.md#app-mode-system)** - Beta vs. research configuration
-- **[Notification Features](NOTIFICATION_FEATURE_SUMMARY.md)** - Enhanced survey reminder system
-- **[Notification System Enhancement](NOTIFICATION_SYSTEM_ENHANCEMENT.md)** - Advanced notification features
-- **[Testing Tools](DEVELOPER_GUIDE.md#notification-system-features)** - Beta testing capabilities
-
-### Bug Fixes & Troubleshooting
-- **[App Mode Switching Bug Fix](APP_MODE_SWITCHING_BUG_FIX.md)** - Mode switching issue resolution
-- **[App Mode Testing Fix](APP_MODE_TESTING_FIX.md)** - CI testing with app mode restrictions
-- **[Testing App Mode Fix](TESTING_APP_MODE_FIX.md)** - App mode testing procedures
-- **[Wellbeing Survey Bug Fix](WELLBEING_SURVEY_BUG_FIX.md)** - Survey functionality fixes
-- **[Google Play Compliance Fix](GOOGLE_PLAY_COMPLIANCE_FIX.md)** - Play Store policy compliance
-- **[Google Play Exact Alarm Fix](GOOGLE_PLAY_USE_EXACT_ALARM_FIX_SUMMARY.md)** - Alarm permission handling
-- **[Happiness Survey Update](HAPPINESS_SURVEY_UPDATE_SUMMARY.md)** - Survey content updates
-
-## 🔬 For Researchers
-
+## 🔬 [Researcher Guide](RESEARCHER_GUIDE.md)
 ### Data Collection & Analysis
 - **[Location Data Decryption](LOCATION_DATA_DECRYPTION.md)** - Complete guide to decrypt location data from Qualtrics exports
 - **[Encryption Setup](ENCRYPTION_SETUP.md)** - Security and key management for data collection
@@ -112,6 +38,42 @@ This site contains documentation for beta testers, app users, developers, and re
 - **[Participant Validation System](PARTICIPANT_VALIDATION_SYSTEM.md)** - Secure participant access control
 - **[Research Features](RESEARCH_FEATURES_SUMMARY.md)** - Available research tools
 - **[Privacy Documentation](PRIVACY.md)** - Data protection measures
+
+## 💻 [Developer Guide](DEVELOPER_GUIDE.md)
+### Development Resources
+- **[Architecture Overview](ARCHITECTURE.md)** - System design and data flow
+- **[API Reference](API_REFERENCE.md)** - Complete API documentation
+- **[Notification System](NOTIFICATION_FEATURE_SUMMARY.md)** - Enhanced survey reminder system
+
+### Build & Release Management
+- **[Git Flow + Build Flavors Guide](GIT_FLOW_BUILD_FLAVORS_GUIDE.md)** - Production vs beta build system
+- **[GitHub Releases Guide](GITHUB_RELEASES_GUIDE.md)** - Automated release deployment system
+- **[Release Guide](RELEASE_GUIDE.md)** - Complete release and deployment process
+
+## 🛡️ [Privacy](PRIVACY.md)
+We take your privacy seriously:
+- **End-to-end encryption** for all research data
+- **No personal identifiers** in location or survey data
+- **Full user control** over data sharing and participation
+- **GDPR compliant** data handling practices
+
+## 📂 [GitHub](https://github.com/ActivitySpaceLab/gauteng-wellbeing-mapper-app)
+- **[Source Code](https://github.com/ActivitySpaceLab/gauteng-wellbeing-mapper-app)**
+- **[Issues](https://github.com/ActivitySpaceLab/gauteng-wellbeing-mapper-app/issues)**
+- **[Releases](https://github.com/ActivitySpaceLab/gauteng-wellbeing-mapper-app/releases)**
+
+---
+
+## Additional Resources
+
+### For Beta Testers
+- **[Beta User Guide](BETA_USER_GUIDE.md)** - Complete beta testing guide
+
+### Testing Focus Areas
+- **App Functionality**: Location tracking, surveys, notifications
+- **User Experience**: Interface clarity, onboarding flow  
+- **Technical Issues**: Performance, battery usage, crashes
+- **Privacy Features**: Data handling, permission controls
 
 ### Key Features
 - **🔒 Private Mode**: Track where you spend your time privately on your device

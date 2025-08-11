@@ -30,7 +30,7 @@ class _RecurringSurveyScreenState extends State<RecurringSurveyScreen> {
   List<String> _voiceNoteUrls = [];
   List<File> _voiceNoteFiles = [];
   final ImagePicker _picker = ImagePicker();
-  String _researchSite = 'barcelona'; // Default to Barcelona
+  String _researchSite = 'gauteng'; // Default to Gauteng
   
   // Voice recording state
   bool _isRecording = false;
@@ -64,13 +64,13 @@ class _RecurringSurveyScreenState extends State<RecurringSurveyScreen> {
         
         final settings = ParticipationSettings.fromJson(participationData);
         setState(() {
-          _researchSite = settings.researchSite ?? 'barcelona';
+          _researchSite = settings.researchSite ?? 'gauteng';
         });
       }
     } catch (e) {
-      // Default to Barcelona if any error
+      // Default to Gauteng if any error
       setState(() {
-        _researchSite = 'barcelona';
+        _researchSite = 'gauteng';
       });
     }
   }

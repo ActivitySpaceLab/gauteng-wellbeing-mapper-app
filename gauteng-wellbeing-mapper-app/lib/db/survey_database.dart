@@ -432,7 +432,7 @@ class SurveyDatabase {
         SELECT 
           age, ethnicity, gender, sexuality, birth_place, lives_in_barcelona,
           building_type, household_items, education, climate_activism,
-          submitted_at, synced, created_at, 'barcelona'
+          submitted_at, synced, created_at, 'gauteng'
         FROM initial_survey_backup
       ''');
       
@@ -562,7 +562,7 @@ class SurveyDatabase {
         // TODO: MULTIMEDIA DISABLED - Uncomment to re-enable multimedia support
         // voiceNoteUrls: maps[i]['voice_note_urls'] != null ? List<String>.from(jsonDecode(maps[i]['voice_note_urls'] as String)) : null,
         // imageUrls: maps[i]['image_urls'] != null ? List<String>.from(jsonDecode(maps[i]['image_urls'] as String)) : null,
-        researchSite: maps[i]['research_site'] as String? ?? 'barcelona',
+        researchSite: maps[i]['research_site'] as String? ?? 'gauteng',
         submittedAt: DateTime.parse(maps[i]['submitted_at'] as String),
       );
     });
@@ -654,7 +654,7 @@ class SurveyDatabase {
         // imageUrls: maps[i]['image_urls'] != null 
         //     ? List<String>.from(jsonDecode(maps[i]['image_urls'] as String))
         //     : null,
-        researchSite: maps[i]['research_site'] as String? ?? 'barcelona',
+        researchSite: maps[i]['research_site'] as String? ?? 'gauteng',
         submittedAt: DateTime.parse(maps[i]['submitted_at'] as String),
         encryptedLocationData: maps[i]['encrypted_location_data'] as String?,
       );
@@ -944,5 +944,74 @@ class SurveyDatabase {
 
   Future<void> markRecurringSurveySynced(int surveyId) async {
     await markSurveyAsSynced('recurring_survey_responses', surveyId);
+  }
+
+  // Location data management methods
+  Future<void> cleanupOldLocationData(DateTime cutoffDate) async {
+    final db = await database;
+    final cutoffTimestamp = cutoffDate.millisecondsSinceEpoch.toString();
+    
+    print('[SurveyDatabase] Cleaning up location data older than $cutoffDate');
+    
+    try {
+      // Clean up location tracks table
+      int tracksDeleted = await db.delete(
+        'location_tracks',
+        where: 'timestamp < ?',
+        whereArgs: [cutoffTimestamp]
+      );
+      
+      print('[SurveyDatabase] Deleted $tracksDeleted old location tracks');
+      
+    } catch (e) {
+      print('[SurveyDatabase] Error during location data cleanup: $e');
+    }
+  }
+
+  Future<Map<String, dynamic>> getLocationDataStats() async {
+    final db = await database;
+    final stats = <String, dynamic>{};
+    
+    try {
+      // Get location tracks count
+      final tracksResult = await db.rawQuery('SELECT COUNT(*) as count FROM location_tracks');
+      stats['totalLocationTracks'] = Sqflite.firstIntValue(tracksResult) ?? 0;
+      
+      // Get oldest and newest location tracks
+      final oldestResult = await db.rawQuery(
+        'SELECT MIN(timestamp) as oldest FROM location_tracks WHERE timestamp IS NOT NULL'
+      );
+      final newestResult = await db.rawQuery(
+        'SELECT MAX(timestamp) as newest FROM location_tracks WHERE timestamp IS NOT NULL'
+      );
+      
+      final oldestTimestamp = oldestResult.first['oldest'];
+      final newestTimestamp = newestResult.first['newest'];
+      
+      if (oldestTimestamp != null) {
+        stats['oldestLocationDate'] = DateTime.fromMillisecondsSinceEpoch(
+          int.parse(oldestTimestamp.toString())
+        );
+      }
+      
+      if (newestTimestamp != null) {
+        stats['newestLocationDate'] = DateTime.fromMillisecondsSinceEpoch(
+          int.parse(newestTimestamp.toString())
+        );
+      }
+      
+      // Calculate data span in days
+      if (stats['oldestLocationDate'] != null && stats['newestLocationDate'] != null) {
+        stats['locationDataSpanDays'] = (stats['newestLocationDate'] as DateTime)
+            .difference(stats['oldestLocationDate'] as DateTime)
+            .inDays;
+      }
+      
+    } catch (e) {
+      print('[SurveyDatabase] Error getting location data stats: $e');
+      stats['error'] = e.toString();
+    }
+    
+    return stats;
   }
 }
