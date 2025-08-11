@@ -28,6 +28,13 @@ Complete guide for both pilot test participants and regular research participant
 - **[Research Participation](USER_GUIDE.md#research-participation)** - How to participate in the study
 - **[Privacy & Data Control](USER_GUIDE.md#privacy-data-control)** - Understanding your data rights
 
+## 📸 [Screenshots Gallery](SCREENSHOTS.md)
+Visual showcase of the app interface across devices:
+- **Mobile Interface** - iPhone screenshots showing core features
+- **Tablet Interface** - 7-inch and 10-inch responsive layouts
+- **Design Features** - Cross-platform UI consistency
+- **Beta Testing Focus** - Areas for feedback and testing
+
 ## 🔬 [Researcher Guide](RESEARCHER_GUIDE.md)
 ### Data Collection & Analysis
 - **[Location Data Decryption](LOCATION_DATA_DECRYPTION.md)** - Complete guide to decrypt location data from Qualtrics exports

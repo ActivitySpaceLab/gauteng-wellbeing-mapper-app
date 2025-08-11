@@ -102,6 +102,14 @@ If you have a different version, install Flutter 3.27.1 from the [Flutter releas
    - Data synchronization flow
    - Error handling flow
 
+5. **[Screenshots Gallery](SCREENSHOTS.md)** - Visual showcase of the app interface:
+   - Mobile interface (iPhone)
+   - Tablet interface (7-inch and 10-inch)
+   - Responsive design examples
+   - Cross-platform UI consistency
+   - Beta testing focus areas
+   - Feedback guidelines for UI/UX
+
 ## Quick Start for New Developers
 
 ### 1. First Time Setup
