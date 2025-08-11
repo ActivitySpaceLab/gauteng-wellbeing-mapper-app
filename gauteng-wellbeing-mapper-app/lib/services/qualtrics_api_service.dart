@@ -14,11 +14,11 @@ class QualtricsApiService {
   static const String _baseUrl = 'https://pretoria.eu.qualtrics.com/API/v3';
   static const String _apiToken = 'WxyQMBmQvkPrL3H9YuKPCGhpCtccT7Z28KKwkMVt';
   
-    // Survey IDs for different survey types
+  // Survey IDs for different survey types
   // These are the published surveys with all questions included
   static const String _initialSurveyId = 'SV_bsb8iq0UiATXRJQ'; // Published Initial Survey (Proper - Complete)
   static const String _biweeklySurveyId = 'SV_eUJstaSWQeKykBM'; // Published Biweekly Survey (Proper - Complete)
-  static const String _consentSurveyId = 'SV_9o66CMEItVlFbdc'; // Published Consent Survey (Proper - Complete)
+  static const String _consentSurveyId = 'SV_4I7j91aabspz5YO'; // Published Consent Survey (Proper - Complete)
 
   /// Sync a completed initial survey to Qualtrics
   static Future<bool> syncInitialSurvey(Map<String, dynamic> surveyData) async {

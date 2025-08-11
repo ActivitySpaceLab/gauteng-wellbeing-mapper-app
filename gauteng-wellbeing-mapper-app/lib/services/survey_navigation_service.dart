@@ -113,15 +113,15 @@ class SurveyNavigationService {
   
   /// Get survey URLs for external use
   static String getInitialSurveyUrl() {
-    return 'https://pretoria.eu.qualtrics.com/jfe/form/SV_02r8X8ePu0b2WNw';
+    return 'https://pretoria.eu.qualtrics.com/jfe/form/SV_bsb8iq0UiATXRJQ';
   }
   
   static String getBiweeklySurveyUrl() {
-    return 'https://pretoria.eu.qualtrics.com/jfe/form/SV_88oXgY81cCwIxvw';
+    return 'https://pretoria.eu.qualtrics.com/jfe/form/SV_eUJstaSWQeKykBM';
   }
   
   static String getConsentSurveyUrl() {
-    return 'https://pretoria.eu.qualtrics.com/jfe/form/SV_eYdj4iL3W8ydWJ0';
+    return 'https://pretoria.eu.qualtrics.com/jfe/form/SV_4I7j91aabspz5YO';
   }
   
   /// Check if Qualtrics surveys are enabled

@@ -21,8 +21,9 @@ import '../ui/participant_code_entry_screen.dart';
 
 // Survey URLs for direct access
 class SurveyUrls {
-  static const String initialSurvey = 'https://pretoria.eu.qualtrics.com/jfe/form/SV_byJSMxWDA88icbY';
-  static const String biweeklySurvey = 'https://pretoria.eu.qualtrics.com/jfe/form/SV_3aNJIQJXHPCyaOi';
+  static const String initialSurvey = 'https://pretoria.eu.qualtrics.com/jfe/form/SV_bsb8iq0UiATXRJQ';
+  static const String biweeklySurvey = 'https://pretoria.eu.qualtrics.com/jfe/form/SV_eUJstaSWQeKykBM';
+  static const String consentSurvey = 'https://pretoria.eu.qualtrics.com/jfe/form/SV_4I7j91aabspz5YO';
 }
 
 class GlobalRouteData {

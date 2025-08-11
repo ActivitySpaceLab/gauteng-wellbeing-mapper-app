@@ -12,8 +12,8 @@ class QualtricsApiService {
   static const String _apiToken = 'YOUR_QUALTRICS_API_TOKEN_HERE';
   
   // Your survey IDs from Qualtrics
-  static const String _initialSurveyId = 'SV_byJSMxWDA88icbY';
-  static const String _biweeklySurveyId = 'SV_3aNJIQJXHPCyaOi';
+  static const String _initialSurveyId = 'SV_bsb8iq0UiATXRJQ';
+  static const String _biweeklySurveyId = 'SV_eUJstaSWQeKykBM';
   
   /// Sync a completed initial survey to Qualtrics
   static Future<bool> syncInitialSurvey(Map<String, dynamic> surveyData) async {

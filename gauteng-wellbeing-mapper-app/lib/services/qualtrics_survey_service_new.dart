@@ -7,9 +7,9 @@ class QualtricsSurveyService {
   static const String _participantUuidField = 'participant_uuid'; // New field for UUID
   static const String _locationJsonField = 'locations';
   
-  // Survey URLs - these are test surveys, replace with your actual survey URLs
-  static const String _initialSurveyUrl = 'https://pretoria.eu.qualtrics.com/jfe/form/SV_byJSMxWDA88icbY';
-  static const String _biweeklySurveyUrl = 'https://pretoria.eu.qualtrics.com/jfe/form/SV_3aNJIQJXHPCyaOi';
+  // Survey URLs - these are the correct production survey URLs
+  static const String _initialSurveyUrl = 'https://pretoria.eu.qualtrics.com/jfe/form/SV_bsb8iq0UiATXRJQ';
+  static const String _biweeklySurveyUrl = 'https://pretoria.eu.qualtrics.com/jfe/form/SV_eUJstaSWQeKykBM';
 
   /// Generate JavaScript to populate hidden fields in Qualtrics survey
   static Future<String> populateHiddenFields(String participantCode, SurveyType surveyType, {String? locationJson}) async {
