@@ -989,15 +989,35 @@ class SurveyDatabase {
       final newestTimestamp = newestResult.first['newest'];
       
       if (oldestTimestamp != null) {
-        stats['oldestLocationDate'] = DateTime.fromMillisecondsSinceEpoch(
-          int.parse(oldestTimestamp.toString())
-        );
+        // Handle different timestamp formats safely
+        int? timestampInt;
+        if (oldestTimestamp is int) {
+          timestampInt = oldestTimestamp;
+        } else if (oldestTimestamp is String) {
+          timestampInt = int.tryParse(oldestTimestamp);
+        } else if (oldestTimestamp is double) {
+          timestampInt = oldestTimestamp.toInt();
+        }
+        
+        if (timestampInt != null) {
+          stats['oldestLocationDate'] = DateTime.fromMillisecondsSinceEpoch(timestampInt);
+        }
       }
       
       if (newestTimestamp != null) {
-        stats['newestLocationDate'] = DateTime.fromMillisecondsSinceEpoch(
-          int.parse(newestTimestamp.toString())
-        );
+        // Handle different timestamp formats safely
+        int? timestampInt;
+        if (newestTimestamp is int) {
+          timestampInt = newestTimestamp;
+        } else if (newestTimestamp is String) {
+          timestampInt = int.tryParse(newestTimestamp);
+        } else if (newestTimestamp is double) {
+          timestampInt = newestTimestamp.toInt();
+        }
+        
+        if (timestampInt != null) {
+          stats['newestLocationDate'] = DateTime.fromMillisecondsSinceEpoch(timestampInt);
+        }
       }
       
       // Calculate data span in days

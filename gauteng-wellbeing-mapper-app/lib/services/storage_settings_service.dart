@@ -4,11 +4,15 @@ import 'package:flutter/foundation.dart';
 import '../db/survey_database.dart';
 
 class StorageSettingsService {
-  // Default values
+  // Default values - changed minimum retention to 14 days for survey compatibility
   static const int DEFAULT_LOCATION_RETENTION_DAYS = 30;
   static const int DEFAULT_MAP_DISPLAY_DAYS = 14;
   static const int DEFAULT_MAX_MAP_MARKERS = 500;
   static const bool DEFAULT_AUTO_CLEANUP_ENABLED = true;
+  static const int MINIMUM_LOCATION_RETENTION_DAYS = 14; // Minimum for survey requirements
+  
+  // Unlimited constants
+  static const int UNLIMITED_VALUE = -1;
   
   // SharedPreferences keys
   static const String PREF_LOCATION_RETENTION_DAYS = 'location_retention_days';
@@ -16,6 +20,8 @@ class StorageSettingsService {
   static const String PREF_MAX_MAP_MARKERS = 'max_map_markers';
   static const String PREF_AUTO_CLEANUP_ENABLED = 'auto_cleanup_enabled';
   static const String PREF_LAST_CLEANUP_DATE = 'last_cleanup_date';
+  static const String PREF_LOCATION_RETENTION_LIMITED = 'location_retention_limited';
+  static const String PREF_MAP_DISPLAY_LIMITED = 'map_display_limited';
 
   /// Get how many days to retain location data in local storage
   static Future<int> getLocationRetentionDays() async {
@@ -28,11 +34,31 @@ class StorageSettingsService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(PREF_LOCATION_RETENTION_DAYS, days);
     
-    // Update Background Geolocation plugin setting
+    // Update background geolocation plugin settings
     if (!kIsWeb) {
-      await bg.BackgroundGeolocation.setConfig(bg.Config(
-        maxDaysToPersist: days
-      ));
+      await bg.BackgroundGeolocation.setConfig(
+        bg.Config(maxDaysToPersist: days == UNLIMITED_VALUE ? 999999 : days)
+      );
+    }
+  }
+
+  /// Get whether location retention is limited
+  static Future<bool> getLocationRetentionLimited() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(PREF_LOCATION_RETENTION_LIMITED) ?? true;
+  }
+
+  /// Set whether location retention is limited
+  static Future<void> setLocationRetentionLimited(bool limited) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(PREF_LOCATION_RETENTION_LIMITED, limited);
+    
+    if (!limited) {
+      // Set to unlimited
+      await setLocationRetentionDays(UNLIMITED_VALUE);
+    } else {
+      // Set to default limited value
+      await setLocationRetentionDays(DEFAULT_LOCATION_RETENTION_DAYS);
     }
   }
 
@@ -46,6 +72,26 @@ class StorageSettingsService {
   static Future<void> setMapDisplayDays(int days) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(PREF_MAP_DISPLAY_DAYS, days);
+  }
+
+  /// Get whether map display is limited
+  static Future<bool> getMapDisplayLimited() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(PREF_MAP_DISPLAY_LIMITED) ?? true;
+  }
+
+  /// Set whether map display is limited
+  static Future<void> setMapDisplayLimited(bool limited) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(PREF_MAP_DISPLAY_LIMITED, limited);
+    
+    if (!limited) {
+      // Set to unlimited
+      await setMapDisplayDays(UNLIMITED_VALUE);
+    } else {
+      // Set to default limited value
+      await setMapDisplayDays(DEFAULT_MAP_DISPLAY_DAYS);
+    }
   }
 
   /// Get maximum number of markers to display on map
@@ -98,13 +144,24 @@ class StorageSettingsService {
       return;
     }
 
-    await performCleanup();
-    await setLastCleanupDate(now);
+    // Only cleanup if retention is limited
+    final isLimited = await getLocationRetentionLimited();
+    if (isLimited) {
+      await performCleanup();
+      await setLastCleanupDate(now);
+    }
   }
 
   /// Perform cleanup of old location data
   static Future<void> performCleanup() async {
     final retentionDays = await getLocationRetentionDays();
+    
+    // Don't cleanup if unlimited
+    if (retentionDays == UNLIMITED_VALUE) {
+      print('[StorageSettingsService] Skipping cleanup - unlimited retention enabled');
+      return;
+    }
+    
     final cutoffDate = DateTime.now().subtract(Duration(days: retentionDays));
     
     print('[StorageSettingsService] Performing cleanup - removing data older than $retentionDays days');
@@ -144,12 +201,26 @@ class StorageSettingsService {
     
     final displayDays = await getMapDisplayDays();
     final maxMarkers = await getMaxMapMarkers();
-    final cutoffDate = DateTime.now().subtract(Duration(days: displayDays));
     
     try {
       final allLocations = await bg.BackgroundGeolocation.locations;
       
+      // If unlimited display, just limit by max markers
+      if (displayDays == UNLIMITED_VALUE) {
+        // Sort by timestamp (newest first)
+        allLocations.sort((a, b) => 
+          (b['timestamp'] as num).compareTo(a['timestamp'] as num));
+        
+        // Limit to max markers
+        if (allLocations.length > maxMarkers) {
+          return allLocations.take(maxMarkers).toList();
+        }
+        
+        return allLocations;
+      }
+      
       // Filter by date
+      final cutoffDate = DateTime.now().subtract(Duration(days: displayDays));
       final recentLocations = allLocations.where((location) {
         final locationDate = DateTime.fromMillisecondsSinceEpoch(
           (location['timestamp'] as num).toInt()
@@ -171,44 +242,6 @@ class StorageSettingsService {
     } catch (e) {
       print('[StorageSettingsService] Error getting filtered location data: $e');
       return [];
-    }
-  }
-
-  /// Get storage statistics
-  static Future<Map<String, dynamic>> getStorageStats() async {
-    try {
-      final stats = <String, dynamic>{};
-      
-      if (!kIsWeb) {
-        final allLocations = await bg.BackgroundGeolocation.locations;
-        stats['totalLocations'] = allLocations.length;
-        
-        if (allLocations.isNotEmpty) {
-          final timestamps = allLocations.map((loc) => 
-            (loc['timestamp'] as num).toInt()).toList();
-          timestamps.sort();
-          
-          final oldestDate = DateTime.fromMillisecondsSinceEpoch(timestamps.first);
-          final newestDate = DateTime.fromMillisecondsSinceEpoch(timestamps.last);
-          
-          stats['oldestDate'] = oldestDate;
-          stats['newestDate'] = newestDate;
-          stats['dataSpanDays'] = newestDate.difference(oldestDate).inDays;
-        }
-      } else {
-        stats['totalLocations'] = 0;
-      }
-      
-      // Add database stats
-      final database = SurveyDatabase();
-      final dbStats = await database.getLocationDataStats();
-      stats.addAll(dbStats);
-      
-      return stats;
-      
-    } catch (e) {
-      print('[StorageSettingsService] Error getting storage stats: $e');
-      return {'totalLocations': 0, 'error': e.toString()};
     }
   }
 }
