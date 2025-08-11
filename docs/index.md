@@ -103,10 +103,13 @@ This site contains documentation for beta testers, app users, developers, and re
 
 ## 🔬 For Researchers
 
-### Future Research Release
+### Data Collection & Analysis
+- **[Location Data Decryption](LOCATION_DATA_DECRYPTION.md)** - Complete guide to decrypt location data from Qualtrics exports
+- **[Encryption Setup](ENCRYPTION_SETUP.md)** - Security and key management for data collection
 - **[Server Setup](SERVER_SETUP.md)** - Research server configuration
+
+### Research Setup
 - **[Participant Validation System](PARTICIPANT_VALIDATION_SYSTEM.md)** - Secure participant access control
-- **[Encryption Setup](ENCRYPTION_SETUP.md)** - Security and key management
 - **[Research Features](RESEARCH_FEATURES_SUMMARY.md)** - Available research tools
 - **[Privacy Documentation](PRIVACY.md)** - Data protection measures
 
