@@ -70,3 +70,6 @@ jobs:
       uses: codecov/test-results-action@v1
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
+        
+    - name: Install sqlite3
+      run: sudo apt-get update && sudo apt-get install -y sqlite3 libsqlite3-dev

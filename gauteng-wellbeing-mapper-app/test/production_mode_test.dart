@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wellbeing_mapper/services/app_mode_service.dart';
 import 'package:wellbeing_mapper/models/app_mode.dart';
 
@@ -27,13 +28,22 @@ void main() {
       }
     });
 
-    test('should not send data to research in testing mode', () async {
-      // Skip this test since it requires SharedPreferences which isn't available in unit tests
-      // The functionality is tested in integration tests instead
-      print('⏭️ Skipping SharedPreferences test - covered by integration tests');
+    test('setAppMode and getAppMode should work correctly', () async {
+      SharedPreferences.setMockInitialValues({'app_mode': AppMode.research.name});
+
+      // Set app mode to private
+      await AppModeService.setCurrentMode(AppMode.private);
       
-      // Just verify the test passes
-      expect(true, isTrue);
-    }, skip: 'SharedPreferences not available in unit tests');
+      // Verify that the app mode is now private
+      var appMode = await AppModeService.getCurrentMode();
+      expect(appMode, AppMode.private);
+
+      // Set app mode to research
+      await AppModeService.setCurrentMode(AppMode.research);
+
+      // Verify that the app mode is now research
+      appMode = await AppModeService.getCurrentMode();
+      expect(appMode, AppMode.research);
+    });
   });
 }
