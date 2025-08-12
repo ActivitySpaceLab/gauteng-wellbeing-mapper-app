@@ -61,12 +61,20 @@ if [[ "$PLATFORM" == "ios" || "$PLATFORM" == "all" ]]; then
         BUNDLE_ID="com.github.activityspacelab.wellbeingmapper.gauteng.beta"
     fi
     
-    flutter build ios --release \
+    # Build IPA using standard Flutter build (no flavor needed for iOS)
+    echo "📦 Building IPA for App Store submission..."
+    flutter build ipa --release \
         --dart-define=APP_FLAVOR=$FLAVOR
     
-    echo "✅ iOS $FLAVOR build complete!"
-    echo "iOS build: build/ios/iphoneos/Runner.app"
+    echo "✅ iOS $FLAVOR IPA build complete!"
+    echo "IPA location: build/ios/ipa/*.ipa"
     echo "Bundle ID: $BUNDLE_ID"
+    echo ""
+    echo "📋 Next Steps for App Store Submission:"
+    echo "1. Open Apple's Transporter app"
+    echo "2. Drag and drop the IPA file from: build/ios/ipa/"
+    echo "3. Click 'Deliver' to upload to App Store Connect"
+    echo "4. Go to App Store Connect to submit for review"
 fi
 
 echo "🎉 All builds completed successfully!"

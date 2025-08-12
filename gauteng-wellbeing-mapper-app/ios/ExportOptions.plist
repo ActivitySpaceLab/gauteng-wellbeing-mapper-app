@@ -24,6 +24,8 @@
 	<dict>
 		<key>com.github.activityspacelab.wellbeingmapper.gauteng</key>
 		<string>match AppStore com.github.activityspacelab.wellbeingmapper.gauteng</string>
+		<key>com.github.activityspacelab.wellbeingmapper.gauteng.beta</key>
+		<string>match AppStore com.github.activityspacelab.wellbeingmapper.gauteng.beta</string>
 	</dict>
 </dict>
 </plist>
