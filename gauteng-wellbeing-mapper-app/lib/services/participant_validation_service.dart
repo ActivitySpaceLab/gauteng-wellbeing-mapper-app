@@ -1,7 +1,7 @@
 import 'dart:math';
 import 'package:shared_preferences/shared_preferences.dart';
-// import 'dart:convert'; // For future server integration
-// import 'package:crypto/crypto.dart'; // For future server integration
+import 'dart:convert';
+import 'package:crypto/crypto.dart';
 
 /// Service for validating participant codes against a secure server-side list
 /// Uses SHA-256 hashing for security - codes are never transmitted in plain text
@@ -51,12 +51,35 @@ class ParticipantValidationService {
         return ValidationResult(isValid: true);
       }
       
-      // For now, return false for other codes since no codes are on the server list
-      // TODO: Remove this when server is ready and codes are added
-      print('[ParticipantValidation] Code validation attempted: ${cleanCode.substring(0, min(3, cleanCode.length))}*** (No codes in system yet)');
+      // Hash the entered code for validation
+      final hashedCode = _hashParticipantCode(cleanCode);
+      
+      // Pilot participant code hashes for Gauteng study
+      // These are SHA-256 hashes of: P4H1P, P4H2P, P4H3P, P4H4P, P4H5P, P4H6P, P4H7P, P4H8P, P4H9P, P4H10P
+      final Set<String> validPilotCodeHashes = {
+        '4f1b70f8e0ba866e3674212316b7f56f10a10a079c4529388f9e279d0089a5c8', // P4H1P
+        'a46ec4139c68af42d976289028fcaa90c6686d441abd2fb4e65e35823dbabd3a', // P4H2P
+        'cfb931b358f07251e2668420bb3f3a9c61bd9d7c1361e015877cbbeb0e56d4cd', // P4H3P
+        '3ea2efd140c478a97fc149a9f1bb6b1925698dc091b9f79a61861fbec85122d4', // P4H4P
+        '1fa5d96e720d3122aad7aa0dc537cc7c213704633ed947e7d22cc30cb2258781', // P4H5P
+        'bd4029314d62009a717d0d7b56ee27e534605d2b17809e0a4b88d415385576d4', // P4H6P
+        '7f526eb989ccc02af13bb4248dc6ec01aa17bd0d66ace79050cd51e60ae28912', // P4H7P
+        '182c2f81f6270bea6be3857d68385993075a4e6f565e014cda67ffe199c3f96f', // P4H8P
+        'f0f936f8f6345bbf178ac5820e55dcb2f0f2d84e21b4b69b8d632d24047b73a4', // P4H9P
+        '496c8ee77cc087f299d6d54da74269ffbaf2945f16295d7bf918518bf527cbea', // P4H10P
+      };
+      
+      if (validPilotCodeHashes.contains(hashedCode)) {
+        await _storeValidatedParticipant(cleanCode);
+        print('[ParticipantValidation] Pilot participant code accepted: ${cleanCode.substring(0, min(3, cleanCode.length))}***');
+        return ValidationResult(isValid: true);
+      }
+      
+      // Invalid code
+      print('[ParticipantValidation] Invalid code attempted: ${cleanCode.substring(0, min(3, cleanCode.length))}***');
       return ValidationResult(
         isValid: false,
-        error: 'No participant codes are currently active in the system. Please contact the research team or use "TESTER" for testing.',
+        error: 'Invalid participant code. Please check your code and contact the research team if you continue to have issues.',
       );
 
       // TODO: When server is ready, uncomment this and remove the above return
@@ -185,12 +208,12 @@ class ParticipantValidationService {
     return prefs.getBool(_consentRecordedKey) ?? false;
   }
 
-  /// Hash participant code using SHA-256 for security (for future server integration)
-  // static String _hashParticipantCode(String code) {
-  //   final bytes = utf8.encode(code);
-  //   final digest = sha256.convert(bytes);
-  //   return digest.toString();
-  // }
+  /// Hash participant code using SHA-256 for security
+  static String _hashParticipantCode(String code) {
+    final bytes = utf8.encode(code);
+    final digest = sha256.convert(bytes);
+    return digest.toString();
+  }
 
   /// Store validated participant locally (stores hashed version for security)
   static Future<void> _storeValidatedParticipant(String participantCode) async {
