@@ -7,6 +7,10 @@ void main() {
     // Set a larger surface size to accommodate the long consent form
     tester.view.physicalSize = Size(800, 1200);
     tester.view.devicePixelRatio = 1.0;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
     
     // Build the consent form for Gauteng research site
     await tester.pumpWidget(
@@ -58,12 +62,14 @@ void main() {
     
     for (String text in consentTexts) {
       final textWidgets = find.textContaining(text);
-      print('Text "$text": found ${textWidgets.evaluate().length} widgets');
-      
-      if (textWidgets.evaluate().isNotEmpty) {
-        // Try tapping the first one and see what happens
+      final count = textWidgets.evaluate().length;
+      print('Text "$text": found $count widgets');
+      if (count > 0) {
+        // Ensure the target is visible in any scrollable before tapping to avoid off-screen warnings
+        await tester.ensureVisible(textWidgets.first);
+        await tester.pumpAndSettle();
         print('Tapping consent text: $text');
-        await tester.tap(textWidgets.first);
+        await tester.tap(textWidgets.first, warnIfMissed: false);
         await tester.pump();
         print('After tapping and pumping');
       }
