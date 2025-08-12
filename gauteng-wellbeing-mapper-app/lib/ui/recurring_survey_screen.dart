@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:permission_handler/permission_handler.dart';
+// import 'package:image_picker/image_picker.dart';
+// import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_background_geolocation/flutter_background_geolocation.dart' as bg;
-import 'dart:io';
+// import 'dart:io';
 import 'dart:convert';
 import '../models/survey_models.dart';
 import '../models/consent_models.dart';
@@ -26,18 +26,18 @@ class RecurringSurveyScreen extends StatefulWidget {
 class _RecurringSurveyScreenState extends State<RecurringSurveyScreen> {
   final _formKey = GlobalKey<FormBuilderState>();
   bool _isSubmitting = false;
-  List<File> _selectedImages = [];
-  List<String> _voiceNoteUrls = [];
-  List<File> _voiceNoteFiles = [];
-  final ImagePicker _picker = ImagePicker();
+  // List<File> _selectedImages = [];
+  // List<String> _voiceNoteUrls = [];
+  // List<File> _voiceNoteFiles = [];
+  // final ImagePicker _picker = ImagePicker();
   String _researchSite = 'gauteng'; // Default to Gauteng
   
   // Voice recording state
-  bool _isRecording = false;
-  bool _isPaused = false;
+  // bool _isRecording = false;
+  // bool _isPaused = false;
   
   // Audio playback state
-  Map<String, bool> _playingStates = {};
+  // Map<String, bool> _playingStates = {};
   
   // Location sharing state
   LocationSharingOption _locationSharingOption = LocationSharingOption.fullData;
@@ -470,6 +470,8 @@ class _RecurringSurveyScreenState extends State<RecurringSurveyScreen> {
     );
   }
 
+  // TODO: Implement voice notes functionality
+  /*
   Widget _buildVoiceNotesSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -587,7 +589,9 @@ class _RecurringSurveyScreenState extends State<RecurringSurveyScreen> {
       ],
     );
   }
+  */
 
+  /*
   Widget _buildImageSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -699,6 +703,7 @@ class _RecurringSurveyScreenState extends State<RecurringSurveyScreen> {
       ],
     );
   }
+  */
 
   Widget _buildLocationSharingSection() {
     // Check if user is a research participant
@@ -1137,6 +1142,7 @@ class _RecurringSurveyScreenState extends State<RecurringSurveyScreen> {
   }
 
   // Voice recording methods
+  /*
   Future<void> _startRecording() async {
     try {
       // For now, show a placeholder dialog since we need to add the recording packages
@@ -1145,7 +1151,9 @@ class _RecurringSurveyScreenState extends State<RecurringSurveyScreen> {
       _showErrorDialog('Failed to start recording: $e');
     }
   }
+  */
 
+  /*
   Future<void> _showRecordingDialog() async {
     return showDialog(
       context: context,
@@ -1206,7 +1214,9 @@ class _RecurringSurveyScreenState extends State<RecurringSurveyScreen> {
       ),
     );
   }
+  */
 
+  /*
   Future<void> _pauseResumeRecording() async {
     setState(() {
       _isPaused = !_isPaused;
@@ -1229,7 +1239,9 @@ class _RecurringSurveyScreenState extends State<RecurringSurveyScreen> {
       _isPaused = false;
     });
   }
+  */
 
+  /*
   void _togglePlayback(String filePath) {
     setState(() {
       final isCurrentlyPlaying = _playingStates[filePath] ?? false;
@@ -1260,7 +1272,9 @@ class _RecurringSurveyScreenState extends State<RecurringSurveyScreen> {
       });
     }
   }
+  */
 
+  /*
   void _removeVoiceNote(dynamic indexOrUrl) {
     if (indexOrUrl is int) {
       // Remove by index
@@ -1280,7 +1294,9 @@ class _RecurringSurveyScreenState extends State<RecurringSurveyScreen> {
       }
     }
   }
+  */
 
+  /*
   void _takePhoto() async {
     try {
       // Request camera permission first
@@ -1344,6 +1360,7 @@ class _RecurringSurveyScreenState extends State<RecurringSurveyScreen> {
       _selectedImages.removeAt(index);
     });
   }
+  */
 
   Future<void> _submitSurveyWithLocationSharing() async {
     if (!_formKey.currentState!.saveAndValidate()) {
@@ -1639,6 +1656,7 @@ class _RecurringSurveyScreenState extends State<RecurringSurveyScreen> {
     Navigator.of(context).popUntil((route) => route.isFirst);
   }
 
+  /*
   void _showErrorDialog(String error) {
     showDialog(
       context: context,
@@ -1654,4 +1672,5 @@ class _RecurringSurveyScreenState extends State<RecurringSurveyScreen> {
       ),
     );
   }
+  */
 }

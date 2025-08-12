@@ -46,10 +46,10 @@ class _ParticipantCodeEntryScreenState extends State<ParticipantCodeEntryScreen>
                 Container(
                   padding: EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: SouthAfricanTheme.primaryGreen.withOpacity(0.1),
+                    color: SouthAfricanTheme.primaryGreen.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: SouthAfricanTheme.primaryGreen.withOpacity(0.3),
+                      color: SouthAfricanTheme.primaryGreen.withValues(alpha: 0.3),
                       width: 1,
                     ),
                   ),
@@ -158,10 +158,10 @@ class _ParticipantCodeEntryScreenState extends State<ParticipantCodeEntryScreen>
                 Container(
                   padding: EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.blue.withOpacity(0.05),
+                    color: Colors.blue.withValues(alpha: 0.05),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: Colors.blue.withOpacity(0.2),
+                      color: Colors.blue.withValues(alpha: 0.2),
                       width: 1,
                     ),
                   ),

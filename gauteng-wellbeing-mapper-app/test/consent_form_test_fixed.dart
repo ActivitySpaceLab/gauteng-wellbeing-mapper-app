@@ -4,10 +4,9 @@ import '../lib/ui/consent_form_screen.dart';
 
 void main() {
   group('Consent Form Tests', () {
-    tearDown(() {
-      // Reset screen size after each test
-      TestWidgetsFlutterBinding.ensureInitialized().window.physicalSizeTestValue = Size(800, 600);
-    });
+    // tearDown(() {
+    //   // Reset screen size after each test - deprecated API removed
+    // });
 
     testWidgets('Should require all consent checkboxes for Gauteng research site', (WidgetTester tester) async {
       // Set a larger surface size to accommodate the long consent form

@@ -24,7 +24,8 @@ import 'dart:convert';
 // import 'package:path/path.dart' as path;
 
 class MultimediaHandler {
-  static const String _storageBucket = 'gauteng-wellbeing-mapper';
+  // Firebase Storage configuration
+  // static const String _storageBucket = 'wellbeing-mapper-multimedia'; // TODO: Implement when Firebase is configured
   
   /// Upload an image file and return the download URL
   static Future<String> uploadImage(File imageFile, String participantUuid) async {
