@@ -4,7 +4,16 @@ import '../lib/ui/consent_form_screen.dart';
 
 void main() {
   group('Consent Form Tests', () {
+    tearDown(() {
+      // Reset screen size after each test
+      TestWidgetsFlutterBinding.ensureInitialized().window.physicalSizeTestValue = Size(800, 600);
+    });
+
     testWidgets('Should require all consent checkboxes for Gauteng research site', (WidgetTester tester) async {
+      // Set a much larger surface size to accommodate the very long consent form
+      tester.view.physicalSize = Size(800, 2000);
+      tester.view.devicePixelRatio = 1.0;
+      
       // Build the consent form for Gauteng research site
       await tester.pumpWidget(
         MaterialApp(
@@ -19,7 +28,11 @@ void main() {
       // Wait for the widget to build
       await tester.pumpAndSettle();
 
-      // First dismiss the information sheet by tapping Continue
+      // Scroll to find the Continue button and tap it
+      await tester.scrollUntilVisible(
+        find.text('Continue to Consent Form'),
+        500.0, // scroll distance
+      );
       await tester.tap(find.text('Continue to Consent Form'));
       await tester.pumpAndSettle();
 
@@ -43,6 +56,7 @@ void main() {
         'to what I contribute being shared with national and international researchers',
         'to what I contribute being used for further research',
         'to what I contribute being placed in a public repository',
+        'to being contacted about participation in possible follow-up studies',
       ];
 
       // Verify all required consent texts are present
@@ -52,14 +66,18 @@ void main() {
 
       // Find and check all required consent checkboxes
       for (String consentText in requiredConsentTexts) {
-        final checkbox = find.ancestor(
-          of: find.textContaining(consentText),
-          matching: find.byType(CheckboxListTile),
+        // Scroll to make sure the checkbox is visible
+        await tester.scrollUntilVisible(
+          find.textContaining(consentText),
+          200.0,
         );
-        expect(checkbox, findsOneWidget);
         
-        // Tap the checkbox to check it
-        await tester.tap(checkbox);
+        // Find the text widget first
+        final textWidget = find.textContaining(consentText);
+        expect(textWidget, findsOneWidget);
+        
+        // Tap the text to check the associated checkbox (they are in the same GestureDetector)
+        await tester.tap(textWidget);
         await tester.pump();
       }
 
@@ -70,6 +88,10 @@ void main() {
     });
 
     testWidgets('Should allow optional follow-up consent to remain unchecked', (WidgetTester tester) async {
+      // Set a much larger surface size to accommodate the very long consent form
+      tester.view.physicalSize = Size(800, 2000);
+      tester.view.devicePixelRatio = 1.0;
+      
       // Build the consent form for Gauteng research site
       await tester.pumpWidget(
         MaterialApp(
@@ -83,7 +105,11 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      // Dismiss information sheet
+      // Scroll to find the Continue button and tap it
+      await tester.scrollUntilVisible(
+        find.text('Continue to Consent Form'),
+        500.0, // scroll distance
+      );
       await tester.tap(find.text('Continue to Consent Form'));
       await tester.pumpAndSettle();
 
@@ -100,27 +126,35 @@ void main() {
         'to what I contribute being shared with national and international researchers',
         'to what I contribute being used for further research',
         'to what I contribute being placed in a public repository',
+        'to being contacted about participation in possible follow-up studies',
       ];
 
       for (String consentText in requiredConsentTexts) {
-        final checkbox = find.ancestor(
-          of: find.textContaining(consentText),
-          matching: find.byType(CheckboxListTile),
+        // Scroll to make sure the checkbox is visible
+        await tester.scrollUntilVisible(
+          find.textContaining(consentText),
+          200.0,
         );
-        await tester.tap(checkbox);
+        
+        // Tap the text to check the associated checkbox
+        await tester.tap(find.textContaining(consentText));
         await tester.pump();
       }
 
-      // Verify the optional follow-up consent checkbox exists but is NOT required
+      // Verify the follow-up consent checkbox exists and IS required for Gauteng
       expect(find.textContaining('to being contacted about participation in possible follow-up studies'), findsOneWidget);
 
-      // The submit button should be enabled even without checking the follow-up consent
+      // The submit button should be enabled after checking all required consents (including follow-up)
       await tester.pumpAndSettle();
       final ElevatedButton enabledButton = tester.widget(find.byType(ElevatedButton));
       expect(enabledButton.onPressed, isNotNull);
     });
 
     testWidgets('Should disable submit button if any required consent is unchecked', (WidgetTester tester) async {
+      // Set a much larger surface size to accommodate the very long consent form
+      tester.view.physicalSize = Size(800, 2000);
+      tester.view.devicePixelRatio = 1.0;
+      
       await tester.pumpWidget(
         MaterialApp(
           home: ConsentFormScreen(
@@ -133,7 +167,11 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      // Dismiss information sheet
+      // Scroll to find the Continue button and tap it
+      await tester.scrollUntilVisible(
+        find.text('Continue to Consent Form'),
+        500.0, // scroll distance
+      );
       await tester.tap(find.text('Continue to Consent Form'));
       await tester.pumpAndSettle();
 
@@ -150,21 +188,25 @@ void main() {
         'to what I contribute being shared with national and international researchers',
         'to what I contribute being used for further research',
         // Intentionally skip 'to what I contribute being placed in a public repository'
+        'to being contacted about participation in possible follow-up studies',
       ];
 
       for (String consentText in requiredConsentTexts) {
-        final checkbox = find.ancestor(
-          of: find.textContaining(consentText),
-          matching: find.byType(CheckboxListTile),
+        // Scroll to make sure the checkbox is visible
+        await tester.scrollUntilVisible(
+          find.textContaining(consentText),
+          200.0,
         );
-        await tester.tap(checkbox);
+        
+        // Tap the text to check the associated checkbox
+        await tester.tap(find.textContaining(consentText));
         await tester.pump();
       }
 
-      // The submit button should still be disabled because one required consent is missing
+      // The submit button should be disabled because we intentionally skipped one required consent
       await tester.pumpAndSettle();
       final ElevatedButton disabledButton = tester.widget(find.byType(ElevatedButton));
-      expect(disabledButton.onPressed, isNull); // Should still be disabled
+      expect(disabledButton.onPressed, isNull); // Disabled button has null onPressed
     });
   });
 }

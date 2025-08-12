@@ -48,7 +48,8 @@ jobs:
       run: |
         cd gauteng-wellbeing-mapper-app
         export FLUTTER_TEST_MODE=true
-        timeout 600 flutter test --coverage --dart-define=FLUTTER_TEST_MODE=true --reporter=expanded --concurrency=1 --timeout=60s --exclude-tags=platform --exclude-tags=integration --suppress-analytics
+        export CI=true
+        timeout 600 flutter test --coverage --dart-define=FLUTTER_TEST_MODE=true --dart-define=CI=true --reporter=expanded --concurrency=1 --timeout=60s --exclude-tags=platform --exclude-tags=integration --suppress-analytics
       continue-on-error: false
         
     - name: Check coverage file exists
