@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/material.dart';
 
 void main() {
   // Skip ALL database-dependent widget tests in CI to avoid segmentation faults
