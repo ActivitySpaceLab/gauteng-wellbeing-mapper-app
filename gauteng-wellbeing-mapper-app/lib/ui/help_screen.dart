@@ -61,7 +61,7 @@ class HelpScreen extends StatelessWidget {
             ),
             SizedBox(height: 12),
             Text(
-              'Wellbeing Mapper helps people learn more about the ways in which mental wellbeing depends on environmental conditions. You can use it privately to study your own movements and wellbeing, try app testing mode to experience research features safely, or participate in the Planet4Health study on mental wellbeing if you live in Gauteng, South Africa.',
+              'Wellbeing Mapper helps people learn more about the ways in which mental wellbeing depends on environmental conditions. You can use it privately to study your own movements and wellbeing, experience research features safely with app testing mode, or participate in the Planet4Health study on mental wellbeing if you live in Gauteng, South Africa.',
               style: TextStyle(fontSize: 16, height: 1.4),
             ),
           ],
@@ -272,7 +272,7 @@ class HelpScreen extends StatelessWidget {
             _buildMenuOptionItem(
               Icons.settings,
               'App Mode',
-              'Switch between Private Mode (data stays on your phone), App Testing Mode (safely try research features), and Research Mode (contribute to studies with encrypted data sharing).',
+              'Switch between Private Mode (data stays on your phone), App Testing Mode (safely experience research features), and Research Mode (contribute to studies with encrypted data sharing).',
             ),
             
             _buildMenuOptionItem(
@@ -304,7 +304,7 @@ class HelpScreen extends StatelessWidget {
             _buildMenuOptionItem(
               Icons.assignment,
               'Initial Survey',
-              'Complete a one-time survey when you first join the research study (available in testing mode for practice).',
+              'Complete a one-time survey when you first join the research study (available in app testing mode for practice).',
             ),
             
             _buildMenuOptionItem(
@@ -328,7 +328,7 @@ class HelpScreen extends StatelessWidget {
             _buildMenuOptionItem(
               Icons.cloud_upload,
               'Research Data Upload',
-              'Manually upload your encrypted data to research servers (research mode only - testing mode keeps data local).',
+              'Manually upload your encrypted data to research servers (research mode only - app testing mode keeps data local).',
             ),
           ],
         ),
@@ -678,12 +678,12 @@ class HelpScreen extends StatelessWidget {
             ),
             
             _buildTroubleshootItem(
-              'App testing mode questions?',
+              'App Testing Mode Questions?',
               [
-                '• App testing mode is completely safe - no real data is submitted',
-                '• You can practice the full research experience without commitment',
+                '• App Testing mode is completely safe - no real data is submitted',
+                '• You can experience the full research workflow without commitment',
                 '• All testing data stays on your phone only',
-                '• Switch back to private mode anytime through the menu'
+                '• Switch back to Private mode anytime through the menu'
               ],
             ),
           ],
