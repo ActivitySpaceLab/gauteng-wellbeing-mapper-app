@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/survey_models.dart';
 import '../models/wellbeing_survey_models.dart';
 import '../db/survey_database.dart';
+import 'package:wellbeing_mapper/services/data_upload_logic.dart';
 import 'qualtrics_api_service.dart';
 
 /// Service for encrypting and uploading research data to study servers
@@ -48,10 +49,11 @@ AKr5gbTqca/dY/+Or3Ha/sECAwEAAQ==
   }) async {
     try {
       // Get server configuration
-      final serverConfig = _serverConfigs[researchSite];
-      if (serverConfig == null) {
+      if (!DataUploadLogic.isKnownResearchSite(
+          researchSite: researchSite, serverConfigs: _serverConfigs)) {
         throw Exception('Unknown research site: $researchSite');
       }
+      final serverConfig = _serverConfigs[researchSite]!;
 
       // Prepare data package
       final dataPackage = DataPackage(
@@ -92,17 +94,8 @@ AKr5gbTqca/dY/+Or3Ha/sECAwEAAQ==
   static Future<bool> shouldUploadData(String researchSite) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final lastUploadKey = 'last_upload_$researchSite';
-      final lastUploadTimestamp = prefs.getInt(lastUploadKey);
-      
-      if (lastUploadTimestamp == null) {
-        return true; // First upload
-      }
-      
-      final lastUpload = DateTime.fromMillisecondsSinceEpoch(lastUploadTimestamp);
-      final twoWeeksAgo = DateTime.now().subtract(Duration(days: 14));
-      
-      return lastUpload.isBefore(twoWeeksAgo);
+      return DataUploadLogic.shouldUploadData(
+          prefs: prefs, researchSite: researchSite);
     } catch (e) {
       return false;
     }

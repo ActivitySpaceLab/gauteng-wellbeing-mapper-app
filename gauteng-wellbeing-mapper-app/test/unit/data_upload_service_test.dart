@@ -8,7 +8,7 @@ void main() {
     test('shouldUploadData returns true on first run', () async {
       final result = await DataUploadService.shouldUploadData('gauteng');
       expect(result, isTrue);
-    });
+    }, skip: 'This test is now covered in data_upload_logic_test.dart');
 
     test('uploadParticipantData returns error for unknown site', () async {
       final result = await DataUploadService.uploadParticipantData(
@@ -21,6 +21,6 @@ void main() {
       );
       expect(result.success, isFalse);
       expect(result.error, contains('Unknown research site'));
-    });
+    }, skip: 'This test is now covered in data_upload_logic_test.dart');
   });
 }
