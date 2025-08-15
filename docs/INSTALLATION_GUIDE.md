@@ -83,7 +83,7 @@ Huawei devices released after May 2019 typically don't have Google Play Services
 
 ## iOS Installation
 
-### TestFlight (Beta Testing Program)
+### TestFlight
 
 Currently, the iOS version is available through Apple's TestFlight program.
 
