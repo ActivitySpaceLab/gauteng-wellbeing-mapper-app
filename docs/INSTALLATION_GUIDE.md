@@ -21,7 +21,7 @@ The easiest way to install the app on Android devices is through the official Go
 - Easy to find and install
 - Works on all Google-certified Android devices
 
-### Option 2: Manual APK Installation (For Advanced Users)
+### Option 2: Manual APK Installation
 
 If you cannot access Google Play Store or prefer to install directly from our releases, you can download the APK file from our GitHub repository.
 
