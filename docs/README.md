@@ -6,7 +6,53 @@ nav_order: 1
 
 # Wellbeing Mapper Documentation
 
-Welcome to the Wellbeing Mapper developer documentation. This documentation is designed to help new developers quickly understand and start working with the Wellbeing Mapper codebase.
+Welcome to the Wellbeing Mapper documentation. Whether you're a user looking to install the app or a developer wanting to contribute, you'll find comprehensive guides and resources here.
+
+## 📱 User Resources
+
+### Install the App
+Ready to start using Wellbeing Mapper? Our installation guide covers all platforms and devices:
+
+**[📥 Installation Guide](INSTALLATION_GUIDE.md)** - Complete instructions for:
+- **Android devices**: Google Play Store and manual APK installation
+- **iOS devices**: TestFlight beta program  
+- **Huawei devices**: Sideloading instructions and troubleshooting
+- **System requirements** and compatibility information
+
+### Using the App
+Once installed, learn how to make the most of Wellbeing Mapper:
+
+**[📖 User Guide](USER_GUIDE.md)** - Comprehensive guide covering:
+- Setting up location tracking and surveys
+- Understanding privacy and data protection  
+- Using all app features effectively
+- Troubleshooting common issues
+
+---
+
+## 💻 Developer Resources
+
+New to developing with Wellbeing Mapper? Our developer documentation will get you up and running:
+
+**[🛠️ Developer Guide](DEVELOPER_GUIDE.md)** - Essential development information:
+- Architecture overview and core components
+- Flutter setup with version requirements (3.27.1)
+- Building and running the app locally
+- Code structure and key features
+
+**[📐 Architecture Guide](ARCHITECTURE.md)** - Technical deep dive:
+- System design and data flow
+- Database schema and encryption
+- Component interactions
+- Performance considerations
+
+**[🔌 API Reference](API_REFERENCE.md)** - Complete API documentation:
+- Service interfaces and methods
+- Data models and types
+- Integration patterns
+- Code examples
+
+---
 
 ## 🧪 Beta Testing
 
@@ -14,11 +60,13 @@ Welcome to the Wellbeing Mapper developer documentation. This documentation is d
 
 You can help test the latest version of Wellbeing Mapper by joining our TestFlight beta program:
 
-**[Join TestFlight Beta Testing →](https://testflight.apple.com/join/32WkKXs6)**
+**[Join TestFlight Beta Testing →](https://testflight.apple.com/join/JXdaTSNU)**
 
 *Beta testing helps us identify issues and improve the app before general release. Your feedback is invaluable!*
 
 ---
+
+## 🔬 About the Research
 
 ## What is Wellbeing Mapper?
 

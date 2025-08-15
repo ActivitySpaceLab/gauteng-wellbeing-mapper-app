@@ -6,6 +6,19 @@ description: Complete guide to using the Gauteng Wellbeing Mapper app
 
 # Gauteng Wellbeing Mapper - User Guide
 
+## 📱 Getting Started: Install the App
+
+**New to the app?** Before you can use Gauteng Wellbeing Mapper, you need to install it on your device. Our comprehensive installation guide covers all platforms and installation methods:
+
+**[📥 Installation Guide](INSTALLATION_GUIDE.md)** - Choose from:
+- **Android**: Google Play Store or manual APK installation  
+- **iOS**: TestFlight beta program
+- **Huawei devices**: Special sideloading instructions
+
+The installation guide includes troubleshooting steps and system requirements for all devices.
+
+---
+
 ## Welcome
 
 Wellbeing Mapper helps people learn more about the ways in which mental wellbeing depends on environmental conditions. You can use it privately to study your own movements and wellbeing. If you live in Gauteng, South Africa and have volunteered to be part of the **Planet4Health** study on mental wellbeing in environmental & climate context, you can use the app to respond to surveys and share your information anonymously with researchers.
