@@ -1,3 +1,4 @@
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_background_geolocation/flutter_background_geolocation.dart'
@@ -8,6 +9,9 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:wellbeing_mapper/services/test_service.dart';
 import '../services/storage_settings_service.dart';
+import '../db/survey_database.dart';
+import '../models/survey_models.dart';
+import '../services/probabilistic_density_service.dart' as density_service;
 
 class MapView extends StatefulWidget {
   const MapView({Key? key}) : super(key: key);
@@ -36,6 +40,10 @@ class MapViewState extends State<MapView>
   // Track current location for re-center functionality
   LatLng? _currentLocation;
   bool _autoCenter = true; // Start with auto-center enabled
+  
+  // Density map controls
+  bool _showDensityMap = false;
+  ui.Image? _densityRaster;
 
   @override
   void initState() {
@@ -97,6 +105,54 @@ class MapViewState extends State<MapView>
     print('[map_view] 📍 MapView refreshMapData called');
     _displayStoredLocations();
   }
+  
+  /// Generate probabilistic density visualization using GPS error circles
+  void _generateSimpleDensityVisualization() async {
+    if (!_showDensityMap) return;
+    
+    try {
+      print('[map_view] 🔥 Generating probabilistic density visualization...');
+      
+      // Get all location data
+      final db = SurveyDatabase();
+      final List<LocationTrack> locations = await db.getAllLocationTracks();
+      
+      if (locations.isEmpty) {
+        print('[map_view] ⚠️ No location data for density map');
+        return;
+      }
+      
+      // Calculate bounds from location data
+      density_service.LatLngBounds bounds = density_service.LatLngBounds.fromLocations(
+        locations, 
+        paddingDegrees: 0.005
+      );
+      
+      print('[map_view] 📊 Processing ${locations.length} locations with GPS error circles');
+      
+      // Generate probabilistic density raster
+      ui.Image? densityImage = await density_service.ProbabilisticDensityService.generateProbabilisticDensityRaster(
+        locations: locations,
+        bounds: bounds,
+        resolution: 256, // Reasonable resolution for mobile
+      );
+      
+      if (densityImage != null && mounted) {
+        setState(() {
+          _densityRaster = densityImage;
+          // Clear individual location markers when showing density
+          _locations.clear();
+        });
+        print('[map_view] ✅ Generated density raster: ${densityImage.width}x${densityImage.height}');
+      } else if (mounted) {
+        print('[map_view] ❌ Failed to generate density raster');
+      }
+      
+    } catch (e) {
+      print('[map_view] ❌ Error generating density visualization: $e');
+    }
+  }
+
   
   // Public method to refresh stored locations (called externally)
   void refreshStoredLocations() {
@@ -198,12 +254,13 @@ class MapViewState extends State<MapView>
             // Add to polyline directly
             _polyline.add(currentPoint);
             
-            // Add markers directly without going through _onLocation
+            // Add markers with accuracy-based radius and semi-transparency
+            double accuracyRadius = accuracy.clamp(2.0, 100.0); // Clamp between 2m and 100m for visibility
             _locations.add(CircleMarker(
               point: currentPoint,
-              color: Colors.blue,
-              radius: 4.0,
-              useRadiusInMeter: false,
+              color: Colors.blue.withValues(alpha: 0.3), // Semi-transparent blue
+              radius: accuracyRadius,
+              useRadiusInMeter: true, // Use actual meters for accuracy visualization
             ));
             
             print('[map_view] ✅ Successfully added location point: ${currentPoint.latitude}, ${currentPoint.longitude}');
@@ -253,6 +310,11 @@ class MapViewState extends State<MapView>
       });
       
       print('[map_view] 🎯 Map refresh complete with ${_locations.length} location markers and ${_polyline.length} polyline points');
+      
+      // PERFORMANCE WARNING: Vector circles scale poorly with large datasets
+      if (_locations.length > 1000) {
+        print('[map_view] ⚠️ Performance warning: ${_locations.length} vector circles may impact rendering. Consider clustering or raster approach for datasets >1000 points.');
+      }
       
     } catch (error) {
       print('[map_view] ❌ Error loading stored locations: $error');
@@ -316,22 +378,25 @@ class MapViewState extends State<MapView>
         }
       }
       
-      // Add to polyline and markers safely
+      // Add to polyline - chronological ordering ensures proper path connection
       _polyline.add(currentPoint);
+      
+      // Add historical marker with accuracy-based radius (semi-transparent)
+      double accuracyRadius = location.coords.accuracy.clamp(2.0, 100.0);
       _locations.add(CircleMarker(
         point: currentPoint,
-        color: Colors.blue,
-        radius: 4.0,
-        useRadiusInMeter: false,
+        color: Colors.blue.withValues(alpha: 0.3), // Semi-transparent blue
+        radius: accuracyRadius,
+        useRadiusInMeter: true, // Use actual meters for accuracy visualization
       ));
       
-      // Update current position marker safely
+      // Update current position marker (Google/Apple Maps style)
       _currentPosition.clear();
       _currentPosition.add(CircleMarker(
         point: currentPoint,
-        color: Colors.red,
-        radius: 8.0,
-        useRadiusInMeter: false,
+        color: Colors.lightBlue.withValues(alpha: 0.6), // Translucent light blue like Google Maps
+        radius: location.coords.accuracy.clamp(5.0, 50.0), // Current location accuracy
+        useRadiusInMeter: true,
       ));
       
       // Auto-center map if enabled (with protection against null errors)
@@ -397,6 +462,8 @@ class MapViewState extends State<MapView>
     }
   }
 
+
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -447,6 +514,38 @@ class MapViewState extends State<MapView>
             // Simplified stop locations (smaller, less confusing)
             if (_stopLocations.isNotEmpty) CircleLayer(circles: _stopLocations),
             if (_currentPosition.isNotEmpty) CircleLayer(circles: _currentPosition),
+            
+            // Current position center dot (Google Maps style)
+            if (_currentLocation != null)
+              MarkerLayer(
+                markers: [
+                  Marker(
+                    point: _currentLocation!,
+                    width: 16,
+                    height: 16,
+                    child: Container(
+                      width: 16,
+                      height: 16,
+                      decoration: BoxDecoration(
+                        color: Colors.blue[600],
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black26,
+                            blurRadius: 4,
+                            offset: Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              
+            // Density raster overlay
+            if (_showDensityMap && _densityRaster != null)
+              _DensityRasterLayer(densityImage: _densityRaster!),
           ],
         ),
         
@@ -479,6 +578,37 @@ class MapViewState extends State<MapView>
                 child: Icon(_autoCenter ? Icons.gps_fixed : Icons.gps_not_fixed),
               ),
               SizedBox(height: 8),
+              // Density map toggle
+              FloatingActionButton(
+                mini: true,
+                heroTag: "density_map_toggle",
+                onPressed: () {
+                  setState(() {
+                    _showDensityMap = !_showDensityMap;
+                  });
+                  
+                  if (_showDensityMap) {
+                    _generateSimpleDensityVisualization();
+                  } else {
+                    // Return to normal location display
+                    _displayStoredLocations();
+                  }
+                  
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(_showDensityMap 
+                        ? '🔥 Density map enabled - visualizing movement patterns!' 
+                        : 'Density map disabled'),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                },
+                backgroundColor: _showDensityMap ? Colors.orange : Colors.grey[600],
+                foregroundColor: Colors.white,
+                child: Icon(_showDensityMap ? Icons.whatshot : Icons.scatter_plot),
+              ),
+
+              SizedBox(height: 8),
               // Manual re-center button
               FloatingActionButton(
                 mini: true,
@@ -504,5 +634,52 @@ class MapViewState extends State<MapView>
         ),
       ],
     );
+  }
+}
+
+/// Simple density raster overlay widget
+class _DensityRasterLayer extends StatelessWidget {
+  final ui.Image densityImage;
+  
+  const _DensityRasterLayer({required this.densityImage});
+  
+  @override
+  Widget build(BuildContext context) {
+    // For now, we'll create a simple overlay
+    // This is a placeholder - in a full implementation, we'd need proper geo-referencing
+    return Positioned.fill(
+      child: CustomPaint(
+        painter: _DensityRasterPainter(densityImage),
+      ),
+    );
+  }
+}
+
+/// Custom painter for density raster
+class _DensityRasterPainter extends CustomPainter {
+  final ui.Image image;
+  
+  _DensityRasterPainter(this.image);
+  
+  @override
+  void paint(Canvas canvas, Size size) {
+    // Paint the density image as an overlay
+    // This is a simple implementation - proper geo-referencing would require
+    // converting between map coordinates and image coordinates
+    final paint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.7) // Semi-transparent
+      ..blendMode = BlendMode.multiply;
+    
+    canvas.drawImageRect(
+      image,
+      Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble()),
+      Rect.fromLTWH(0, 0, size.width, size.height),
+      paint,
+    );
+  }
+  
+  @override
+  bool shouldRepaint(_DensityRasterPainter oldDelegate) {
+    return oldDelegate.image != image;
   }
 }

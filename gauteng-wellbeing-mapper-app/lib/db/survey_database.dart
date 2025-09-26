@@ -953,7 +953,7 @@ class SurveyDatabase {
 
   Future<List<LocationTrack>> getAllLocationTracks() async {
     final db = await database;
-    final maps = await db.query('location_tracks', orderBy: 'timestamp DESC');
+    final maps = await db.query('location_tracks', orderBy: 'timestamp ASC');
 
     return List.generate(maps.length, (i) {
       return LocationTrack(
