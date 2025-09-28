@@ -1,4 +1,3 @@
-import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_background_geolocation/flutter_background_geolocation.dart'
@@ -11,7 +10,6 @@ import 'package:wellbeing_mapper/services/test_service.dart';
 import '../services/storage_settings_service.dart';
 import '../db/survey_database.dart';
 import '../models/survey_models.dart';
-import '../services/probabilistic_density_service.dart' as density_service;
 
 class MapView extends StatefulWidget {
   const MapView({Key? key}) : super(key: key);
@@ -41,9 +39,8 @@ class MapViewState extends State<MapView>
   LatLng? _currentLocation;
   bool _autoCenter = true; // Start with auto-center enabled
   
-  // Density map controls
-  bool _showDensityMap = false;
-  ui.Image? _densityRaster;
+  // Visualization mode controls
+  bool _showPointView = false; // Point view: all locations as circles with GPS accuracy radius
 
   @override
   void initState() {
@@ -106,50 +103,49 @@ class MapViewState extends State<MapView>
     _displayStoredLocations();
   }
   
-  /// Generate probabilistic density visualization using GPS error circles
-  void _generateSimpleDensityVisualization() async {
-    if (!_showDensityMap) return;
-    
+  /// Display stored locations as points with GPS accuracy radius and constant transparency
+  void _displayStoredLocationsAsPoints() async {
     try {
-      print('[map_view] 🔥 Generating probabilistic density visualization...');
+      print('[map_view] 🎯 Loading stored locations for point view...');
       
-      // Get all location data
       final db = SurveyDatabase();
-      final List<LocationTrack> locations = await db.getAllLocationTracks();
+      final List<LocationTrack> locationTracks = await db.getAllLocationTracks();
       
-      if (locations.isEmpty) {
-        print('[map_view] ⚠️ No location data for density map');
-        return;
-      }
-      
-      // Calculate bounds from location data
-      density_service.LatLngBounds bounds = density_service.LatLngBounds.fromLocations(
-        locations, 
-        paddingDegrees: 0.005
-      );
-      
-      print('[map_view] 📊 Processing ${locations.length} locations with GPS error circles');
-      
-      // Generate probabilistic density raster
-      ui.Image? densityImage = await density_service.ProbabilisticDensityService.generateProbabilisticDensityRaster(
-        locations: locations,
-        bounds: bounds,
-        resolution: 256, // Reasonable resolution for mobile
-      );
-      
-      if (densityImage != null && mounted) {
+      if (mounted) {
         setState(() {
-          _densityRaster = densityImage;
-          // Clear individual location markers when showing density
           _locations.clear();
+          _polyline.clear(); // Clear polylines in point view
+          _stopLocations.clear();
+          _motionChangePolylines.clear();
         });
-        print('[map_view] ✅ Generated density raster: ${densityImage.width}x${densityImage.height}');
-      } else if (mounted) {
-        print('[map_view] ❌ Failed to generate density raster');
+        
+        List<CircleMarker> pointCircles = [];
+        for (LocationTrack track in locationTracks) {
+          LatLng point = LatLng(track.latitude, track.longitude);
+          
+          // Use GPS accuracy as circle radius, with reasonable limits
+          double accuracyRadius = (track.accuracy ?? 10.0).clamp(3.0, 50.0);
+          
+          // Add location circle with constant semi-transparency 
+          pointCircles.add(CircleMarker(
+            point: point,
+            color: Colors.blue.withValues(alpha: 0.4), // Constant 40% transparency
+            radius: accuracyRadius,
+            useRadiusInMeter: true, // Use meters for accuracy visualization
+          ));
+        }
+        
+        if (mounted) {
+          setState(() {
+            _locations.addAll(pointCircles);
+          });
+        }
       }
       
-    } catch (e) {
-      print('[map_view] ❌ Error generating density visualization: $e');
+      print('[map_view] ✅ Point view loaded ${_locations.length} locations with GPS accuracy circles');
+      
+    } catch (error) {
+      print('[map_view] ❌ Error loading locations for point view: $error');
     }
   }
 
@@ -390,7 +386,8 @@ class MapViewState extends State<MapView>
         useRadiusInMeter: true, // Use actual meters for accuracy visualization
       ));
       
-      // Update current position marker (Google/Apple Maps style)
+      // Update current position marker AND current location variable for live movement
+      _currentLocation = currentPoint; // This is crucial for live point movement
       _currentPosition.clear();
       _currentPosition.add(CircleMarker(
         point: currentPoint,
@@ -493,7 +490,8 @@ class MapViewState extends State<MapView>
                   ),
                 ),
               ),
-            if (_polyline.isNotEmpty)
+            // PATH MODE: Show polylines and motion changes (NO individual location circles)
+            if (!_showPointView && _polyline.isNotEmpty)
               PolylineLayer(
                 polylines: [
                   new Polyline(
@@ -503,16 +501,21 @@ class MapViewState extends State<MapView>
                   ),
                 ],
               ),
-            // Remove confusing big red stationary radius circles
-            // if (_stationaryMarker.isNotEmpty)
-            //   CircleLayer(circles: _stationaryMarker),
-            // Polyline joining last stationary location to motionchange:true location.
-            if (_motionChangePolylines.isNotEmpty)
+            // Motion change polylines (only in path mode)
+            if (!_showPointView && _motionChangePolylines.isNotEmpty)
               PolylineLayer(polylines: _motionChangePolylines),
-            // Recorded locations.
-            if (_locations.isNotEmpty) CircleLayer(circles: _locations),
-            // Simplified stop locations (smaller, less confusing)
-            if (_stopLocations.isNotEmpty) CircleLayer(circles: _stopLocations),
+            
+            // POINT VIEW MODE: Show all location circles with GPS accuracy radius
+            if (_showPointView && _locations.isNotEmpty) 
+              CircleLayer(circles: _locations),
+              
+            // PATH MODE: Show recorded locations only when not in point view
+            if (!_showPointView && _locations.isNotEmpty) CircleLayer(circles: _locations),
+            
+            // Stop locations (only in path mode)
+            if (!_showPointView && _stopLocations.isNotEmpty) CircleLayer(circles: _stopLocations),
+            
+            // Current position (live point) - always visible in all modes
             if (_currentPosition.isNotEmpty) CircleLayer(circles: _currentPosition),
             
             // Current position center dot (Google Maps style)
@@ -542,10 +545,6 @@ class MapViewState extends State<MapView>
                   ),
                 ],
               ),
-              
-            // Density raster overlay
-            if (_showDensityMap && _densityRaster != null)
-              _DensityRasterLayer(densityImage: _densityRaster!),
           ],
         ),
         
@@ -578,34 +577,35 @@ class MapViewState extends State<MapView>
                 child: Icon(_autoCenter ? Icons.gps_fixed : Icons.gps_not_fixed),
               ),
               SizedBox(height: 8),
-              // Density map toggle
+              // Point view toggle (circles with GPS accuracy radius)
               FloatingActionButton(
                 mini: true,
-                heroTag: "density_map_toggle",
+                heroTag: "point_view_toggle",
                 onPressed: () {
                   setState(() {
-                    _showDensityMap = !_showDensityMap;
+                    _showPointView = !_showPointView;
                   });
                   
-                  if (_showDensityMap) {
-                    _generateSimpleDensityVisualization();
+                  if (_showPointView) {
+                    print('[map_view] 🎯 Switching TO point view mode');
+                    _displayStoredLocationsAsPoints();
                   } else {
-                    // Return to normal location display
+                    print('[map_view] 🗺️ Switching TO path view mode');
                     _displayStoredLocations();
                   }
                   
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(_showDensityMap 
-                        ? '🔥 Density map enabled - visualizing movement patterns!' 
-                        : 'Density map disabled'),
+                      content: Text(_showPointView 
+                        ? '🎯 Point view enabled - GPS accuracy circles!' 
+                        : '🗺️ Path view enabled - location tracks!'),
                       duration: Duration(seconds: 2),
                     ),
                   );
                 },
-                backgroundColor: _showDensityMap ? Colors.orange : Colors.grey[600],
+                backgroundColor: _showPointView ? Colors.green : Colors.grey[600],
                 foregroundColor: Colors.white,
-                child: Icon(_showDensityMap ? Icons.whatshot : Icons.scatter_plot),
+                child: Icon(_showPointView ? Icons.circle : Icons.timeline),
               ),
 
               SizedBox(height: 8),
@@ -637,49 +637,4 @@ class MapViewState extends State<MapView>
   }
 }
 
-/// Simple density raster overlay widget
-class _DensityRasterLayer extends StatelessWidget {
-  final ui.Image densityImage;
-  
-  const _DensityRasterLayer({required this.densityImage});
-  
-  @override
-  Widget build(BuildContext context) {
-    // For now, we'll create a simple overlay
-    // This is a placeholder - in a full implementation, we'd need proper geo-referencing
-    return Positioned.fill(
-      child: CustomPaint(
-        painter: _DensityRasterPainter(densityImage),
-      ),
-    );
-  }
-}
 
-/// Custom painter for density raster
-class _DensityRasterPainter extends CustomPainter {
-  final ui.Image image;
-  
-  _DensityRasterPainter(this.image);
-  
-  @override
-  void paint(Canvas canvas, Size size) {
-    // Paint the density image as an overlay
-    // This is a simple implementation - proper geo-referencing would require
-    // converting between map coordinates and image coordinates
-    final paint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.7) // Semi-transparent
-      ..blendMode = BlendMode.multiply;
-    
-    canvas.drawImageRect(
-      image,
-      Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble()),
-      Rect.fromLTWH(0, 0, size.width, size.height),
-      paint,
-    );
-  }
-  
-  @override
-  bool shouldRepaint(_DensityRasterPainter oldDelegate) {
-    return oldDelegate.image != image;
-  }
-}

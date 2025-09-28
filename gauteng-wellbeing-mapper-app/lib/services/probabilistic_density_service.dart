@@ -42,10 +42,15 @@ class ProbabilisticDensityService {
       (_) => List.filled(width, 0.0)
     );
     
-    print('[ProbabilisticDensity] Processing locations with GPS error circles...');
+    print('[ProbabilisticDensity] Processing locations with GPS error circles and sampling rate adjustment...');
+    
+    // Sort locations by timestamp to calculate sampling intervals
+    List<LocationTrack> sortedLocations = List.from(locations)
+      ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
     
     // Process each location as an error circle
-    for (LocationTrack location in locations) {
+    for (int i = 0; i < sortedLocations.length; i++) {
+      LocationTrack location = sortedLocations[i];
       double accuracy = location.accuracy ?? 10.0; // Default 10m if no accuracy data
       
       // Skip locations with very poor accuracy (>200m) as they're probably not useful
@@ -60,13 +65,18 @@ class ProbabilisticDensityService {
         accuracy, location.latitude, bounds, width, height
       );
       
-      // Calculate base opacity: smaller error = more opaque
-      // GPS error represents 68% confidence circle, so we scale accordingly
-      double baseOpacity = _calculateBaseOpacity(accuracy);
+      // Calculate base opacity: LARGER error = MORE transparent (inverse relationship)
+      double accuracyOpacity = _calculateAccuracyOpacity(accuracy);
+      
+      // Calculate sampling rate adjustment: shorter intervals = more transparent
+      double samplingOpacity = _calculateSamplingOpacity(sortedLocations, i);
+      
+      // Combine both opacity factors
+      double finalOpacity = accuracyOpacity * samplingOpacity;
       
       // Draw error circle with appropriate transparency
       _drawErrorCircle(
-        opacityGrid, centerX, centerY, radiusPixels, baseOpacity, width, height
+        opacityGrid, centerX, centerY, radiusPixels, finalOpacity, width, height
       );
     }
     
@@ -74,18 +84,58 @@ class ProbabilisticDensityService {
     return _opacityGridToImage(opacityGrid, width, height);
   }
   
-  /// Calculate base opacity based on GPS accuracy
-  /// More accurate locations (smaller error) get higher opacity
-  static double _calculateBaseOpacity(double accuracy) {
-    // Inverse relationship: smaller accuracy = higher opacity
-    // Scale from 0.1 (very poor accuracy) to 0.8 (very good accuracy)
+  /// Calculate opacity based on GPS accuracy
+  /// LARGER error = MORE transparent (inverse relationship)
+  static double _calculateAccuracyOpacity(double accuracy) {
+    // Inverse relationship: LARGER accuracy = LOWER opacity
+    // Scale from 0.8 (very good accuracy) to 0.1 (very poor accuracy)
     
-    if (accuracy <= 3.0) return 0.8;   // Excellent GPS (indoor/outdoor boundary)
-    if (accuracy <= 5.0) return 0.6;   // Very good GPS (clear sky)
-    if (accuracy <= 10.0) return 0.4;  // Good GPS (normal conditions)
-    if (accuracy <= 20.0) return 0.3;  // Fair GPS (some obstruction)
-    if (accuracy <= 50.0) return 0.2;  // Poor GPS (significant obstruction)
-    return 0.1; // Very poor GPS (>50m error)
+    if (accuracy <= 3.0) return 0.8;   // Excellent GPS → high opacity
+    if (accuracy <= 5.0) return 0.6;   // Very good GPS
+    if (accuracy <= 10.0) return 0.4;  // Good GPS
+    if (accuracy <= 20.0) return 0.3;  // Fair GPS
+    if (accuracy <= 50.0) return 0.2;  // Poor GPS → low opacity
+    return 0.1; // Very poor GPS (>50m error) → very transparent
+  }
+  
+  /// Calculate opacity adjustment based on sampling rate
+  /// Shorter intervals between GPS points = more transparent
+  /// (High sampling rate during fast movement shouldn't appear as high density)
+  static double _calculateSamplingOpacity(List<LocationTrack> locations, int currentIndex) {
+    if (locations.length < 2) return 1.0;
+    
+    // Calculate time intervals before and after this point
+    double totalInterval = 0.0;
+    int intervalCount = 0;
+    
+    // Interval before this point
+    if (currentIndex > 0) {
+      Duration before = locations[currentIndex].timestamp.difference(locations[currentIndex - 1].timestamp);
+      totalInterval += before.inSeconds.toDouble();
+      intervalCount++;
+    }
+    
+    // Interval after this point
+    if (currentIndex < locations.length - 1) {
+      Duration after = locations[currentIndex + 1].timestamp.difference(locations[currentIndex].timestamp);
+      totalInterval += after.inSeconds.toDouble();
+      intervalCount++;
+    }
+    
+    if (intervalCount == 0) return 1.0;
+    
+    double avgInterval = totalInterval / intervalCount;
+    
+    // Adjust opacity based on sampling rate
+    // Very short intervals (high sampling rate) = more transparent
+    // Longer intervals (low sampling rate) = more opaque
+    
+    if (avgInterval >= 300) return 1.0;    // 5+ minutes → full opacity (stationary/slow)
+    if (avgInterval >= 120) return 0.8;    // 2-5 minutes → high opacity
+    if (avgInterval >= 60) return 0.6;     // 1-2 minutes → medium opacity  
+    if (avgInterval >= 30) return 0.4;     // 30s-1min → lower opacity (moving)
+    if (avgInterval >= 15) return 0.3;     // 15-30s → low opacity (fast movement)
+    return 0.2; // <15s → very transparent (very fast/high sampling rate)
   }
   
   /// Draw a GPS error circle on the opacity grid
