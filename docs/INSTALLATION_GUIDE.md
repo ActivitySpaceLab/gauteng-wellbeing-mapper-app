@@ -78,7 +78,7 @@ Huawei devices released after May 2019 typically don't have Google Play Services
 
 **Huawei-specific troubleshooting:**
 - If you get security warnings, these are normal for APK installations
-- Make sure you have at least 100MB of free storage space
+- Make sure you have at least 60MB of free storage space
 - Some Huawei devices require enabling "Developer options" first
 
 ## iOS Installation
@@ -106,7 +106,7 @@ Currently, the iOS version is available through Apple's TestFlight program.
 ### Common Issues and Solutions
 
 **Android Issues:**
-- **"App not installed" error**: Make sure you have enough storage space (at least 100MB free)
+- **"App not installed" error**: Make sure you have enough storage space (at least 60MB free)
 - **"Parse error"**: The APK file may be corrupted - try downloading it again
 - **Can't find "Unknown sources"**: Look for "Install unknown apps" in newer Android versions
 - **Installation blocked**: Some antivirus apps block APK installation - temporarily disable them during installation
@@ -118,7 +118,7 @@ Currently, the iOS version is available through Apple's TestFlight program.
 
 **General Issues:**
 - **App won't open**: Restart your device and try again
-- **Crashes on startup**: Make sure your device meets minimum requirements (Android 7.0+ or iOS 12.0+)
+- **Crashes on startup**: Make sure your device meets minimum requirements (Android 6.0+ or iOS 12.0+)
 - **Can't enter participant code**: Make sure you're typing the code exactly as provided, including correct capitalization
 
 ### Getting Help
@@ -147,15 +147,15 @@ If you encounter issues not covered in this guide:
 ## System Requirements
 
 ### Android
-- **Minimum Version**: Android 7.0 (API level 24)
-- **Recommended**: Android 9.0 or higher
-- **Storage**: At least 100MB free space
+- **Minimum Version**: Android 6.0 (API level 23)
+- **Recommended**: Android 11 or higher
+- **Storage**: About 60MB free space (download is ~31MB; allow extra for cached survey data)
 - **Permissions**: Location access (for core functionality)
 
 ### iOS
 - **Minimum Version**: iOS 12.0
 - **Recommended**: iOS 14.0 or higher
-- **Storage**: At least 100MB free space
+- **Storage**: About 60MB free space (comparable download size via TestFlight; allow extra for cached survey data)
 - **Permissions**: Location access (for core functionality)
 
 ## Privacy and Security
