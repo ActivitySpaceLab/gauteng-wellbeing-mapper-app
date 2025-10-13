@@ -10,11 +10,11 @@ title: Privacy Policy
 nav_order: 9
 ---
 
-# Wellbeing Mapper Privacy Policy
+# Gauteng Wellbeing Mapper Privacy Policy
 
 ## Overview
 
-Wellbeing Mapper is designed with privacy as a core principle. You have complete control over your data, whether you use the app privately or participate in research studies.
+Gauteng Wellbeing Mapper is designed with privacy as a core principle. You have complete control over your data, whether you use the app privately or participate in research studies.
 
 ## Data Collection and Storage
 
@@ -29,7 +29,7 @@ Wellbeing Mapper is designed with privacy as a core principle. You have complete
 - Optional location context can be attached to surveys (with your permission)
 
 ### No Automatic Data Sharing
-- **Private Mode**: All data stays on your device forever unless you manually export it
+- **Private Mode**: All data stays on your device unless you manually export it
 - **Research Mode**: Data is only shared when you explicitly consent through the data sharing dialog
 
 ## Research Participation (Optional)
@@ -53,7 +53,7 @@ When participating in research, you have **three options** for data sharing:
    - Complete control over which geographic areas are included
 
 3. **Survey Responses Only**
-   - Only your mood and wellbeing answers are shared
+   - Only your survey responses are shared
    - No location data is transmitted
    - Still valuable for research while maintaining complete location privacy
 
@@ -68,17 +68,14 @@ When participating in research, you have **three options** for data sharing:
 ### Encryption
 - All research data is encrypted on your device before transmission
 - Uses industry-standard AES-256-GCM encryption
-- Research teams can only decrypt data with their private keys
-- Fresh encryption keys for each upload (forward secrecy)
+- Research teams can only decrypt data with private key
 
 ### Anonymous Participation
-- No personal identifying information is ever transmitted
+- No personal identifying information is collected or transmitted
 - Random participant codes are used instead of names or emails
-- Location areas are shown as general regions, not exact addresses
-- IP addresses and device identifiers are not logged
+
 
 ### Data Retention
-- Research data is automatically deleted from your device after successful upload
 - You can manually delete all local data anytime
 - Local data retention follows your device's storage settings
 
@@ -86,23 +83,14 @@ When participating in research, you have **three options** for data sharing:
 
 ### Complete Control
 - View all data stored on your device
-- Export your data anytime as JSON files
-- Delete individual location records or survey responses
 - Change data sharing preferences without penalty
 - Withdraw from research participation completely
 
 ### Transparency
 - Real-time preview of what data will be shared
 - Clear summaries before each research upload
-- History of all your consent decisions
 - Open source code available for technical review
 
-## Contact
-
-For privacy questions or concerns:
-- Use the "Report an Issue" feature in the app
-- Contact the research team through official channels
-- Visit the project website for more information
 
 **Last Updated:** July 2025
 
