@@ -20,6 +20,9 @@ android/key.properties
 participant_codes.json
 **/participant_codes.json
 
+participant_codes_study_*.csv
+**/participant_codes_study_*.csv
+
 # Qualtrics specific - SECURITY: Prevent API token commits
 qualtrics_config.dart
 qualtrics_tokens.dart
