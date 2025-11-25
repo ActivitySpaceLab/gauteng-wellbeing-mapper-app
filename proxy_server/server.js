@@ -33,9 +33,11 @@ const FALLBACK_BUCKET = process.env.FALLBACK_BUCKET;
 const QUALTRICS_API_BASE = 'https://pretoria.eu.qualtrics.com/API/v3';
 const QUALTRICS_SURVEY_ID = 'SV_81uhgIyzv52qgdM';
 const QUALTRICS_API_TOKEN = process.env.QUALTRICS_API_TOKEN;
+const QUALTRICS_FORWARDING_DISABLED = process.env.DISABLE_QUALTRICS_FORWARDING === 'true';
+const AUTO_ACK_ON_S3_STORE = process.env.AUTO_ACK_ON_S3_STORE === 'true';
 
 // Helper function to store payload in S3 (if forwarding fails)
-async function storePayloadInS3({ encryptedData, surveyType, receivedAt }) {
+async function storePayloadInS3({ encryptedData, surveyType, receivedAt, keyPrefix = 'failed-surveys' }) {
   if (!FALLBACK_BUCKET) {
     throw new Error('FALLBACK_BUCKET environment variable is not configured');
   }
@@ -44,7 +46,7 @@ async function storePayloadInS3({ encryptedData, surveyType, receivedAt }) {
   const uniqueSuffix = typeof crypto.randomUUID === 'function'
     ? crypto.randomUUID()
     : crypto.randomBytes(16).toString('hex');
-  const objectKey = `failed-surveys/${safeType}/${Date.now()}-${uniqueSuffix}.bin`;
+  const objectKey = `${keyPrefix}/${safeType}/${Date.now()}-${uniqueSuffix}.bin`;
 
   await s3
     .putObject({
@@ -63,7 +65,7 @@ async function storePayloadInS3({ encryptedData, surveyType, receivedAt }) {
 }
 
 // Validate required environment variables
-if (!QUALTRICS_API_TOKEN) {
+if (!QUALTRICS_API_TOKEN && !QUALTRICS_FORWARDING_DISABLED) {
   console.error('❌ QUALTRICS_API_TOKEN environment variable is required');
   process.exit(1);
 }
@@ -112,7 +114,9 @@ app.get('/health', (req, res) => {
     status: 'healthy', 
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development',
-    server_version: '1.2.0'
+    server_version: '1.2.0',
+    qualtrics_forwarding_enabled: !QUALTRICS_FORWARDING_DISABLED,
+    auto_ack_on_s3_store: AUTO_ACK_ON_S3_STORE
   });
 });
 
@@ -253,77 +257,113 @@ app.post('/submit', async (req, res) => {
     if (!timestamp || timestamp.length === 0) {
       console.log(`⚠️ No timestamp provided, using server timestamp`);
     }
-    
+
+    if (!FALLBACK_BUCKET) {
+      console.log('❌ FALLBACK_BUCKET not configured; cannot buffer submission safely');
+      return res.status(503).json({
+        error: 'S3 storage not configured',
+        message: 'Set FALLBACK_BUCKET to enable reliable buffering before forwarding'
+      });
+    }
+
     const submissionTimestamp = timestamp || new Date().toISOString();
 
-    const qualtricsResult = await forwardToQualtricsAPI({
-      encrypted_data,
-      survey_type,
-      timestamp: submissionTimestamp
-    });
+    let objectKey;
+    try {
+      objectKey = await storePayloadInS3({
+        encryptedData: encrypted_data,
+        surveyType: survey_type,
+        receivedAt: submissionTimestamp,
+        keyPrefix: 'buffered-surveys'
+      });
+      console.log(`📦 Stored submission snapshot in S3: s3://${FALLBACK_BUCKET}/${objectKey}`);
+    } catch (storageError) {
+      console.error('❌ Failed to store payload in S3 buffer:', storageError);
+      return res.status(500).json({
+        error: 'Failed to store encrypted survey payload',
+        message: storageError.message
+      });
+    }
 
-    if (qualtricsResult.success) {
-      console.log('✅ Successfully forwarded to Qualtrics');
-      res.json({ 
-        success: true, 
-        message: 'Encrypted survey data forwarded to Qualtrics',
+    let qualtricsResult = null;
+    let qualtricsAttempted = false;
+
+    if (QUALTRICS_FORWARDING_DISABLED) {
+      console.log('⏭️ Qualtrics forwarding disabled via DISABLE_QUALTRICS_FORWARDING');
+    } else {
+      qualtricsAttempted = true;
+      qualtricsResult = await forwardToQualtricsAPI({
+        encrypted_data,
         survey_type,
-        timestamp: new Date().toISOString()
+        timestamp: submissionTimestamp
+      });
+
+      if (!qualtricsResult.success) {
+        console.log('⚠️ Qualtrics forwarding attempt failed; relying on S3 buffer');
+      }
+    }
+
+    const qualtricsSuccess = qualtricsResult?.success === true;
+    const s3Pointer = `s3://${FALLBACK_BUCKET}/${objectKey}`;
+
+    if (qualtricsSuccess) {
+      const message = 'Forwarded to Qualtrics and stored encrypted copy in S3 buffer';
+      res.json({
+        success: true,
+        message,
+        survey_type,
+        timestamp: new Date().toISOString(),
+        storage: {
+          bucket: FALLBACK_BUCKET,
+          object_key: s3Pointer
+        },
+        qualtrics: {
+          attempted: true,
+          success: true,
+          status: qualtricsResult.statusCode ?? 200
+        }
       });
       return;
     }
 
-    const qualifiesForFallback = FALLBACK_BUCKET &&
-      isQualtricsPayloadTooLarge(qualtricsResult.statusCode, qualtricsResult.responseBody);
-
-    if (qualifiesForFallback) {
-      try {
-        const objectKey = await storePayloadInS3({
-          encryptedData: encrypted_data,
-          surveyType: survey_type,
-          receivedAt: submissionTimestamp
-        });
-
-        const s3Pointer = `s3://${FALLBACK_BUCKET}/${objectKey}`;
-        console.log(`📦 Stored oversized payload in S3 fallback: ${s3Pointer}`);
-
-        const stubResult = await forwardToQualtricsAPI({
-          encrypted_data: `S3 fallback pointer: ${s3Pointer}`,
-          survey_type,
-          timestamp: submissionTimestamp,
-          fallback_pointer: s3Pointer,
-          via_s3: true
-        });
-
-        if (!stubResult.success) {
-          console.log('⚠️ Qualtrics fallback stub failed to upload - data remains only in S3');
-        }
-
-        res.json({
-          success: true,
-          via_s3: true,
-          s3_object_key: s3Pointer,
-          qualtrics_stub_uploaded: stubResult.success,
-          message: 'Payload stored in S3 fallback due to Qualtrics size limit',
-          survey_type,
-          timestamp: new Date().toISOString()
-        });
-        return;
-      } catch (storageError) {
-        console.error('❌ Failed to store payload in S3 fallback:', storageError);
-        res.status(500).json({ 
-          error: 'Qualtrics rejected payload and fallback storage failed',
-          message: storageError.message
-        });
-        return;
-      }
+    if (QUALTRICS_FORWARDING_DISABLED && !AUTO_ACK_ON_S3_STORE) {
+      console.log('⚠️ Qualtrics forwarding disabled but AUTO_ACK_ON_S3_STORE is false; returning error to caller');
     }
 
-    console.log('❌ Failed to forward to Qualtrics (no fallback path triggered)');
-    res.status(500).json({ 
+    if (AUTO_ACK_ON_S3_STORE) {
+      const message = QUALTRICS_FORWARDING_DISABLED
+        ? 'Stored encrypted survey in S3 buffer (Qualtrics forwarding disabled)'
+        : 'Stored encrypted survey in S3 buffer; Qualtrics forwarding failed';
+
+      res.json({
+        success: true,
+        message,
+        survey_type,
+        timestamp: new Date().toISOString(),
+        storage: {
+          bucket: FALLBACK_BUCKET,
+          object_key: s3Pointer
+        },
+        qualtrics: {
+          attempted: qualtricsAttempted,
+          success: false,
+          status: qualtricsResult?.statusCode ?? null
+        }
+      });
+      return;
+    }
+
+    console.log('❌ Returning failure to client due to Qualtrics rejection; S3 buffer retained for retry');
+    res.status(502).json({
+      success: false,
       error: 'Failed to forward data to Qualtrics',
-      qualtrics_status: qualtricsResult.statusCode ?? null
+      qualtrics_status: qualtricsResult?.statusCode ?? null,
+      storage: {
+        bucket: FALLBACK_BUCKET,
+        object_key: s3Pointer
+      }
     });
+    return;
     
   } catch (error) {
     console.error('❌ Proxy error:', error);
@@ -336,6 +376,11 @@ app.post('/submit', async (req, res) => {
 
 // Forward encrypted data to Qualtrics API
 async function forwardToQualtricsAPI(data) {
+  if (QUALTRICS_FORWARDING_DISABLED) {
+    console.log('⏭️ Skipping Qualtrics API call because forwarding is disabled');
+    return { success: false, statusCode: null, responseBody: null };
+  }
+
   return new Promise((resolve) => {
     try {
       // Create response data for Qualtrics API
@@ -440,19 +485,6 @@ async function forwardToQualtricsAPI(data) {
       resolve({ success: false, statusCode: null, responseBody: null, error: error.message });
     }
   });
-}
-
-function isQualtricsPayloadTooLarge(statusCode, responseBody) {
-  if (statusCode === 413) {
-    return true;
-  }
-
-  if (!responseBody) {
-    return false;
-  }
-
-  const body = responseBody.toLowerCase();
-  return body.includes('request entity too large') || body.includes('payload too large');
 }
 
 // Error handling middleware
